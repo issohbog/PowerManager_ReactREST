@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.UserMapper">
+
+    <resultMap id="UsersMap" type="com.aloha.magicpos.domain.Users">
+        <id property="no" column="no"/>
+        <result property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="birth" column="birth"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="memo" column="memo"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 전체 회원 수  -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <!-- 검색 조건에 만족하는 회원 수 -->
+    <select id="countBy" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        <where>
+            <choose>
+                <when test="type == 'id'">
+                    id LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="type == 'username'">
+                    username LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+            </choose>
+        </where>
+    </select>
+
+    <!-- 회원 전체 조회 -->
+    <select id="selectAll" resultMap="UsersMap">
+        SELECT * FROM users
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 회원 전체 조회 (검색기능) -->
+    <select id="searchBy" resultMap="UsersMap">
+        SELECT * FROM users
+        <where>
+            <choose>
+                <when test="type eq 'id'">
+                    id LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="type eq 'username'">
+                    username LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="type eq 'phone'">
+                    phone LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+            </choose>
+        </where>
+        ORDER BY no DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 단일 회원 조회 -->
+    <select id="selectByNo" resultMap="UsersMap" parameterType="long">
+        SELECT * FROM users WHERE no = #{no}
+    </select>
+
+    <!-- 아이디로 회원 조회 - 아이디 중복체크시 사용 -->
+    <select id="findById" parameterType="String" resultType="com.aloha.magicpos.domain.Users">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <!-- userNo로 회원 조회 -->
+    <select id="findByNo" parameterType="long" resultType="Users">
+        SELECT * FROM users WHERE no = #{userNo}
+    </select>
+
+
+
+    <!-- 회원가입 -->
+    <insert id="insert" parameterType="com.aloha.magicpos.domain.Users" useGeneratedKeys="true" keyProperty="no">
+        INSERT INTO users (id, username, password, birth, email, phone, memo)
+        VALUES (#{id}, #{username}, #{password}, #{birth}, #{email}, #{phone}, #{memo})
+    </insert>
+
+
+    <!-- 관리자용 회원 정보 수정(생년월일, 이메일, 전화번호, 메모) -->
+    <update id="update" parameterType="com.aloha.magicpos.domain.Users">
+        UPDATE users
+        SET 
+            username = #{username},
+            gender = #{gender},
+            birth = #{birth},
+            email = #{email},
+            phone = #{phone},
+            memo = #{memo}
+        WHERE no = #{no}
+    </update>
+
+    <!-- 관리자용 비밀번호 초기화 -->
+    <update id="resetPassword">
+        UPDATE users
+        SET password = #{password}
+        WHERE no = #{no}
+    </update>
+
+    <!-- 사용자용 회원 정보 수정(비밀번호) -->
+    <update id="updateUserProfile" parameterType="com.aloha.magicpos.domain.Users">
+        UPDATE users
+        SET password = #{password},
+            email = #{email},
+            phone = #{phone},
+            birth = #{birth}
+        WHERE no = #{no}
+    </update>
+
+
+    <!-- 회원 탈퇴 -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM users WHERE no = #{no}
+    </delete>
+
+    <!-- 회원 검색(이름/아이디/전화번호) -->
+    <select id="searchUsersByKeyword" resultMap="UsersMap">
+        SELECT * FROM users
+        WHERE username LIKE CONCAT('%', #{keyword}, '%')
+        OR id LIKE CONCAT('%', #{keyword}, '%')
+        OR phone LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+
+
+    <!-- // Java 코드에서 사용할 값
+    String defaultPassword = passwordEncoder.encode("a123456789"); -->
+
+    <!-- 선생님 코드 -->
+
+        <resultMap id="UserMap" type="Users">
+        <id property="no" column="no"/> <!-- PK -->
+        
+        <result property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="birth" column="birth"/>
+        <result property="gender" column="gender"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="memo" column="memo"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createdAt" column="created_at"/>
+
+        <!-- 🔄 권한 리스트 연동 (users.no → auths.u_no) -->
+        <collection property="authList" ofType="Auths"
+                    select="selectAuth"
+                    column="no"/>
+        </resultMap>
+
+    <resultMap id="AuthMap" type="Auths">
+        <result property="no" column="no" />
+        <result property="uNo" column="u_no" />
+        <result property="auth" column="auth" />
+    </resultMap>
+
+
+    <!-- 회원 가입 -->
+    <insert id="join" parameterType="Users"
+            useGeneratedKeys="true" keyProperty="no">
+        INSERT INTO users (
+            id, username, password, birth, gender,
+            email, phone, memo, enabled, created_at
+        ) VALUES (
+            #{id}, #{username}, #{password}, #{birth}, #{gender},
+            #{email}, #{phone}, #{memo}, #{enabled}, NOW()
+        )
+    </insert>
+
+
+    <!-- 회원 권한 등록 -->
+    <insert id="insertAuth" parameterType="Auths">
+        INSERT INTO auths (u_no, auth)
+        VALUES (#{uNo}, #{auth})
+    </insert>
+
+
+    <!-- 회원 조회 -->
+    <select id="select" resultMap="UserMap">
+        SELECT *
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <!-- 권한 조회 -->
+    <select id="selectAuth" parameterType="long" resultType="Auths">
+        SELECT *
+        FROM auths
+        WHERE u_no = #{no}
+    </select>
+
+
+
+
+</mapper>
+

@@ -1,0 +1,71 @@
+<th:block th:fragment="orderCancel" th:inline="javascript">
+  <!-- 상품취소 모달 -->
+  <div th:id="'cancel-modal-' + ${order.no}" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+      <!-- 모달 상단 -->
+      <div class="cancel-modal-header">
+        <span class="cancel-modal-title">상품취소</span>
+        <button class="cancel-modal-close" th:attr="onclick=|closeCancelModal(${order.no})|">X</button>
+      </div>
+
+      <!-- 상품 취소 목록 -->
+      <div class="cart-section-box">
+          <div class="cart-section">
+            <div class="cancel-cart-items">
+                <div th:each="orderDetail : ${orderDetails}" class="cart-item">
+                    <div class="cart-item-left">
+                        <div th:text="${orderDetail['p_name']} ?: '이름없음'" style="color: white;">상품이름</div>
+                        <div class="quantity-control">
+                            <!-- 수량 감소/증가/삭제 form은 주문 form 밖에 위치 -->
+                            <form action="/admin/orders/decreaseQuantity" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                                <input type="hidden" name="oNo" th:value="${orderDetail['o_no']}" />
+                                <input type="hidden" name="pNo" th:value="${orderDetail['p_no']}" />
+                                <input type="hidden" name="orderNo" th:value="${order.no}" />
+                                <button type="submit" class="cartcontrolBtn">
+                                  <img th:src="@{/images/마이너스 하얀색.png}" alt="감소">
+                                </button>
+                              </form>
+                              <span th:text="${orderDetail['quantity']}" style="color: white;">1</span>
+                              <form action="/admin/orders/increaseQuantity" method="post">
+                              <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                              <input type="hidden" name="oNo" th:value="${orderDetail['o_no']}" />
+                                <input type="hidden" name="pNo" th:value="${orderDetail['p_no']}" />
+                                <input type="hidden" name="orderNo" th:value="${order.no}" />
+                                <button type="submit" class="cartcontrolBtn">
+                                    <img th:src="@{/images/플러스 노란색.png}" alt="증가">
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="cart-item-right">
+                        <div th:text="${(orderDetail['p_price'] != null and orderDetail['quantity'] != null) ? #numbers.formatInteger(orderDetail['p_price'] * orderDetail['quantity'], 3, 'COMMA') + '원' : '0원'}">가격</div>
+                        <form action="/admin/orders/delete/detail" method="post">
+                            <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                            <input type="hidden" name="oNo" th:value="${orderDetail['o_no']}" />
+                            <input type="hidden" name="pNo" th:value="${orderDetail['p_no']}" />
+                            <input type="hidden" name="orderNo" th:value="${order.no}" />
+                            <button type="submit" class="deleteBtn">✕</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="total-price">
+                총 주문금액 <span th:text="${order.totalPrice != null ? #numbers.formatInteger(order.totalPrice, 3, 'COMMA') + '원' : '0원'}" style="font-weight: bold;">16,000원</span>
+            </div>
+        </div>
+        </div>
+
+        <!-- 하단 버튼 -->
+        <div class="cancel-modal-footer">
+          <form action="/admin/orders/delete" method="post" class="order-delete-form">
+              <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+              <input type="hidden" name="orderNo" th:value="${order.no}" />
+              <button type="submit" class="allCancel">전체 주문 취소</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</th:block>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.TodayHistoryMapper">
+
+    <!-- ✅ 오늘 전체 결제 내역 (주문 + 이용권) -->
+    <select id="findTodayAll" resultType="map">
+        SELECT * FROM (
+            -- 주문결제 묶기
+            SELECT 
+                '주문결제' AS history_type,
+                GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+                u.username,
+                u.id AS user_id,
+                o.seat_id,
+                o.total_price AS price,
+                o.pay_at AS time
+            FROM orders o
+            JOIN users u ON o.u_no = u.no
+            JOIN orders_details od ON o.no = od.o_no
+            JOIN products p ON od.p_no = p.no
+            WHERE DATE(o.pay_at) = CURDATE()
+            AND o.payment_status = 1
+            GROUP BY o.no
+
+            UNION ALL
+
+            SELECT 
+                '이용권구매' AS history_type,
+                t.ticket_name AS item_name,
+                u.username,
+                u.id AS user_id,
+                NULL AS seat_id,
+                t.price AS price,
+                ut.pay_at AS time
+            FROM user_tickets ut
+            JOIN users u ON ut.u_no = u.no
+            JOIN tickets t ON ut.t_no = t.no
+            WHERE DATE(ut.pay_at) = CURDATE()
+        ) AS combined
+        ORDER BY time DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- ✅ 분류별 내역: 주문 -->
+    <select id="findTodayOrdersOnly" resultType="map">
+        SELECT 
+            '주문결제' AS history_type,
+            GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+            u.username,
+            u.id AS user_id,
+            o.seat_id,
+            o.total_price AS price,
+            o.pay_at AS time
+        FROM orders o
+        JOIN users u ON o.u_no = u.no
+        JOIN orders_details od ON o.no = od.o_no
+        JOIN products p ON od.p_no = p.no
+        WHERE DATE(o.pay_at) = CURDATE()
+        AND o.payment_status = 1
+        GROUP BY o.no
+        ORDER BY o.pay_at DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- ✅ 분류별 내역: 이용권 -->
+    <select id="findTodayTicketsOnly" resultType="map">
+        SELECT 
+            '이용권구매' AS history_type,
+            t.ticket_name AS item_name,
+            u.username,
+            u.id AS user_id,
+            NULL AS seat_id,
+            t.price AS price,
+            ut.pay_at AS time
+        FROM user_tickets ut
+        JOIN users u ON ut.u_no = u.no
+        JOIN tickets t ON ut.t_no = t.no
+        WHERE DATE(ut.pay_at) = CURDATE()
+        ORDER BY ut.pay_at DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- ✅ 검색: 전체에서 내역명 / 이름 / 아이디 -->
+    <select id="searchTodayAll" resultType="map">
+        SELECT * FROM (
+            -- 주문결제 묶기
+            SELECT 
+                '주문결제' AS history_type,
+                GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+                u.username,
+                u.id AS user_id,
+                o.seat_id,
+                o.total_price AS price,
+                o.pay_at AS time
+            FROM orders o
+            JOIN users u ON o.u_no = u.no
+            JOIN orders_details od ON o.no = od.o_no
+            JOIN products p ON od.p_no = p.no
+            WHERE DATE(o.pay_at) = CURDATE()
+            AND o.payment_status = 1
+            GROUP BY o.no
+
+            UNION ALL
+
+            SELECT 
+                '이용권구매' AS history_type,
+                t.ticket_name AS item_name,
+                u.username,
+                u.id AS user_id,
+                NULL AS seat_id,
+                t.price AS price,
+                ut.pay_at AS time
+            FROM user_tickets ut
+            JOIN users u ON ut.u_no = u.no
+            JOIN tickets t ON ut.t_no = t.no
+            WHERE DATE(ut.pay_at) = CURDATE()
+        ) AS combined
+        WHERE item_name LIKE CONCAT('%', #{keyword}, '%')
+           OR username LIKE CONCAT('%', #{keyword}, '%')
+           OR user_id LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY time DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 이용권구매 내역에서 검색: 내역명 / 이름 / 아이디 -->
+    <select id="searchTodayTickets" resultType="map">
+        SELECT 
+            '이용권구매' AS history_type,
+            t.ticket_name AS item_name,
+            u.username,
+            u.id AS user_id,
+            NULL AS seat_id,
+            t.price AS price,
+            ut.pay_at AS time
+        FROM user_tickets ut
+        JOIN users u ON ut.u_no = u.no
+        JOIN tickets t ON ut.t_no = t.no
+        WHERE DATE(ut.pay_at) = CURDATE()
+        AND (
+                t.ticket_name LIKE CONCAT('%', #{keyword}, '%')
+            OR u.username LIKE CONCAT('%', #{keyword}, '%')
+            OR u.id LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY ut.pay_at DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 주문결제 내역에서 검색: 내역명 / 이름 / 아이디 -->
+    <select id="searchTodayOrders" resultType="map">
+        SELECT 
+            '주문결제' AS history_type,
+            GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+            u.username,
+            u.id AS user_id,
+            o.seat_id,
+            o.total_price AS price,
+            o.pay_at AS time
+        FROM orders o
+        JOIN users u ON o.u_no = u.no
+        JOIN orders_details od ON o.no = od.o_no
+        JOIN products p ON od.p_no = p.no
+        WHERE DATE(o.pay_at) = CURDATE()
+        AND o.payment_status = 1
+        GROUP BY o.no
+        HAVING 
+            item_name LIKE CONCAT('%', #{keyword}, '%')
+            OR username LIKE CONCAT('%', #{keyword}, '%')
+            OR user_id LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY o.pay_at DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 전체 내역 개수 -->
+    <select id="countTodayAll" resultType="long">
+        SELECT COUNT(*) FROM (
+            -- 주문결제 묶기
+            SELECT 
+                '주문결제' AS history_type,
+                GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+                u.username,
+                u.id AS user_id,
+                o.seat_id,
+                o.total_price AS price,
+                o.pay_at AS time
+            FROM orders o
+            JOIN users u ON o.u_no = u.no
+            JOIN orders_details od ON o.no = od.o_no
+            JOIN products p ON od.p_no = p.no
+            WHERE DATE(o.pay_at) = CURDATE()
+            AND o.payment_status = 1
+            GROUP BY o.no
+
+            UNION ALL
+
+            SELECT 
+                '이용권구매' AS history_type,
+                t.ticket_name AS item_name,
+                u.username,
+                u.id AS user_id,
+                NULL AS seat_id,
+                t.price AS price,
+                ut.pay_at AS time
+            FROM user_tickets ut
+            JOIN users u ON ut.u_no = u.no
+            JOIN tickets t ON ut.t_no = t.no
+            WHERE DATE(ut.pay_at) = CURDATE()
+        ) AS combined
+    </select>
+
+    <!-- 검색 시 전체 내역 개수 -->
+    <select id="countSearchTodayAll" resultType="long">
+        SELECT COUNT(*) FROM (
+            -- 주문결제 묶기
+            SELECT 
+                '주문결제' AS history_type,
+                GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+                u.username,
+                u.id AS user_id,
+                o.seat_id,
+                o.total_price AS price,
+                o.pay_at AS time
+            FROM orders o
+            JOIN users u ON o.u_no = u.no
+            JOIN orders_details od ON o.no = od.o_no
+            JOIN products p ON od.p_no = p.no
+            WHERE DATE(o.pay_at) = CURDATE()
+            AND o.payment_status = 1
+            GROUP BY o.no
+
+            UNION ALL
+
+            SELECT 
+                '이용권구매' AS history_type,
+                t.ticket_name AS item_name,
+                u.username,
+                u.id AS user_id,
+                NULL AS seat_id,
+                t.price AS price,
+                ut.pay_at AS time
+            FROM user_tickets ut
+            JOIN users u ON ut.u_no = u.no
+            JOIN tickets t ON ut.t_no = t.no
+            WHERE DATE(ut.pay_at) = CURDATE()
+        ) AS combined
+        WHERE item_name LIKE CONCAT('%', #{keyword}, '%')
+           OR username LIKE CONCAT('%', #{keyword}, '%')
+           OR user_id LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+    <!-- 이용권구매 내역 개수 -->
+    <select id="countTodayTickets" resultType="long">
+        SELECT COUNT(*) FROM user_tickets ut
+        JOIN users u ON ut.u_no = u.no
+        JOIN tickets t ON ut.t_no = t.no
+        WHERE DATE(ut.pay_at) = CURDATE()
+        AND (
+                t.ticket_name LIKE CONCAT('%', #{keyword}, '%')
+            OR u.username LIKE CONCAT('%', #{keyword}, '%')
+            OR u.id LIKE CONCAT('%', #{keyword}, '%')
+        )
+    </select>
+
+    <!-- 주문결제 내역 개수 -->
+    <select id="countTodayOrders" resultType="long">
+    SELECT COUNT(*) FROM (
+        SELECT 
+            GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+            u.username,
+            u.id AS user_id
+        FROM orders o
+        JOIN users u ON o.u_no = u.no
+        JOIN orders_details od ON o.no = od.o_no
+        JOIN products p ON od.p_no = p.no
+        WHERE DATE(o.pay_at) = CURDATE()
+        AND o.payment_status = 1
+        GROUP BY o.no
+    ) AS order_summary
+    WHERE item_name LIKE CONCAT('%', #{keyword}, '%')
+       OR username LIKE CONCAT('%', #{keyword}, '%')
+       OR user_id LIKE CONCAT('%', #{keyword}, '%')
+</select>
+
+
+
+</mapper>

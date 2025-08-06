@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/layouts/admin/main_layout}"
+      >
+  <head>
+    <!-- 기존 head 내용들(타이틀, 스타일 등) 위/아래 어디든 OK -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  </head>
+ 
+ <body layout:fragment="content">
+    <div class="seat-dashboard">
+      <div class="row-container">
+
+        <!-- ✅ 상단 12개 좌석 -->
+        <div class="seat-row row-6">
+          <div th:each="seat : ${topSeats}" class="seat" th:classappend="' ' + ${seat.className}">
+            <div class="seat-number"
+                th:text="${seat.seatName + (seat.className == 'broken' ? ' (고장)' : '')}"></div>
+
+            <div class="member-name"
+                th:if="${seat.username}" th:text="${seat.username}"></div>
+
+            <div class="time-left"
+                th:if="${seat.className != null and seat.className.contains('in-use') and seat.remainTime != null}"
+                th:attr="data-remaining=${seat.remainTime}">
+            </div>
+
+            <button class="clear-btn" th:if="${seat.className == 'cleaning'}" th:attr="data-seat-id=${seat.seatId}">
+              <img th:src="@{/images/trash.png}" alt="휴지통" />
+            </button>
+          </div>
+        </div>
+
+        <!-- ✅ 중간 10개 좌석 -->
+        <div class="seat-row row-5" id="middle-seats">
+          <div th:each="seat : ${middleSeats}" class="seat" th:classappend="' ' + ${seat.className}">
+
+            <div class="seat-number"
+                th:text="${seat.seatName + (seat.className == 'broken' ? ' (고장)' : '')}"></div>
+
+            <div class="member-name"
+                th:if="${seat.username}" th:text="${seat.username}"></div>
+
+            <div class="time-left"
+                th:if="${seat.className != null and seat.className.contains('in-use') and seat.remainTime != null}"
+                th:attr="data-remaining=${seat.remainTime}">
+            </div>
+
+            <button class="clear-btn" th:if="${seat.className == 'cleaning'}" th:attr="data-seat-id=${seat.seatId}">
+              <img th:src="@{/images/trash.png}" alt="휴지통" />
+            </button>
+          </div>
+        </div>
+
+        <!-- ✅ 하단 12개 좌석 -->
+        <div class="seat-row row-6" id="bottom-seats">
+         <div th:each="seat : ${bottomSeats}" class="seat" th:classappend="' ' + ${seat.className}">
+
+
+            <div class="seat-number"
+                th:text="${seat.seatName + (seat.className == 'broken' ? ' (고장)' : '')}"></div>
+
+            <div class="member-name"
+                th:if="${seat.username}" th:text="${seat.username}"></div>
+                  
+            <div class="time-left"
+                th:if="${seat.className != null and seat.className.contains('in-use') and seat.remainTime != null}"
+                th:attr="data-remaining=${seat.remainTime}">
+            </div>
+
+            <button class="clear-btn" th:if="${seat.className == 'cleaning'}" th:attr="data-seat-id=${seat.seatId}">
+              <img th:src="@{/images/trash.png}" alt="휴지통" />
+            </button>
+          </div>
+        </div>
+
+        <!-- <div th:each="seat : ${topSeats}">
+          <div th:text="'좌석이름: ' + ${seat.seatName}"></div>
+          <div th:text="'사용자: ' + ${seat.username}"></div>
+        </div> -->
+
+      <div class="counter">카운터</div>
+    </div>
+  </div>
+  <script src="/js/seat_status.js"></script>
+</body>
+</html>

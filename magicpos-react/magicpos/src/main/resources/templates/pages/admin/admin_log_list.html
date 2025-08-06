@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/layouts/admin/main_layout}"
+      >
+
+ 
+ <body layout:fragment="content">
+  <div class="content">
+
+      <div class="top-controls">
+        <form th:action="@{/admin/logs/logList}" method="get" class="search-box">
+          <select name="type" class="admin_category" id="typeSelect">
+            <option value="" th:selected="${type == null or type == ''}">전체</option>
+            <option value="loginhistory" th:selected="${type == 'loginhistory'}">로그인/로그아웃</option>
+            <option value="joinhistory" th:selected="${type == 'joinhistory'}">회원가입</option>
+            <option value="tickethistory" th:selected="${type == 'tickethistory'}">이용권 구매</option>
+            <option value="orderhistory" th:selected="${type == 'orderhistory'}">상품 구매</option>
+          </select>
+          
+          <div class="search-box">
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="이름/아이디/좌석번호" />
+            <button type="submit" class="search-icon">
+              <img src="/images/search.png" alt="검색버튼">
+            </button>
+          </div>
+          <input type="date" name="startDate" th:value="${startDate}" />
+          ~
+          <input type="date" name="endDate" th:value="${endDate}" />
+        </form>
+
+      </div>
+  <!-- ✅ 이 부분을 fragment로 지정 -->
+<div th:fragment="logTableFragment" id="logTableArea">
+  <table>
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>로그분류</th>
+        <th>이름</th>
+        <th>아이디</th>
+        <th>로그 설명</th>
+        <th>결제금액</th>
+        <th>좌석번호</th>
+        <th>로그시각</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="log, iterStat : ${logList}">
+        <td th:text="${(pagination.page - 1) * pagination.size + iterStat.count}">1</td>
+        <td th:text="${log['action_type']}">로그분류</td>
+        <td th:text="${log['username']}">이름</td>
+        <td th:text="${log['user_id']}">아이디</td>
+        <td th:text="${log['description']}">로그 설명</td>
+        <td>
+          <span th:if="${log['price'] != null}"
+                th:text="${#numbers.formatInteger(log['price'], 3, 'COMMA') + '원'}">금액</span>
+          <span th:unless="${log['price'] != null}">-</span>
+        </td>
+        <td th:text="${log['seat_id']}">좌석번호</td>
+        <td th:text="${#dates.format(log['created_at'], 'yyyy.MM.dd HH:mm')}">2025.07.09</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="pagination">
+    <ul>
+      <li th:if="${pagination.page > 1}">
+        <a th:href="@{/admin/logs/logList(type=${type}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, page=${pagination.page-1})}">« 이전</a>
+      </li>
+      <li th:each="i : ${#numbers.sequence(pagination.start, pagination.end)}"
+      th:classappend="${i == pagination.page} ? 'active'">
+      <a th:href="@{/admin/logs/logList(type=${type}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, page=${i})}"
+      th:text="${i}">1</a>
+    </li>
+    <li th:if="${pagination.page < pagination.last}">
+      <a th:href="@{/admin/logs/logList(type=${type}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}, page=${pagination.page+1})}">다음 »</a>
+    </li>
+  </ul>
+</div>
+</div>
+
+  </div>
+  <script>
+console.log("✅ 로그 JS 시작됨!");
+
+document.addEventListener("DOMContentLoaded", function () {
+    const selectBox = document.getElementById("typeSelect");
+
+    // ✅ 검색 조건 select 변경 시 동적 로딩
+    selectBox.addEventListener("change", function () {
+        const selectedType = this.value;
+        const keyword = document.querySelector("input[name='keyword']").value;
+        const startDate = document.querySelector("input[name='startDate']").value;
+        const endDate = document.querySelector("input[name='endDate']").value;
+
+        fetch(`/admin/logs/logList?type=${selectedType}&keyword=${keyword}&startDate=${startDate}&endDate=${endDate}`)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+                const newFragment = doc.querySelector("#logTableArea");
+                const currentFragment = document.querySelector("#logTableArea");
+
+                if (newFragment && currentFragment) {
+                    currentFragment.innerHTML = newFragment.innerHTML;
+                    console.log("✅ 로그 테이블 영역 교체 완료!");
+                } else {
+                    console.warn("❗ #logTableArea를 찾지 못했어.");
+                    console.log("▶ 파싱된 HTML:", doc.documentElement.innerHTML);
+                }
+            })
+            .catch(err => console.error("❌ 에러 발생:", err));
+    });
+    
+
+    // ✅ 페이지네이션 클릭 시 동적 로딩
+document.addEventListener("click", function (e) {
+    const anchor = e.target.closest('.pagination a');
+    if (anchor) {
+        e.preventDefault();
+        const url = anchor.getAttribute('href');
+
+        fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+                const newTbody = doc.querySelector("#logTableArea tbody");
+                const currentTbody = document.querySelector("#logTableArea tbody");
+
+                if (newTbody && currentTbody) {
+                    currentTbody.innerHTML = newTbody.innerHTML;
+                    console.log("✅ tbody 교체 완료!");
+                } else {
+                    console.warn("❗ tbody를 찾지 못했어.");
+                }
+
+                // ✅ pagination도 함께 교체
+                const newPagination = doc.querySelector(".pagination");
+                const currentPagination = document.querySelector(".pagination");
+
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                    console.log("✅ 페이지네이션 교체 완료!");
+                } else {
+                    console.warn("❗ .pagination을 찾지 못했어.");
+                }
+            }) // ← 이 괄호가 빠졌었어!
+            .catch(err => console.error("❌ 에러 발생:", err));
+    }
+});
+});
+
+</script>
+
+</body>
+</html>

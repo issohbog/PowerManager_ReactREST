@@ -1,0 +1,32 @@
+<th:block th:fragment="script">
+  <!-- 페이지별 JS (예: 회원 목록용) -->
+
+  <!-- <script src="/js/admin_user_list.js"></script> -->
+  <!-- 상품목록용 -->
+  <!-- <script src="/js/admin_product_list.js"></script> -->
+   <script src="/js/admin_ticket.js"></script>
+   <script src="/js/admin_sellcounter.js"></script>
+   <script src="/js/admin_usinguser.js"></script>
+  <script th:if="${error}" th:inline="javascript">
+    alert([[${error}]]);
+  </script>
+
+  <!-- 공통 스크립트 : 관리자 헤더(사용중 좌석) -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const used = document.getElementById("using-seat-hidden").value;
+    const total = document.getElementById("total-seat-hidden").value;
+
+    const usedDigits = String(used).padStart(3, '0').split('');
+    const totalDigits = String(total).padStart(3, '0').split('');
+
+    const usedCells = document.querySelectorAll("#used-seat-count .seat-cell");
+    const totalCells = document.querySelectorAll("#total-seat-count .seat-cell");
+
+    usedDigits.forEach((digit, i) => usedCells[i].textContent = digit);
+    totalDigits.forEach((digit, i) => totalCells[i].textContent = digit);
+  });
+</script>
+
+
+</th:block>

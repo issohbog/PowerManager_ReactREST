@@ -1,0 +1,50 @@
+<!-- 주문 완료 모달 -->
+<div th:fragment="orderCompleteModal" id="orderCompleteModal" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+">
+  <div style="
+      width: 300px;
+      height: 400px;
+      background-color: #2C3E50;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+  ">
+    <!-- ✅ 상단 여유 공간 -->
+    <div style="padding-top: 60px;">
+      <img th:src="@{/images/complete.png}" alt="완료" style="width: 70px;" />
+      <h3 style="margin-top: 20px; font-size: 20px;">주문이 완료되었습니다.</h3>
+      <p style="margin-top: 10px; font-size: 14px;">
+        주문하신 음식은 곧 자리로 배달됩니다.<br>
+        잠시만 기다려 주세요.
+      </p>
+    </div>
+
+    <!-- ✅ 확인 버튼 -->
+    <div id="closeOrderCompleteModalBtn" style="
+      height: 60px;
+      background-color: #F4D03F;
+      color: black;
+      font-weight: bold;
+      font-size: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      cursor: pointer;
+    ">
+      확인
+    </div>
+  </div>
+</div>

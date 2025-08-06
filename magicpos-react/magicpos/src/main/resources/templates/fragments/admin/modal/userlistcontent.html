@@ -1,0 +1,22 @@
+<!-- userlistcontent.html -->
+<div th:fragment="userlistcontent">
+  <table>
+    <thead>
+      <tr class="usinglistth">
+        <th>이름(아이디)</th>
+        <th>티켓시간</th>
+      </tr>
+    </thead>
+    <tbody th:if="${#lists.size(users) > 0}">
+      <tr th:each="user : ${users}">
+        <td th:text="${(user.username ?: '이름없음') + ' (' + (user.userId ?: '아이디없음') + ')'}">홍길동(hong123)</td>
+        <td th:text="${user.remain_time != null ? user.remain_time + '분' : '없음'}">60분</td>
+      </tr>
+    </tbody>
+    <tbody th:if="${#lists.isEmpty(users)}">
+      <tr>
+        <td colspan="2" style="text-align: center;">사용 중인 회원이 없습니다</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

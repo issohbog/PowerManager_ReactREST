@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/layouts/admin/main_layout}"
+      >
+
+ <body layout:fragment="content">
+    <div class="sell-modal-box">
+      
+      <!-- 모달 상단 -->
+      <div class="sell-modal-header">
+        <span class="sell-modal-title">상품판매</span>
+        <button class="sell-modal-close">X</button>
+      </div>
+      <div class="sell-modal-footer">
+
+        <div class="productlist">
+          
+          <div class="top-controls">
+            <form th:action="@{/sell/counter}" method="get" class="search-box">
+              <select name="type" class="admin_product_category" >
+                <option value="" th:selected="${type == null or type == ''}">상품 분류 전체</option>
+                <option value="pname" th:selected="${type == 'pname'}">상품명</option>
+                <option value="desc" th:selected="${type == 'desc'}">상품설명</option>
+                <option value="price" th:selected="${type == 'price'}">상품가격</option>
+              </select>
+              
+              <div class="search-box">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="상품명/상품설명/상품가격" />
+                <button type="submit" class="search-icon">
+                  <img src="/images/search.png" alt="검색버튼">
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="sell-table-wrapper">
+
+            <table class="sell-table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>상품분류</th>
+                  <th>상품명</th>
+                  <th>재고</th>
+                  <th>상품가격</th>
+                  <th><img src="/images/하얀 플러스.png"/></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="product, iterStat : ${products}" 
+                th:attr="data-product-no=${product.no},
+                data-category-no=${product.cNo},
+                data-pname=${product.pName},
+                data-price=${product.pPrice},
+                data-sell-status=${product.sellStatus}
+                ">
+                <td th:text="${iterStat.index + 1}"></td>
+                <td th:text="${categoryMap[product.cNo]}"></td> <!-- 상품분류: 카테고리 번호 -->
+                <td th:text="${product.pName}"></td> <!-- 상품명 -->
+                <td th:text="${product.stock} + '개'"></td> <!-- 재고 -->
+                <td th:text="${#numbers.formatInteger(product.pPrice, 0)} + '원'"></td> <!-- 상품가격 -->
+                <td>
+                <form method="post" action="/sellcounter/add">
+                  <input type="hidden" name="pNo" th:value="${product.no}" />
+                  <button type="submit" class="cart-img-btn">
+                    <img src="/images/회색 플러스.png" alt="담기" />
+                  </button>
+                </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div>
+        
+        <!-- 상품 판매 목록 -->
+        <div class="sell-side-panel">
+          <div class="sell-seat-input">
+              <span>좌석번호</span><input type="text" id="seatIdInput" placeholder="좌석번호를 입력하세요" style="width: 220px; border: 1px solid #D5D8DC; box-sizing: border-box;">
+          </div>
+      
+      
+      <!-- 주문 폼 시작 -->
+      <div class="cart-section">
+        <div class="sell-cart-items">
+          <div th:each="cart, cartStat : ${cartList != null ? cartList : {}}" class="sell-cart-item">
+            <div class="cart-item-left">
+              <div th:text="${cart.p_name} ?: '이름없음'">상품이름</div>
+              <div class="quantity-control">
+                <!-- 수량 감소/증가/삭제 form은 주문 form 밖에 위치 -->
+                <form action="/sellcounter/decrease" method="post">
+                  <input type="hidden" name="pNo" th:value="${cart.p_no}" />
+                  <button type="submit" class="cartcontrolBtn">
+                    <img th:src="@{/images/마이너스 하얀색.png}" alt="감소">
+                  </button>
+                </form>
+                <span th:text="${cart.quantity}">1</span>
+                <form action="/sellcounter/increase" method="post">
+                  <input type="hidden" name="pNo" th:value="${cart.p_no}" />
+                  <button type="submit" class="cartcontrolBtn">
+                    <img th:src="@{/images/플러스 노란색.png}" alt="증가">
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div class="cart-item-right">
+              <div th:text="${(cart.p_price != null and cart.quantity != null) ? #numbers.formatInteger(cart.p_price * cart.quantity, 3, 'COMMA') + '원' : '0원'}">가격</div>
+              <form action="/sellcounter/delete" method="post">
+                <input type="hidden" name="cNo" th:value="${cart['no']}" />
+                <button class="deleteBtn">✕</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="total-price">
+          총 주문금액 <span th:text="${totalPrice}" style="font-weight: bold;">16,000원</span>
+        </div>
+      </div>
+      
+      <!-- 주문 폼은 cart-section 아래에 위치, cartList 정보를 hidden input으로 전달 -->
+      <form id="orderForm" action="/sellcounter/create" method="post">
+        <input type="hidden" name="seatId" id="seatIdHidden">
+        <div th:each="cart, cartStat : ${cartList != null ? cartList : {}}">
+          <input type="hidden" name="pNoList" th:value="${cart.p_no}" />
+          <input type="hidden" name="quantityList" th:value="${cart.quantity}" />
+          <input type="hidden" name="pNameList" th:value="${cart.p_name}" />
+        </div>
+        <input type="hidden" name="totalPrice" th:value="${totalPrice}" />
+        <div class="payment-order">
+        <div class="payment-methods">
+          <label><input type="radio" name="payment" value="현금" required>현금</label>
+          <label><input type="radio" name="payment" value="카드">카드</label>
+        </div>
+        <button class="sell-order-button" type="submit">판매하기</button>
+        </div>
+      </form>
+      <!-- 주문 폼 끝 -->
+    </div>
+  </div>
+  </div>
+  <script>
+    document.getElementById("orderForm").addEventListener("submit", function (e) {
+      const visibleInput = document.getElementById("seatIdInput");
+      const hiddenInput = document.getElementById("seatIdHidden");
+      
+      if (!visibleInput.value.trim()) {
+        alert("좌석번호를 입력해주세요!");
+        e.preventDefault(); // 제출 막기
+        return;
+      }
+      
+      // ✅ hidden input에 복사
+      hiddenInput.value = visibleInput.value.trim();
+    });
+  </script>
+  <script th:if="${error}" th:inline="javascript">
+    alert([[${error}]]);
+  </script>
+
+</body>
+</html>

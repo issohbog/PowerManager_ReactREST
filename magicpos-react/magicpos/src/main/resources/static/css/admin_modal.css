@@ -1,0 +1,311 @@
+/* 전체 모달 설정 */
+#orderPopup {
+  position: fixed; /* ✨ 화면 전체 덮게 */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 30; /* 🧨 사이드바보다 높게 */
+  display: none; /* 기본은 숨김 */
+  justify-content: center;
+  align-items: center;
+}
+
+.order-status-container{
+  top: 100px;
+  right: 70px;
+  position: absolute;
+  z-index: 10;
+  width: 875px;
+  height: calc(100vh - 100px);
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  background-color: #ECEFF1;
+}
+.no-orders{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 20px;
+    color: #888;
+    font-weight: bold;
+}
+
+.order-status-header {
+    z-index: 100; 
+    position: sticky;
+    top: 0;
+    display: flex;
+    width: 100%;
+    height: 60px;
+    justify-content: start;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+    background-color: #5D6D7E;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.number-tab1{
+    padding: 14px 7px;
+    display: block;
+    text-decoration: none;
+    color: #ffffff;
+}
+.number-tab2{
+    padding: 14px 7px;
+    display: block;
+    text-decoration: none;
+    color: #ffffff;
+}
+.active-tab {
+    border-bottom: 3px solid #ffffff;
+}
+
+.order-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-card-inner{
+    display: flex;
+    flex-direction: row;
+    width: 831px;
+    height: 170px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    margin: 0 10px;
+    overflow: hidden;
+  }
+  .order-card-footer{
+    width: 831px;
+    height: 25px;
+    display: flex;
+    justify-content: space-between;
+    margin: 0 10px;
+  align-items: center;
+  border-top: 1px solid #eee;
+  text-align: center;
+  line-height: 1;
+}
+
+.order-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.order-time-box {
+  color:white;
+    width: 80px;
+    background-color: #f4c542;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+.seat-no {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.action-btn {
+    margin-top: 8px;
+    padding: 3px 4px;
+    font-size: 12px;
+    border-bottom: 1px solid #fff;
+}
+
+.order-detail-box {
+    flex: 1;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.menu-names {
+    font-size: 20px;
+}
+
+.memo {
+    color: #666;
+    font-size: 15px;
+}
+.price{
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+.paytype{
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+.badge {
+    padding: 4px 20px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+/* 클릭시 효과 */
+.order-card .status-badges .badge.active {
+  background-color: rgba(0,0,0,0.5);
+  color: black;
+  font-weight: bold;
+}
+
+.status-badges {
+    margin-top: 5px;
+    display: flex;
+    gap: 5px;
+}
+.badge.preparing {
+    background-color: #d1d3d4;
+    color: #444;
+    cursor: pointer;
+}
+
+.badge.complete {
+    background-color: #e0e0e0;
+    color: #333;
+    cursor: pointer;
+}
+
+.sell-cancel {
+    color: #aaa;
+    font-size: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #aaa;
+}
+.status-row1{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+}
+
+.status-row2 {
+  border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px 5px;
+    font-size: 20px;
+}
+
+.time {
+    margin-left: auto;
+    color: #888;
+    font-size: 12px;
+}
+
+.wait-time {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #555;
+}
+
+.red-text {
+    color: red;
+    font-weight: bold;
+}
+
+/* ----------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-box {
+  background-color: #2C3E50; 
+  position: relative;
+  padding: 30px 40px;
+  border-radius: 16px;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  width: 340px;
+  z-index: 10000;
+  color: white;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-message {
+  font-size: 15px;
+  margin-bottom: 30px;
+  line-height: 1.4;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.modal-buttons button {
+  padding: 10px 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.2s ease;
+}
+
+/* ✅ 확인 버튼: 노란색 */
+#modalConfirmBtn {
+  background-color: #f1c40f;
+  color: black;
+}
+#modalConfirmBtn:hover {
+  background-color: #f39c12;
+}
+
+/* ❎ 취소 버튼: 회색 */
+#modalCancelBtn {
+  background-color: #bdc3c7;
+  color: black;
+}
+#modalCancelBtn:hover {
+  background-color: #95a5a6;
+}
+
+/* 💫 애니메이션 (선택) */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.paid-text {
+  background-color: #f0f0f0;
+  color: #555;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 19px;
+  font-weight: 500;
+  margin-left: 6px;
+}

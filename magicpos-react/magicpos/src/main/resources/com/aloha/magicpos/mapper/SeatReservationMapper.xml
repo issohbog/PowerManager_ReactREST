@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.SeatReservationMapper">
+
+    <select id="getTotalUsedTime" resultType="long">
+        SELECT COALESCE(SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time)), 0)
+        FROM seats_reservations
+        WHERE u_no = #{userNo}
+    </select>
+  
+
+    <!-- 사용자가 이미 이용중인 좌석이 있는지 확인 -->
+    <select id="countUsingSeatByUser" resultType="int">
+        SELECT COUNT(*)
+        FROM seats_reservations
+        WHERE u_no = #{userNo}
+    </select>
+
+    <!-- 사용자용 좌석 예약 내역 조회  -->
+    <select id="findCurrentReservationByUser">
+        <![CDATA[
+            SELECT sr.seat_id, sr.start_time, sr.end_time, u.username
+            FROM seats_reservations sr
+            JOIN users u ON sr.u_no = u.no
+            WHERE sr.u_no = #{userNo}
+            ORDER BY sr.end_time DESC, sr.start_time DESC
+            LIMIT 1
+        ]]>
+    </select>
+
+    <!-- 현재 이용중인 좌석 조회(관리자용) -->
+    <select id="findCurrentSeatUsage" resultType="map">
+        <![CDATA[
+            SELECT 
+                sr.seat_id,
+                u.username,
+                sr.start_time,
+                sr.end_time
+            FROM seats_reservations sr
+            JOIN users u ON sr.u_no = u.no
+            WHERE sr.end_time > NOW()
+        ]]>
+    </select>
+
+    <update id="updateEndTime">
+        <![CDATA[
+            UPDATE seats_reservations
+            SET end_time = #{now}
+            WHERE u_no = #{uNo}
+            AND end_time > NOW()
+        ]]>
+    </update>
+
+    <!-- endTime 에 시간 추가 -->
+    <update id="extendEndTime">
+        <![CDATA[
+            UPDATE seats_reservations
+            SET end_time = DATE_ADD(end_time, INTERVAL #{minutes} MINUTE)
+            WHERE u_no = #{userNo}
+            AND end_time > NOW()
+            ORDER BY start_time DESC
+            LIMIT 1
+        ]]>
+    </update>
+
+    <!-- 현재시각에 시간 추가 -->
+    <update id="extendTimeFromNow">
+        <![CDATA[
+            UPDATE seats_reservations
+            SET end_time = DATE_ADD(NOW(), INTERVAL #{minutes} MINUTE)
+            WHERE u_no = #{userNo}
+            ORDER BY start_time DESC
+            LIMIT 1
+        ]]>
+    </update>
+
+    <!-- 서버 시작 전 이전에 비정상 완료된 좌석 찾기 -->
+    <select id="findLoggedInUserNosFromSeatStatus" resultType="long">
+        SELECT u_no
+        FROM (
+            SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY seat_id ORDER BY start_time DESC) AS rn
+            FROM seats_reservations
+        ) sr
+        WHERE rn = 1
+        AND seat_id IN (SELECT seat_id FROM seats WHERE seat_status = 1);
+    </select>
+
+
+
+
+
+</mapper>

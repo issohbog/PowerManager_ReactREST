@@ -1,0 +1,36 @@
+<!-- admin_header.html -->
+<div class="header" th:fragment="header">
+    <div class="seat-wrapper">
+        <div class="seat-title">사용현황</div>
+        <!-- 좌석 현황 -->
+        <div class="seat-info">
+            <div class="seat-con-used" id="used-seat-count">
+                <div class="seat-cell">0</div>
+                <div class="seat-cell">0</div>
+                <div class="seat-cell">0</div>
+            </div>
+            <div class="seat-con-all" id="total-seat-count">
+                <div class="seat-cell">0</div>
+                <div class="seat-cell">0</div>
+                <div class="seat-cell">0</div>
+            </div>
+        </div>
+    </div>
+    <!-- 서버에서 좌석 받아오기  -->
+    <input type="hidden" id="using-seat-hidden" th:value="${usingSeatCount}"/>
+    <input type="hidden" id="total-seat-hidden" th:value="${totalSeatCount}"/>
+
+    <div class="header-nav-con" style="display: flex; gap: 700px;">
+        <!-- 메뉴 -->
+        <nav class="header-nav">
+            <a href="/admin">매장관리</a><a href="/admin/history/today/all">당일내역</a><a href="/users/admin/userlist">회원관리</a><a href="/sales">운영매출</a><a href="/products/admin/productlist">상품관리</a><a href="/admin/logs/logList">로그분석</a>
+        </nav>
+        <div style="width: 100px; height: 60px; background-color: #1e2b38; padding: 5px 10px; border-radius: 5px; text-align: center; font-size: 16px;">
+            <form action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" style="all: unset; font-size: 15px;"><span style="color: white;">사용종료</span><br>
+                <img th:src="@{/images/전원.png}" style="width: 23px; margin-top: 5px;" alt="logout">
+            </form>
+        </div>
+    </div>
+</div>

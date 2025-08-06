@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.UserTicketMapper">
+
+    <resultMap id="UserTicketMap" type="com.aloha.magicpos.domain.UserTickets">
+        <id property="no" column="no" />
+        <result property="uNo" column="u_no" />
+        <result property="tNo" column="t_no" />
+        <result property="remainTime" column="remain_time" />
+        <result property="payAt" column="pay_at" />
+        <result property="payment" column="payment" />
+    </resultMap>
+
+    <!-- 이용권 등록 (결제 시 호출) -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="no" parameterType="com.aloha.magicpos.domain.UserTickets">
+        INSERT INTO user_tickets (u_no, t_no, remain_time, pay_at, payment)
+        VALUES (#{uNo}, #{tNo}, #{remainTime}, #{payAt}, #{payment})
+    </insert>
+
+    <!-- 전체 이용권 내역 조회 (관리자용) -->
+    <select id="selectAll" resultMap="UserTicketMap">
+        SELECT * FROM user_tickets
+    </select>
+
+    <!-- 특정 사용자 이용권 내역 조회 -->
+    <select id="findByUserNo" parameterType="long" resultMap="UserTicketMap">
+        SELECT * FROM user_tickets
+        WHERE u_no = #{uNo}
+        ORDER BY pay_at DESC
+    </select>
+
+    <!-- 특정 사용자의 최신 ticket_no 1개만 조회 -->
+    <select id="findLatestTicketNoByUserNo" parameterType="long" resultType="long">
+        SELECT t_no
+        FROM user_tickets
+        WHERE u_no = #{uNo}
+        ORDER BY pay_at DESC
+        LIMIT 1
+    </select>
+
+
+    <!-- 특정 사용자 최근 남은 시간 조회 -->
+    <select id="findRemainTimeByUserNo" parameterType="long" resultType="int">
+        SELECT remain_time
+        FROM user_tickets
+        WHERE u_no = #{uNo}
+        ORDER BY pay_at DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 특정 사용자 전체 남은 시간 조회 -->
+    <select id="subRemainTimeByUser" resultType="long">
+        SELECT COALESCE(SUM(remain_time), 0)
+        FROM user_tickets
+        WHERE u_no = #{userNo}
+    </select>
+
+    <!-- 사용자가 가진 user_tickets 중 남은 시간이 0보다 큰 것만 오래된 순서로 조회 -->
+    <select id="findUserTicketsOrderByOldest" resultType="UserTickets">
+        <![CDATA[
+            SELECT *
+            FROM user_tickets
+            WHERE u_no = #{userNo}
+            AND remain_time > 0
+            ORDER BY pay_at ASC
+        ]]>
+    </select>
+
+    <!-- 특정 티켓의 remain_time 값을 원하는 값으로 갱신 -->
+    <update id="updateRemainTime">
+        UPDATE user_tickets
+        SET remain_time = #{remainTime}
+        WHERE no = #{no}
+    </update>
+
+</mapper>

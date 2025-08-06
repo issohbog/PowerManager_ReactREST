@@ -1,0 +1,85 @@
+<!-- 관리자 상품 판매 모달 -->
+<div th:fragment="adminsellcounter" id="adminsellcounter" class="adminsellcounter" style="display: none;">
+    <div class="sell-modal-box">
+      
+      <!-- 모달 상단 -->
+      <div class="sell-modal-header">
+        <span class="sell-modal-title">상품판매</span>
+        <button class="sell-modal-close" onclick="closeAdminsellcounter()">X</button>
+      </div>
+      <div class="sell-modal-footer">
+
+        <div class="productlist">
+          
+          <div class="top-controls">
+            <form class="search-box">
+              <select name="category" id="categorySelect" class="admin_product_category">
+                <option value="">카테고리 전체</option>
+                <!-- JS로 카테고리 option이 여기에 추가될 예정 -->
+              </select>
+              <div class="search-box">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="상품명/상품설명/상품가격" />
+                <button type="submit" class="search-icon">
+                  <img src="/images/search.png" alt="검색버튼">
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="sell-table-wrapper">
+
+            <table class="sell-table">
+              <thead>
+                <tr>
+                  <th>No.</th>
+                  <th>상품분류</th>
+                  <th>상품명</th>
+                  <th>재고</th>
+                  <th>상품가격</th>
+                  <th><img src="/images/하얀 플러스.png"/></th>
+                </tr>
+              </thead>
+            <tbody id="productTableBody">
+              <!-- JS로 상품 리스트 삽입 -->
+            </tbody>
+          </table>
+        </div>
+        </div>
+        
+        <!-- 상품 판매 목록 -->
+        <div class="sell-side-panel">
+          <div class="sell-seat-input">
+              <span>좌석번호</span><input type="text" id="seatIdInput" placeholder="좌석번호를 입력하세요" style="width: 220px; border: 1px solid #D5D8DC; box-sizing: border-box;">
+          </div>
+      
+      
+      <!-- 주문 폼 시작 -->
+      <!-- 🛒 장바구니 영역 -->
+      <div class="cart-section">
+        <div class="sell-cart-items">
+          <!-- ✅ 여기는 JS가 장바구니 아이템들을 fetch로 채워줌 -->
+        </div>
+        <div class="total-price">
+          총 주문금액 <span>0원</span>
+        </div>
+      </div>
+      
+      <!-- 주문 폼은 cart-section 아래에 위치, cartList 정보를 hidden input으로 전달 -->
+      <form id="orderForm">
+        <input type="hidden" name="seatId" id="seatIdHidden">
+        <!-- ✅ 여기에 JS로 hidden input들 추가 예정 -->
+        
+        <div class="payment-order">
+          <div class="payment-methods">
+            <label><input type="radio" name="payment" value="현금" required>현금</label>
+            <label><input type="radio" name="payment" value="카드">카드</label>
+          </div>
+          <button class="sell-order-button" type="button" id="submitOrderBtn">판매하기</button>
+          <input type="hidden" id="user-no" th:value="${session.userNo}">
+        </div>
+      </form>
+
+      <!-- 주문 폼 끝 -->
+    </div>
+  </div>
+  </div>
+  </div>

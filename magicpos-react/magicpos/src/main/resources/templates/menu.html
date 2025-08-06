@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/user/main_layout}">
+<head>
+    <link rel="stylesheet" th:href="@{/css/menu.css}">
+    <!-- TossPayments 결제 스크립트 추가 -->
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>    
+</head>
+<body layout:fragment="content" th:attr="data-seat-id=${usageInfo.seat_id}">
+    <div class="container">
+        <div class="main-panel">
+            <!-- 표상 메뉴 -->
+            <div class="top-menu">
+                <button class="icon-button">
+                    <img th:src="@{/images/뒤로가기.png}" alt="뒤로가기">
+                </button>
+
+                <div class="menu-tabs">
+                    <button th:each="category : ${categories}"
+                            th:text="${category.cName}"
+                            th:classappend="${category.no} == ${selectedCategory} ? 'active' : ''"
+                            th:onclick="'location.href=\'/menu?selectedCategory=' + ${category.no} + '\''">
+                    </button>
+                </div>
+                
+                <button class="icon-button">
+                    <img th:src="@{/images/다음페이지.png}" alt="다음페이지">
+                </button>
+                
+                <form action="/menu" method="get" class="search-form">
+                    <input type="text" name="keyword" placeholder="상품명 검색">
+                    <button type="submit">
+                        <img th:src="@{/images/검색.png}">
+                    </button>
+                </form>
+            </div>
+            
+            <div class="product-list">
+                <div class="grid-container">
+                    <div th:each="product : ${products}" class="product-card">
+                        <div class="product-inner">
+                            <div class="product-front">
+                                <img th:src="@{${product.imgPath}}" class="product-image">
+                                <div class="product-info">
+                                    <div th:text="${product.pName}">상품명</div>
+                                    <div th:text="${#numbers.formatInteger(product.pPrice, 3, 'COMMA') + '원'}">가격</div>
+                                </div>
+                            </div>
+                            <div class="product-back">
+                                <div class="back-frame">
+                                    <p th:text="${product.description}">상품 설명</p>
+                                </div>
+                                <!-- 재고가 있을 때만 '담기' 버튼 보여주기 -->
+                                <div th:if="${product.stock > 0}">
+                                    <form method="post" action="/carts/add">
+                                        <input type="hidden" name="pNo" th:value="${product.no}">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <button type="submit" class="add-cart-btn">담기</button>
+                                    </form>
+                                </div>
+
+                                <!-- 재고가 0이면 '품절' 표시 -->
+                                <div th:unless="${product.stock > 0}">
+                                    <button class="add-cart-btn sold-out" disabled>품절</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <div class="seat-info">
+                <div>좌석번호 <strong th:text="${usageInfo.seat_id}">50</strong></div>
+                <button id="openModalBtn">주문내역보기</button>
+            </div>
+
+            <!-- 주문 폼 시작 -->
+            <div class="cart-section">
+                <div class="cart-items">
+                    <div th:each="cart, cartStat : ${cartList != null ? cartList : {}}" class="cart-item">
+                        <div class="cart-item-left">
+                            <div th:text="${cart.p_name} ?: '이름없음'">상품이름</div>
+                            <div class="quantity-control">
+                                <!-- 수량 감소/증가/삭제 form은 주문 form 밖에 위치 -->
+                                <form action="/carts/decrease" method="post">
+                                    <input type="hidden" name="pNo" th:value="${cart.p_no}" />
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="cartcontrolBtn">
+                                        <img th:src="@{/images/마이너스 하얀색.png}" alt="감소">
+                                    </button>
+                                </form>
+                                <span th:text="${cart.quantity}">1</span>
+                                <form action="/carts/increase" method="post">
+                                    <input type="hidden" name="pNo" th:value="${cart.p_no}" />
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="cartcontrolBtn">
+                                        <img th:src="@{/images/플러스 노란색.png}" alt="증가">
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="cart-item-right">
+                            <div th:text="${(cart.p_price != null and cart.quantity != null) ? #numbers.formatInteger(cart.p_price * cart.quantity, 3, 'COMMA') + '원' : '0원'}">가격</div>
+                            <form action="/carts/delete" method="post">
+                                <input type="hidden" name="cNo" th:value="${cart['no']}" />
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button class="deleteBtn">✕</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="total-price">
+                    총 주문금액 <span th:text="${#numbers.formatInteger(totalPrice, 0, 'COMMA')}" style="font-weight: bold;">16,000원</span>
+                </div>
+            </div>
+
+            <!-- 주문 폼은 cart-section 아래에 위치, cartList 정보를 hidden input으로 전달 -->
+            <form id="orderForm" action="/users/orders/create" method="post">
+                <input type="hidden" name="seatId" th:value="${usageInfo.seat_id}" />
+                <div th:each="cart, cartStat : ${cartList != null ? cartList : {}}">
+                    <input type="hidden" name="pNoList" th:value="${cart.p_no}" />
+                    <input type="hidden" name="quantityList" th:value="${cart.quantity}" />
+                    <input type="hidden" name="pNameList" th:value="${cart.p_name}" />
+                </div>
+                <input type="hidden" name="totalPrice" th:value="${totalPrice}" />
+                <div class="payment-methods">
+                    <label><input type="radio" name="payment" value="현금" required>현금</label>
+                    <label><input type="radio" name="payment" value="카드">카드</label>
+                    <label><input type="radio" name="payment" value="카카오페이">💬<br>QR 결제</label>
+                </div>
+
+                <div class="cash-options">
+                    <div class="cash-quick">
+                        <label><input type="radio" name="cash" value="50000" class="cash-option">5만원</label>
+                        <label><input type="radio" name="cash" value="10000" class="cash-option">1만원</label>
+                        <label><input type="radio" name="cash" value="5000" class="cash-option">5천원</label>
+                        <label><input type="radio" name="cash" value="1000" class="cash-option">1천원</label>
+                    </div>
+                    <div class="cash-custom">
+                        <label><input type="radio" name="cash" value="auto" class="cash-option">금액에 맞게</label>
+                        <label><input type="radio" name="cash" value="manual" class="cash-option">직접 입력</label>
+                        <input type="text" name="cashManual" />
+                    </div>
+                </div>
+                <input type="text" class="request-input" name="message" maxlength="50" placeholder="요청사항은 50자 까지 입력할 수 있습니다.">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button class="order-button" type="button">주문하기</button>
+            </form>
+            <!-- 주문 폼 끝 -->
+        </div>
+    </div>
+
+<!-- 요금제 구매 모달 -->
+<div class="ticket-modal-bg fade" id="ticketModal" style="display: none;">
+  <div class="ticket-modal-content">
+    <!-- <th:block th:if="${ usageInfo != null && usageInfo.user_no != null }">
+        <input type="hidden" id="user-no" th:value="${usageInfo.user_no} ?: ''" />
+    </th:block> -->
+    <input type="hidden" id="user-no" th:value="${usageInfo.user_no} ?: ''" />
+    <span class="ticket-modal-close-btn" onclick="closeTicketModal()">×</span>
+    <div class="ticket_con">
+      <h2>요금제 구매</h2>
+      <div class="plan-grid">
+        <div class="plan-card" 
+             th:each="ticket : ${ticketList}"
+             th:data-name="'회원 ' + ${ticket.price} + '원권'"
+             th:data-price="${ticket.price}"
+             th:data-time="${ticket.time}"
+             th:data-ticket-no="${ticket.no}"
+             >
+          <div class="plan-title" th:text="'회원 ' + ${#numbers.formatInteger(ticket.price, 0)} + '원권'"></div>
+          <div class="plan-info">
+            <div class="plan-time" th:text="${ticket.time} + ':00'">00:00</div>
+            <div class="plan-price" th:text="${#numbers.formatInteger(ticket.price, 0)} + '원'">1,000원</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ticket-modal-side">
+        <div class="ticket-section">
+            <div class="ticket-item">    
+            </div>
+        </div>
+        <button class="ticket-payment-btn" type="submit">결제하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 좌석 선택 모달 -->
+<div class="seat-modal-bg fade" id="seatModal" style="display: none;">
+  <div class="seat-modal-content">
+    <span class="seat-modal-close-btn" onclick="closeSeatModal()">×</span>
+    <h2>좌석 선택</h2>
+    <div class="seat-grid" id="seatGrid">
+      <!-- S1~S34 버튼이 JS로 동적으로 생성됨 -->
+    </div>
+    <button id="seatSelectBtn" disabled>좌석 선택 완료</button>
+  </div>
+</div>
+
+<!-- 토스페이먼츠 스크립트 추가 -->
+<script th:inline="javascript">
+    const clientKey = "test_ck_ZLKGPx4M3MGPnBZkRAlwrBaWypv1"; // 테스트용 client key
+    const tossPayments = TossPayments(clientKey);
+
+    // 좌석 선택 모달 관련 스크립트
+    document.addEventListener('DOMContentLoaded', function() {
+      // 좌석 미선택 상태라면 모달 자동 노출
+      var seatId = document.body.dataset.seatId;
+      if (!seatId) {
+        document.getElementById('seatModal').style.display = 'block';
+        loadReservedSeats();
+      }
+    });
+
+    function closeSeatModal() {
+      document.getElementById('seatModal').style.display = 'none';
+    }
+
+    // 좌석 버튼 동적 생성 및 예약좌석 비활성화
+    function loadReservedSeats() {
+      fetch('/api/seats/reserved')
+        .then(res => res.json())
+        .then(data => {
+          const reserved = data.reservedSeats || [];
+          const seatGrid = document.getElementById('seatGrid');
+          seatGrid.innerHTML = '';
+          for (let i = 1; i <= 34; i++) {
+            const seatId = 'S' + i;
+            const btn = document.createElement('button');
+            btn.textContent = seatId;
+            btn.className = 'seat-btn';
+            if (reserved.includes(seatId)) {
+              btn.disabled = true;
+              btn.classList.add('reserved');
+            }
+            btn.onclick = function() {
+              document.querySelectorAll('.seat-btn').forEach(b => b.classList.remove('selected'));
+              btn.classList.add('selected');
+              document.getElementById('seatSelectBtn').disabled = false;
+              document.getElementById('seatSelectBtn').dataset.seatId = seatId;
+            };
+            seatGrid.appendChild(btn);
+          }
+        });
+    }
+
+    // 좌석 선택 완료 버튼 클릭 시 서버로 예약 요청
+    document.getElementById('seatSelectBtn').onclick = function() {
+      const seatId = this.dataset.seatId;
+      fetch('/api/seats/reserve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+        },
+        body: JSON.stringify({ seatId: seatId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message || '좌석 예약 실패');
+          loadReservedSeats();
+        }
+      });
+    };
+</script>
+
+<!-- 요금제 구매 모달 끝 -->
+
+<!-- 결제 완료 모달 -->
+<div class="paysucc-modal-bg fade" id="paymentSuccessModal" style="display: none;">
+  <div class="paysucc-modal-content">
+    <div class="paysucc-modal-body">
+    <img th:src="@{/images/clock.png}">
+      <h3>요금제 구매가 완료되었습니다.</h3>
+      <p>잔여 이용 시간이 추가되었습니다.<br>즐거운 이용 되세요!</p>
+    </div>
+    <div class="paysucc-modal-footer">
+      <button onclick="closeAllModals()">확인</button>
+    </div>
+  </div>
+</div>
+    <script th:src="@{/js/userscript.js}"></script>
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("openTicketBtn");
+        if (btn) {
+            btn.addEventListener("click", () => {
+            const modal = document.getElementById("ticketModal");
+            modal.style.display = "flex";
+            modal.classList.remove("fade-out");
+            });
+        } else {
+            console.log("버튼 또는 모달이 없습니다. ", btn, modal);
+        }
+        });
+    </script>
+
+
+    <script>
+        // 요금제 결제 완료 모달 열고 닫기 
+        function showPaymentSuccessModal() {
+            document.getElementById("paymentSuccessModal").style.display = "flex";
+            document.getElementById("paymentSuccessModal").classList.remove("fade-out");
+        }
+    </script>
+
+    <script>
+        // 모든 모달 닫기 (요금제 구매 + 결제 모달 둘다)
+        function closeAllModals() {
+            const modals = [document.getElementById("paymentSuccessModal"), document.getElementById("ticketModal")];
+
+            modals.forEach(modal => {
+                // fade-out 클래스 추가
+                modal.classList.add("fade-out");
+
+                // 트랜지션 끝나면 display: none 처리
+                modal.addEventListener("transitionend", function handler() {
+                modal.style.display = "none";
+                modal.classList.remove("fade-out");
+                modal.removeEventListener("transitionend", handler); // 중복 방지
+                });
+            });
+        }
+    </script>
+
+    <script th:inline="javascript">
+    window.orderSuccess = [[${orderSuccess}]];
+    </script>
+    <script th:if="${error}" th:inline="javascript">
+        alert([[${error}]]);
+    </script>
+
+    <script th:inline="javascript">
+    const userNo = /*[[${usageInfo.user_no}]]*/ null;
+    </script>
+
+    <!-- 결제 js -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const orderForm = document.getElementById('orderForm');
+    const orderBtn = orderForm.querySelector('.order-button');
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    const tossPayments = TossPayments("test_ck_ZLKGPx4M3MGPnBZkRAlwrBaWypv1");
+
+    orderBtn.addEventListener('click', async function (e) {
+        e.preventDefault(); // 기존 폼 제출 막기
+
+        const paymentMethod = document.querySelector('input[name="payment"]:checked')?.value;
+        const selectedCash = document.querySelector('input[name="cash"]:checked')?.value;
+        const manualInput = document.querySelector('input[name="cashManual"]');
+        if (!paymentMethod) {
+        alert("결제 수단을 선택해주세요.");
+        return;
+        }
+
+        // 현금인데 아무 금액도 선택 안 했을 때도 막아주기
+        if (paymentMethod === '현금' && !selectedCash) {
+            e.preventDefault();
+            alert('결제 금액을 선택해주세요!');
+            return;
+        }
+        // "직접 입력" 선택했는데 값이 없으면 막아주기
+        if (paymentMethod === '현금' && selectedCash === 'manual') {
+            if (!manualInput.value || manualInput.value.trim() === '') {
+                e.preventDefault(); // 제출 막기
+                alert('금액을 입력해주세요!');
+                manualInput.focus();
+                return;
+            }
+        }
+        if (paymentMethod === "현금") {
+        orderForm.submit();
+        return;
+        }
+
+        const seatId = orderForm.querySelector('input[name="seatId"]').value;
+        const totalPrice = orderForm.querySelector('input[name="totalPrice"]').value;
+        const pNos = [...orderForm.querySelectorAll('input[name="pNoList"]')].map(el => el.value);
+        const quantities = [...orderForm.querySelectorAll('input[name="quantityList"]')].map(el => el.value);
+        const pNames = [...orderForm.querySelectorAll('input[name="pNameList"]')].map(el => el.value);
+
+        try {
+        // ✅ 1. 세션에 주문 데이터 미리 저장
+        await fetch('/users/orders/temp', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({
+            seatId,
+            pNoList: pNos,
+            quantityList: quantities,
+            pNameList: pNames,
+            totalPrice,
+            payment: paymentMethod,
+            userNo
+            })
+        });
+
+        // ✅ 2. 결제 정보 요청
+        const res = await fetch('/users/orders/payment-info', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({
+            seatId,
+            pNoList: pNos,
+            quantityList: quantities,
+            pNameList: pNames,
+            totalPrice,
+            payment: paymentMethod,
+            userNo 
+            })
+        });
+
+        if (!res.ok) {
+            alert("결제 정보 요청 실패");
+            return;
+        }
+
+        const paymentInfo = await res.json();
+
+        tossPayments.requestPayment(paymentMethod, {
+            amount: paymentInfo.amount,
+            orderId: paymentInfo.orderId,
+            orderName: paymentInfo.orderName,
+            customerName: paymentInfo.customerName,
+            successUrl: paymentInfo.successUrl,
+            failUrl: paymentInfo.failUrl
+        });
+
+        } catch (err) {
+        console.error("결제 중 오류 발생!", err);
+        alert("결제 도중 문제가 발생했습니다.");
+        }
+    });
+    });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 서버에서 받아온 분 단위 값을 초로 변환
+    let usedTimeEl = document.getElementById('usedTime');
+    let remainTimeEl = document.getElementById('remainTime');
+
+    let usedSeconds = parseInt(usedTimeEl.dataset.usedMin, 10) * 60;
+    let remainSeconds = parseInt(remainTimeEl.dataset.remainMin, 10) * 60;
+
+    function pad(n) { return n < 10 ? '0' + n : n; }
+
+    function formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+    }
+
+    function updateTimes() {
+        usedTimeEl.textContent = formatTime(usedSeconds);
+        remainTimeEl.textContent = remainSeconds > 0 ? formatTime(remainSeconds) : "만료됨";
+        usedSeconds++;
+        if (remainSeconds > 0) remainSeconds--;
+    }
+
+    updateTimes(); // 최초 실행
+    setInterval(updateTimes, 1000); // 1초마다 갱신
+});
+</script>
+
+
+</body>
+</html>

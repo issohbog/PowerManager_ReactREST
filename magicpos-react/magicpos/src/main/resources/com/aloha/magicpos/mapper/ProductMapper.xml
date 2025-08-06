@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.ProductMapper">
+
+    <!-- 상품 등록 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="no">
+        INSERT INTO products (c_no, p_name, p_price, img_path, description, sell_status, stock)
+        VALUES (#{cNo}, #{pName}, #{pPrice}, #{imgPath}, #{description}, #{sellStatus}, #{stock})
+    </insert>
+
+    <!-- 상품 수정 -->
+    <update id="update">
+        UPDATE products
+        SET c_no = #{cNo},
+            p_name = #{pName},
+            p_price = #{pPrice},
+            img_path = #{imgPath},
+            description = #{description},
+            sell_status = #{sellStatus},
+            stock = #{stock}
+        WHERE no = #{no}
+    </update>
+
+    <!-- 상품 삭제 -->
+    <delete id="delete">
+        DELETE FROM products
+        WHERE no = #{no}
+    </delete>
+
+    <!-- 상품 전체 조회 -->
+    <select id="findAll" resultType="Products">
+        SELECT *
+        FROM products
+        ORDER BY no DESC
+    </select>
+
+    <!-- 상품 단건 조회 -->
+    <select id="findById" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE no = #{no}
+    </select>
+
+    <!-- 분류 기준으로 상품 조회 -->
+    <select id="findByCategory" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE c_no = #{cNo}
+            AND sell_status = 1
+        ORDER BY no DESC
+    </select>
+
+    <select id="getProductListWithCategory" resultType="map">
+        SELECT 
+            p.no AS no,
+            p.p_name AS pName,
+            p.p_price AS pPrice,
+            p.stock AS stock,
+            c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        ORDER BY p.no DESC
+    </select>
+
+
+    <!-- 상품 단건에 대해 당일 판매량 계산   -->
+    <select id="findTodaySalesMap" resultType="map">
+        SELECT 
+            p.no AS productNo,
+            IFNULL(SUM(CASE WHEN DATE(o.order_time) = CURDATE() THEN od.quantity ELSE 0 END), 0) AS todaySales
+        FROM 
+            products p
+        LEFT JOIN orders_details od ON p.no = od.p_no
+        LEFT JOIN orders o ON od.o_no = o.no
+        GROUP BY p.no
+    </select>
+
+    <!-- 상품 재고 감소 (예: 주문 시) -->
+    <update id="decreaseStock">
+        UPDATE products
+        SET stock = stock - #{quantity}
+        WHERE no = #{pNo} AND stock >= #{quantity}
+    </update>
+
+    <!-- 상품 재고 증가 (예: 주문 취소 시) -->
+    <update id="increaseStock">
+        UPDATE products
+        SET stock = stock + #{quantity}
+        WHERE no = #{pNo}
+    </update>
+
+    <!-- 상품 재고 수정 -->
+    <update id="updateStock">
+        UPDATE products
+        SET stock = #{stock}
+        WHERE no = #{pNo}
+    </update>
+
+    <!-- 🔍 상품 검색 (이름, 설명, 가격) + 분류 필터링 -->
+    <select id="searchProducts" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE 
+            c_no = #{cNo}
+            AND (
+                p_name LIKE CONCAT('%', #{keyword}, '%') OR
+                description LIKE CONCAT('%', #{keyword}, '%') OR
+                CAST(p_price AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+            )
+        ORDER BY no DESC
+    </select>
+
+    <!-- 🔍 상품 통합 검색 -->
+    <select id="searchProductsAll" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE sell_status = 1
+            AND(
+                p_name LIKE CONCAT('%', #{keyword}, '%')
+                OR description LIKE CONCAT('%', #{keyword}, '%')
+                OR CAST(p_price AS CHAR) = #{keyword}
+            )
+        ORDER BY no DESC
+    </select>
+
+    <!-- 상품 재고 조회 -->
+    <select id="selectStockByPNo" resultType="long">
+        SELECT stock
+        FROM products
+        WHERE no = #{pNo}
+    </select>
+
+    <!-- 상품 전체 개수 조회 (페이지네이션 total용) -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) 
+        FROM products
+    </select>
+
+    <!-- 상품 검색 결과 개수 (페이지네이션 용)-->
+    <select id="countByCategoryAndKeyword" resultType="int">
+        SELECT COUNT(*)
+        FROM products
+        WHERE c_no = #{cNo}
+            AND (
+            p_name LIKE CONCAT('%', #{keyword}, '%')
+            OR description LIKE CONCAT('%', #{keyword}, '%')
+            )
+    </select>
+
+    <!-- 상품 전체 조회 (관리자용 - 페이지네이션)-->
+    <select id="findAllforAdmin" resultType="Products">
+        SELECT *
+        FROM products
+        ORDER BY no DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 🔍 상품 검색 (이름, 설명, 가격) + 분류 필터링 (관리자용 - 페이지네이션)-->
+    <select id="searchProductsforAdmin" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE 
+            c_no = #{cNo}
+            AND (
+                p_name LIKE CONCAT('%', #{keyword}, '%') OR
+                description LIKE CONCAT('%', #{keyword}, '%') OR
+                CAST(p_price AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+            )
+        ORDER BY no DESC
+        LIMIT #{index}, #{size}
+    </select>
+
+    <!-- 상품명으로 검색 (Map 기반) -->
+    <select id="searchByNameMap" resultType="map">
+        SELECT p.*, c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND p.p_name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY p.no DESC
+    </select>
+
+    <!-- 상품설명으로 검색 (Map 기반) -->
+    <select id="searchByDescMap" resultType="map">
+        SELECT p.*, c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND p.description LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY p.no DESC
+    </select>
+
+    <!-- 상품가격으로 검색 (Map 기반) -->
+    <select id="searchByPriceMap" resultType="map">
+        SELECT p.*, c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND CAST(p.p_price AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY p.no DESC
+    </select>
+
+    <!-- 통합 검색 (Map 기반) -->
+    <select id="searchProductsAllMap" resultType="map">
+        SELECT p.*, c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND (
+            p.p_name LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%')
+            OR CAST(p.p_price AS CHAR) = #{keyword}
+        )
+        ORDER BY p.no DESC
+    </select>
+
+    <!-- 🔍 상품 통합 검색 + 카테고리 조인 -->
+    <select id="searchProductsAllWithCategory" resultType="map">
+        SELECT
+            p.no AS no,
+            p.p_name AS pName,
+            p.p_price AS pPrice,
+            p.stock AS stock,
+            p.description AS description,
+            p.sell_status AS sellStatus,
+            p.c_no AS cNo,
+            c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND (
+            p.p_name LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%')
+            OR CAST(p.p_price AS CHAR) = #{keyword}
+        )
+        ORDER BY p.no DESC
+    </select>
+
+
+    <!-- 📂 카테고리별 상품 조회 + 카테고리 이름 포함 -->
+    <select id="findProductsByCategoryWithCategoryName" resultType="map">
+        SELECT
+            p.no AS no,
+            p.p_name AS pName,
+            p.p_price AS pPrice,
+            p.stock AS stock,
+            p.description AS description,
+            p.sell_status AS sellStatus,
+            p.c_no AS cNo,
+            c.c_name AS categoryName
+        FROM products p
+        JOIN categories c ON p.c_no = c.no
+        WHERE p.sell_status = 1
+        AND p.c_no = #{categoryNo}
+        ORDER BY p.no DESC
+    </select>
+
+
+
+
+</mapper>

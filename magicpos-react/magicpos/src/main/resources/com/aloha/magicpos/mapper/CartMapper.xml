@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.CartMapper">
+
+    <!-- 장바구니 등록 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="no">
+        INSERT INTO carts (p_no, u_no, quantity)
+        VALUES (#{pNo}, #{uNo}, #{quantity})
+    </insert>
+
+    <!-- 수량 증가 -->
+    <update id="increaseQuantity">
+        UPDATE carts
+        SET quantity = quantity + 1
+        WHERE u_no = #{uNo} AND p_no = #{pNo}
+    </update>
+
+    <!-- 수량 감소 -->
+    <update id="decreaseQuantity">
+        UPDATE carts
+        SET quantity = quantity - 1
+        WHERE u_no = #{uNo} AND p_no = #{pNo}
+    </update>
+
+  <!-- if (현재_수량 <= 1) {
+    cartMapper.delete(uNo, pNo);
+  } else {
+      cartMapper.decreaseQuantity(uNo, pNo);
+  } -->
+    <!-- 수량이 0 이하가 되면 삭제 (서비스 단에서 조건 체크해서 실행) -->
+    <delete id="delete">
+        DELETE FROM carts
+        WHERE no = #{cartNo}
+    </delete>
+
+    <!-- 사용자 장바구니 전체 삭제 -->
+    <delete id="deleteAllByUserNo">
+        DELETE FROM carts WHERE u_no = #{userNo}
+    </delete>
+
+    <!-- 사용자 장바구니 전체 조회 -->
+    <select id="findByUser" resultType="Carts">
+        SELECT *
+        FROM carts
+        WHERE u_no = #{uNo}
+    </select>
+
+    <!-- 특정 상품이 장바구니에 이미 있는지 조회 -->
+    <select id="findByUserAndProduct" resultType="Carts">
+        SELECT *
+        FROM carts
+        WHERE u_no = #{uNo} AND p_no = #{pNo}
+    </select>
+
+    <!-- 유저 no로 카트 조회 -->
+    <select id="findCartWithProductByUser" resultType="map">
+        SELECT 
+            c.no,
+            c.u_no,
+            c.p_no,
+            c.quantity,
+            p.p_name,
+            p.p_price,
+            p.img_path,
+            p.stock
+        FROM carts c
+        JOIN products p ON c.p_no = p.no
+        WHERE c.u_no = #{uNo}
+    </select>
+    
+    <!-- 총 가격 계산 -->
+    <select id="getTotalPrice" resultType="int">
+        SELECT 
+            COALESCE(SUM(p.p_price * c.quantity), 0)
+        FROM carts c
+        JOIN products p ON c.p_no = p.no
+        WHERE c.u_no = #{uNo}
+    </select>
+
+
+</mapper>
+

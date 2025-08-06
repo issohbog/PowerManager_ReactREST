@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{/layouts/admin/main_layout}"
+      >
+  <head>
+    <!-- 기존 head 내용들(타이틀, 스타일 등) 위/아래 어디든 OK -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  </head>
+ 
+ <body layout:fragment="content">
+  <div class="content">
+
+      <div class="top-controls">
+        <form th:action="@{/users/admin/userlist}" method="get" class="search-box">
+          <select name="type" class="admin_category" >
+            <option value="" th:selected="${type == null or type == ''}">전체</option>
+            <option value="id" th:selected="${type == 'id'}">아이디</option>
+            <option value="username" th:selected="${type == 'username'}">이름</option>
+            <option value="phone" th:selected="${type == 'phone'}">전화번호</option>
+          </select>
+  
+          <div class="search-box">
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="이름/전화번호/아이디" />
+            <button type="submit" class="search-icon">
+              <img src="/images/search.png" alt="검색버튼">
+            </button>
+          </div>
+        </form>
+      </div>
+      
+    <div class="button-group">
+      <button class="action">회원등록</button>
+      <button class="action">회원수정</button>
+      <button class="action">회원삭제</button>
+    </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th><input type="checkbox" /></th>
+        <th>No.</th>
+        <th>이름</th>
+        <th>아이디</th>
+        <th>생년월일</th>
+        <th>전화번호</th>
+        <th>이메일</th>
+        <th>남은 시간</th>
+        <th>사용 시간</th>
+        <th>가입일자</th>
+      </tr>
+    </thead>
+    <tbody class="user-tbody">
+      <tr th:each="user, iterStat : ${users}" th:attr="data-user-no=${user.no}">
+        <td><input type="checkbox" /></td>
+        <td th:text="${pagination != null ? (pagination.page - 1) * pagination.size + iterStat.count : iterStat.count}"></td>
+        <td th:text="${user.username}"></td>
+        <td th:text="${user.id}"></td>
+        <td th:text="${#dates.format(user.birth, 'yyyy.MM.dd')}"></td>
+        <td th:text="${user.phone}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.remainMin} + '분'"></td>
+        <td th:text="${user.usedMin} + '분'"></td>
+        <td th:text="${#temporals.format(user.createdAt, 'yyyy.MM.dd')}"></td>
+      </tr>
+    </tbody>
+  </table>
+
+    <div class="pagination">
+      <ul>
+        <li th:if="${pagination.page > 1}">
+          <a th:href="@{/users/admin/userlist(type=${type}, keyword=${keyword}, page=${pagination.page-1})}">« 이전</a>
+        </li>
+        <li th:each="i : ${#numbers.sequence(pagination.start, pagination.end)}"
+            th:classappend="${i == pagination.page} ? 'active'">
+          <a th:href="@{/users/admin/userlist(type=${type}, keyword=${keyword}, page=${i})}"
+            th:text="${i}">1</a>
+        </li>
+        <li th:if="${pagination.page < pagination.last}">
+          <a th:href="@{/users/admin/userlist(type=${type}, keyword=${keyword}, page=${pagination.page+1})}">다음 »</a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+
+
+
+ <!-- 회원 등록/수정/조회 모달 -->
+<div id="user-modal" class="modal" style="display: none;">
+  <div class="modal-content large">
+    <div class="modal-header">
+      <span id="modal-title">회원등록</span>
+      <span class="close-btn" onclick="closeUserModal()">×</span>
+    </div>
+    <form id="user-form" method="post" th:action="@{/users/save}">
+        <!-- ✅ 등록/수정/조회 구분용 hidden -->
+        <input type="hidden" name="mode" id="form-mode" value="register" />
+        <!-- ✅ 회원번호 (수정 시 필요) -->
+        <input type="hidden" name="no" id="user-no" value="" />
+        <input type="hidden" name="hidden-id" id="hidden-id" value="" />
+
+
+        <div class="modal-body two-columns with-divider">
+          <!-- 왼쪽 -->
+          <div class="left-column">
+            <div class="form-row">
+              <label for="username">이름</label>
+              <input type="text" name="username" id="username">
+            </div>
+            <div class="form-row id-row">
+              <label for="id">아이디</label>
+              <div class="inline-field" id="id-input-wrapper">
+                <input type="text" name="id" id="user-id" />
+                <button type="button" id="id-check-btn">중복확인</button>
+              </div>
+              <div id="id-check-message" class="form-message"></div>
+            </div>
+            <div class="form-row">
+              <label>성별</label>
+            <div class="radio-group">
+            <label for="gender-m">
+              <input type="radio" name="gender" value="M" id="gender-m" checked> 
+              남자
+            </label>
+            <label for="gender-f">
+              <input type="radio" name="gender" value="F" id="gender-f">
+              여자
+            </label>
+          </div>
+            </div>
+            <div class="form-row">
+              <label>메모</label>
+              <textarea name="memo" id="memo"></textarea>
+            </div>
+          </div>
+
+          <!-- 오른쪽 -->
+          <div class="right-column">
+            <div class="form-row">
+              <label>생년월일</label>
+              <input type="date" name="birth" id="birth">
+            </div>
+            <div class="form-row">
+              <label>전화번호</label>
+              <input type="text" name="phone" id="phone">
+            </div>
+            <div class="form-row">
+              <label>이메일</label>
+              <input type="email" name="email" id="email">
+            </div>
+            <div class="form-row">
+              <label>사용시간</label>
+              <div class="inline-field">
+                <input type="number" name="usedMin" id="usedMin" min="0" disabled>
+                <span>분</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label>남은시간</label>
+              <div class="inline-field">
+                <input type="number" name="remainMin" id="remainMin" min="0" disabled>
+                <span>분</span>
+              </div>
+            </div>
+          </div>
+          <!-- 중앙에 겹쳐지는 선 -->
+          <div class="divider"></div>
+        </div>
+
+        <div class="modal-footer" id="modal-footer">
+          <button type="button" onclick="closeUserModal()">취소</button>
+          <button type="submit" id="modal-submit-btn">저장</button>
+        </div>
+
+
+    </form>
+  </div>
+</div>
+
+<!-- 회원 등록/수정 모달 끝 -->
+
+<!-- 임시비밀번호 안내 모달 -->
+<!-- ✅ 임시비밀번호 안내 모달 -->
+<div id="temp-password-modal" class="modal" 
+     style="display: none;"
+     th:style="${showSuccessModal} ? 'display: flex;' : 'display: none;'" >
+          
+  <div class="modal-content small">
+    <div class="modal-header">
+      <span class="modal-title" th:text="${modalTitle} ?: '회원 등록 완료'">회원 등록 완료</span>
+      <span class="close-btn" onclick="closeTempPasswordModal()">×</span>
+    </div>
+    <div class="modal-body">
+      <p><strong th:text="${savedUser.username}">사용자이름</strong> 님의 회원 등록이 완료되었습니다.</p>
+      <p>임시 비밀번호: 
+        <span style="color: red; font-weight: bold;" th:text="${savedUser.tempPassword}">Abc12345</span>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button onclick="closeTempPasswordModal()">확인</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin_user_list.js"></script>
+<!-- 임시비밀번호 안내 모달 끝 -->
+ 
+<script th:inline="javascript">
+  const savedUser = [[${savedUser}]]
+  const username =  [[${savedUser.username}]]
+  if( savedUser != null && username != null ) {
+    const tempPasswordModal = document.getElementById('temp-password-modal')
+    if( tempPasswordModal )
+      document.getElementById('temp-password-modal').style.display = 'flex'
+  }
+</script>
+</body>
+</html>
