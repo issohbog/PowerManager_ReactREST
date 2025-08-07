@@ -56,20 +56,27 @@ public class SecurityConfig {
     // 🔐 스프링 시큐리티 설정 메소드
 	@Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        
+        // csrf 제거
+        http
+        .csrf(csrf -> csrf.disable()); // 최신 람다 방식
+        
+
 
         // ✅ 인가 설정
         
         http.authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/login", "/users/signup", "/users/new", "/users/admin/check-id", "/css/**", "/js/**", "/img/**").permitAll()
-                                .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/users/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/products/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/categories/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/usertickets/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/usertickets/ticket/**").hasRole("ADMIN")
-                                .requestMatchers("/seats/**").hasRole("ADMwIN")
-                                .requestMatchers("/menu", "/menu/**","/carts", "/carts/**", "/users/**").hasAnyRole("USER","ADMIN")
-                                .requestMatchers("/userticket/insert").hasAnyRole("USER","ADMIN")
+                                // 인가설정 모든 구현 완료 후 주석 해제 
+                                // .requestMatchers("/login", "/users/signup", "/users/new", "/users/admin/check-id", "/css/**", "/js/**", "/img/**").permitAll()
+                                // .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/users/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/products/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/categories/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/usertickets/admin/**").hasRole("ADMIN")
+                                // .requestMatchers("/usertickets/ticket/**").hasRole("ADMIN")
+                                // .requestMatchers("/seats/**").hasRole("ADMwIN")
+                                // .requestMatchers("/menu", "/menu/**","/carts", "/carts/**", "/users/**").hasAnyRole("USER","ADMIN")
+                                // .requestMatchers("/userticket/insert").hasAnyRole("USER","ADMIN")
                                 .anyRequest().permitAll()
                                 );
 

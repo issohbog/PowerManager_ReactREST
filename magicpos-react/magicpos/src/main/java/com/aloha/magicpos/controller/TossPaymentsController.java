@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.aloha.magicpos.domain.UserTickets;
@@ -35,7 +38,7 @@ import com.aloha.magicpos.domain.Tickets;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Controller
+@RestController
 public class TossPaymentsController {
     
     @Autowired
@@ -58,12 +61,15 @@ public class TossPaymentsController {
     
     // 관리자 요금제 결제 성공
     @GetMapping("/admin/payment/ticket/success")
-    public String adminTicketPaymentSuccess(@RequestParam("paymentKey") String paymentKey,
+    public ResponseEntity<Map<String, Object>> adminTicketPaymentSuccess
+                                         (@RequestParam("paymentKey") String paymentKey,
                                           @RequestParam("orderId") String orderId,
-                                          @RequestParam("amount") int amount,
-                                          Model model) throws Exception {
+                                          @RequestParam("amount") int amount
+                                          ) throws Exception {
+
         log.info("💳 관리자 요금제 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
-        
+        Map<String, Object> result = new HashMap<>();
+
         try {
             // 주문 정보에서 요금제 구매 정보 추출
             String[] orderParts = orderId.split("_");
@@ -87,8 +93,12 @@ public class TossPaymentsController {
                             boolean insertSuccess = userTicketService.insertUserTicketByAdmin(userTicket);
                             if (insertSuccess) {
                                 log.info("💳 관리자 요금제 구매 완료: userNo={}, ticketNo={}, amount={}", userNo, ticketNo, amount);
+                                result.put("message", "관리자 요금제 결제가 성공적으로 완료되었습니다.");
+                                result.put("success", true);
                             } else {
                                 log.error("💳 관리자 요금제 구매 저장 실패: userNo={}, ticketNo={}", userNo, ticketNo);
+                                result.put("success", false);
+                                result.put("message", "관리자 요금제 결제 저장에 실패했습니다.");
                             }
                         } catch (Exception e) {
                             log.error("💳 userNo/ticketNo 파싱 오류: {}", e.getMessage(), e);
@@ -101,38 +111,39 @@ public class TossPaymentsController {
                 }
             }
             
-            model.addAttribute("message", "관리자 요금제 결제가 성공적으로 완료되었습니다.");
-            model.addAttribute("orderId", orderId);
-            model.addAttribute("amount", amount);
-            model.addAttribute("paymentKey", paymentKey);
-            return "payment/success";
+            result.put("paymentKey", paymentKey);
+            result.put("orderId", orderId);
+            result.put("amount", amount);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage());
-            model.addAttribute("message", "관리자 요금제 결제 승인 처리 중 오류가 발생했습니다.");
-            return "payment/fail";
+            log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "관리자 요금제 결제 승인 처리 중 오류가 발생했습니다."));
         }
+
     }
     
     // 관리자 요금제 결제 실패
     @GetMapping("/admin/payment/ticket/fail")
-    public String adminTicketPaymentFail(@RequestParam(value = "message", required = false) String message,
-                                       @RequestParam(value = "code", required = false) String code,
-                                       Model model) {
+    public ResponseEntity<Map<String, Object>> adminTicketPaymentFail(@RequestParam(value = "message", required = false) String message,
+                                       @RequestParam(value = "code", required = false) String code
+                                       ) {
         log.info("💳 관리자 요금제 결제 실패: message={}, code={}", message, code);
-        
-        model.addAttribute("message", message != null ? message : "관리자 요금제 결제에 실패했습니다.");
-        model.addAttribute("code", code);
-        return "payment/fail";
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("message", message != null ? message : "관리자 요금제 결제에 실패했습니다.");
+        result.put("code", code);
+        return ResponseEntity.ok(result);
     }
     
     // 사용자 요금제 결제 성공
     @GetMapping("/users/payment/ticket/success")
-    public String userTicketPaymentSuccess(@RequestParam("paymentKey") String paymentKey,
+    public ResponseEntity<Map<String, Object>> userTicketPaymentSuccess(
+                                         @RequestParam("paymentKey") String paymentKey,
                                          @RequestParam("orderId") String orderId,
                                          @RequestParam("amount") int amount,
                                          @RequestParam("userNo") Long userNo,
-                                         @RequestParam("ticketNo") Long ticketNo,
-                                         Model model) throws Exception {
+                                         @RequestParam("ticketNo") Long ticketNo
+                                         ) throws Exception {
         log.info("💳 사용자 요금제 결제 성공: paymentKey={}, orderId={}, amount={}, userNo={}, ticketNo={}", paymentKey, orderId, amount, userNo, ticketNo);
         
         // 사용자 요금제 결제 처리 로직
@@ -143,27 +154,31 @@ public class TossPaymentsController {
         userTicket.setPayAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
         boolean success = userTicketService.insertUserTicketByAdmin(userTicket);
-
-        if (success) {
-            // 결제 완료 후 menu로 리다이렉트(모달 자동 오픈)
-            return "redirect:/menu?payment=success";
-        } else {
-            model.addAttribute("message", "티켓 지급에 실패했습니다.");
-            return "payment/fail";
-        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", success);
+        result.put("message", "사용자 요금제 결제가 성공적으로 완료되었습니다.");
+        result.put("paymentKey", paymentKey);
+        result.put("orderId", orderId);
+        result.put("amount", amount);
+        result.put("userNo", userNo);
+        result.put("ticketNo", ticketNo);
+        
+        return ResponseEntity.ok(result);
     }
     
     // 사용자 요금제 결제 실패
     @GetMapping("/users/payment/ticket/fail")
-    public String userTicketPaymentFail(@RequestParam(value = "message", required = false) String message,
-                                      @RequestParam(value = "code", required = false) String code,
-                                      Model model) {
+    public ResponseEntity<Map<String, Object>> userTicketPaymentFail(@RequestParam(value = "message", required = false) String message,
+                                      @RequestParam(value = "code", required = false) String code                                      
+                            ) {
         log.info("💳 사용자 요금제 결제 실패: message={}, code={}", message, code);
-        
-        model.addAttribute("message", message != null ? message : "사용자 요금제 결제에 실패했습니다.");
-        model.addAttribute("code", code);
-        return "payment/fail";
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("message", message != null ? message : "사용자 요금제 결제에 실패했습니다.");    
+        result.put("code", code);
+        return ResponseEntity.ok(result);
     }
+
     
     // ===== 상품 결제 (Products) =====
     

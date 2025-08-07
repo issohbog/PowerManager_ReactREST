@@ -5,11 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.aloha.magicpos.domain.Auths;
@@ -32,11 +35,13 @@ import com.aloha.magicpos.util.PasswordUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/users")
 public class UserController {
 
@@ -60,15 +65,15 @@ public class UserController {
 
     // ✅ 전체 회원 목록
     @GetMapping("/admin/userlist")
-    public String list(
+    public ResponseEntity<Map<String, Object>> list(
         @RequestParam(value = "type", required = false) String type, 
         @RequestParam(value = "keyword", required = false) String keyword, 
-        @ModelAttribute("savedUser") Users savedUser,
+        // @ModelAttribute("savedUser") Users savedUser,
         @RequestParam(name = "page", defaultValue = "1") int page,
-        @RequestParam(name = "size", defaultValue = "10") int size,
-        Model model
+        @RequestParam(name = "size", defaultValue = "10") int size
         ) throws Exception {
-
+        
+        Map<String, Object> result = new HashMap<>();
         // 전체 회원 수 
         int total = userService.countUsers(type, keyword);
 
@@ -87,93 +92,105 @@ public class UserController {
             user.setUsedMin(used);      
         }
 
-        model.addAttribute("users", userList);
-        model.addAttribute("pagination", pagination);
-        model.addAttribute("type", type);
-        model.addAttribute("keyword", keyword);
+        // 결과를 Map에 담기
+        result.put("users", userList);
+        result.put("pagination", pagination);
+        result.put("type", type);
+        result.put("keyword", keyword);
 
-        return "pages/admin/admin_user_list";
+        return ResponseEntity.ok(result);
     }
 
-    // 회원가입( 사용자 용 )
-    @GetMapping("/new")
-    public String signupform(Model model) {
-        model.addAttribute("user", new Users());
-        return "pages/user_signup";
-    }
+    // // 회원가입( 사용자 용 )         -- REST로 변경 ➡ 프론트에서 처리 
+    // @GetMapping("/new")
+    // public String signupform(Model model) {
+    //     model.addAttribute("user", new Users());
+    //     return "pages/user_signup";
+    // }
 
     // 회원가입 처리( 사용자 용 )
     @PostMapping("/signup")
-    public String signup(@ModelAttribute Users user, HttpSession session) throws Exception {         // @ModelAttribute Users user : html form 에서 입력한 내용을 Users 객체에 자동으로 담아줌 
+    public ResponseEntity<Map<String, Object>> signup(@RequestBody Users user) throws Exception {         // @ModelAttribute Users user : html form 에서 입력한 내용을 Users 객체에 자동으로 담아줌 
         log.info("회원 가입 요청: {}", user);
         
-        // 1. 비밀번호 암호화 (서비스에서만 진행)
-        // String encodedPassword = passwordEncoder.encode(user.getPassword());
-        // user.setPassword(encodedPassword);
-
-        // 2. 회원 정보 저장 
-        Users savedUser = userService.insertByUser(user);
-
-        // 3. 권한 부여 
-        Auths auth = new Auths();
-        auth.setUNo(savedUser.getNo());
-        auth.setAuth("ROLE_USER");
-
+        Map<String, Object> response = new HashMap<>();
         try {
-            boolean result = authService.insert(auth);
-            log.info("✅ 권한 저장 여부: {}", result);
+            // 2. 회원 정보 저장 
+            Users savedUser = userService.insertByUser(user);
+    
+            // 3. 권한 부여 
+            Auths auth = new Auths();
+            auth.setUNo(savedUser.getNo());
+            auth.setAuth("ROLE_USER");
+    
+            try {
+                boolean result = authService.insert(auth);
+                log.info("✅ 권한 저장 여부: {}", result);
+            } catch (Exception e) {
+                log.error("❌ 권한 저장 중 예외 발생: ", e);
+            }
+            log.info("👉 사용자 번호: {}", savedUser.getNo());
+    
+            log.info("✅ 회원가입 끝났고, /login으로 리다이렉트 예정");
+    
+            // ✅ 로그 추가
+            String username = (user != null) ? user.getUsername() : "알 수 없음";
+            String description = username + "님이 " +  "회원 가입 하였습니다.";
+            logService.insertLogNoSeatId(user.getNo(), "회원가입", description);
+    
+            // 4. 응답 데이터 설정
+            response.put("success", true);
+            response.put("userNo", savedUser.getNo());  // 회원 번호 전달
+            response.put(username, savedUser.getUsername()); // 사용자 이름 전달
+            response.put("message", "회원 가입이 완료되었습니다.");
+            
         } catch (Exception e) {
-            log.error("❌ 권한 저장 중 예외 발생: ", e);
+            log.error("회원가입 처리 중 예외 발생", e);
+            response.put("success", false);
+            response.put("message", "회원 가입에 실패했습니다. 다시 시도해주세요.");
         }
-        log.info("👉 사용자 번호: {}", savedUser.getNo());
-
-        log.info("✅ 회원가입 끝났고, /login으로 리다이렉트 예정");
-
-        // ✅ 로그 추가
-        String username = (user != null) ? user.getUsername() : "알 수 없음";
-
-        String description = username + "님이 " +  "회원 가입 하였습니다.";
-        logService.insertLogNoSeatId(user.getNo(), "회원가입", description);
 
         // 4. 리다이렉트 
-        return "redirect:/login";
+        return ResponseEntity.ok(response);  // JSON 응답으로 성공 여부와 메시지 전달
     }
     
 
     // 아이디 중복 체크 
     @GetMapping("/admin/check-id")
-    @ResponseBody                           // 컨트롤러 메소드의 반환값을 HTTP응답 body로 직접 전송 한다는 의미(뷰 이름 X)
-    public Map<String, Boolean> getMethodName(@RequestParam("id") String id) {
+    public ResponseEntity<Map<String, Boolean>> getMethodName(@RequestParam("id") String id) {
         boolean exists = userService.isIdExist(id);
-        return Collections.singletonMap("exists", exists);          // key, value 가 1쌍인 map
+        return ResponseEntity.ok(Collections.singletonMap("exists", exists));          // key, value 가 1쌍인 map
     }
     
-    // 회원 등록 처리
+    // 회원 등록 처리 (관리자용)
     @PostMapping("/admin/save")
-    public String insert(Users user, 
-                        RedirectAttributes redirectAttributes             
-    ) throws Exception {
-        // 임시비밀번호 생성 + 저장된 사용자 정보 반환
-        Users savedUser = userService.insert(user);
-
-        // 기본 권한 부여 (예: ROLE_USER)
-        Auths auth = new Auths();
-        auth.setUNo(user.getNo());
-        auth.setAuth("ROLE_USER");
-        authService.insert(auth);
-
-        // FlashAttributes로 임시 비번과 플래그 전달 
-        redirectAttributes.addFlashAttribute("modalTitle", "회원 등록 완료");
-        redirectAttributes.addFlashAttribute("savedUser", savedUser);
-        redirectAttributes.addFlashAttribute("showSuccessModal", true);
+    public ResponseEntity<Map<String, Object>> insert(@RequestBody Users user) throws Exception {
         
-        return "redirect:/users/admin/userlist";
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 임시비밀번호 생성 + 저장된 사용자 정보 반환
+            Users savedUser = userService.insert(user);
+    
+            // 기본 권한 부여 (예: ROLE_USER)
+            Auths auth = new Auths();
+            auth.setUNo(user.getNo());
+            auth.setAuth("ROLE_USER");
+            authService.insert(auth);
+
+            result.put("success", true);
+            result.put("savedUser", savedUser);  // 회원 번호 전달
+            result.put("message", "회원 등록이 완료되었습니다.");
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "회원 등록에 실패했습니다.");
+        }
+        return ResponseEntity.ok(result);  // JSON 응답으로 성공 여부와 메시지 전달
     }
 
     // ✅ 회원 수정 폼
     @GetMapping("/admin/{userNo}/info")
-    @ResponseBody
-    public Map<String, Object> getUserInfo(@PathVariable("userNo") Long userNo) throws Exception {
+    public ResponseEntity<Map<String, Object>> getUserInfo(@PathVariable("userNo") Long userNo) throws Exception {
         System.out.println("userNo: " + userNo);
 
         Users user = userService.findByNo(userNo);
@@ -186,43 +203,61 @@ public class UserController {
         result.put("remainTime", remainTime);
         result.put("usedTime", usedTime);
 
-        return result;      // json응답
+        return ResponseEntity.ok(result);      // json응답
 
     }
 
     // ✅ 회원 수정 처리
-    @PostMapping("/admin/update")
-    public String update(Users user, RedirectAttributes redirectAttributes) throws Exception {
-        
-        userService.update(user);
-        // 수정 성공 메시지 flash로 전달
-        redirectAttributes.addFlashAttribute("updateSuccess", true);
-        return "redirect:/users/admin/userlist";
+    @PutMapping("/admin/update")
+    public ResponseEntity<Map<String, Object>> update(@RequestBody Users user) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            userService.update(user);
+            result.put("success", true);
+            result.put("message", "회원 정보가 수정되었습니다.");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "회원 정보 수정에 실패했습니다.");
+            log.error("회원 정보 수정 중 예외 발생: ", e);
+        }
+        return ResponseEntity.ok(result);  // JSON 응답으로 성공 여부와 메시지 전달
     }
 
     // 단건 회원 삭제
-    @PostMapping("/admin/{no}/delete")
-    @ResponseBody
-    public ResponseEntity<String> delete(@PathVariable("no") Long no) throws Exception {
-        userService.delete(no);
-        return ResponseEntity.ok("ok");
+    @DeleteMapping("/admin/{no}/delete")
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable("no") Long no) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            userService.delete(no);
+            result.put("success", true);
+            result.put("message", "회원이 삭제되었습니다.");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "회원 삭제에 실패했습니다.");
+        }
+        return ResponseEntity.ok(result);
     }
 
-    // 체크된 회원 모두 삭제 
-    @PostMapping("/admin/deleteAll")
-    @ResponseBody
-    public ResponseEntity<String> deleteAll(@RequestParam("userNos") List<Long> userNos) throws Exception {
-        for (Long no : userNos) {
-            userService.delete(no);
+    // 체크된 회원 모두 삭제
+    @DeleteMapping("/admin/deleteAll")
+    public ResponseEntity<Map<String, Object>> deleteAll(@RequestBody List<Long> userNos) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            for (Long no : userNos) {
+                userService.delete(no);
+            }
+            result.put("success", true);
+            result.put("message", "선택한 회원이 모두 삭제되었습니다.");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "회원 삭제에 실패했습니다.");
         }
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(result);
     }
 
     // 비밀번호 초기화 (관리자용)
-    @PostMapping("/admin/{no}/reset")
-    @ResponseBody
-    public Map<String, Object> resetPassword(@PathVariable("no") Long no,
-                            RedirectAttributes redirectAttributes) throws Exception {
+    @PutMapping("/admin/{no}/reset")
+    public ResponseEntity<Map<String, Object>> resetPassword(@PathVariable("no") Long no) throws Exception {
 
     Map<String, Object> result = new HashMap<>();
 
@@ -244,14 +279,15 @@ public class UserController {
         result.put("message", "비밀번호 초기화에 실패했습니다. ");
     }
 
-    return result;
+    return ResponseEntity.ok(result);
 }
 
     // ✅ 회원 검색
     @GetMapping("/search")
-    public String search(@RequestParam("keyword") String keyword, Model model) throws Exception {
+    public ResponseEntity<Map<String, Object>> search(@RequestParam("keyword") String keyword) throws Exception {
         List<Users> users = userService.searchUsersByKeyword(keyword);
-        model.addAttribute("users", users);
-        return "user/list";
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", users);
+        return ResponseEntity.ok(result);
     }
 }
