@@ -1,0 +1,155 @@
+/* 모달 박스 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+img {
+    vertical-align: top;
+}
+button {
+  all: unset;
+  cursor: pointer;
+}
+button img {
+  vertical-align: middle;
+}
+
+.sell-modal-box {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  width: 1200px;
+
+  /* ⭐ 가운데 정렬 핵심! */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  border-radius: 10px;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+/* 모달 상단 바 */
+.sell-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #5D6D7E;
+  padding: 0 15px;
+}
+.sell-modal-footer{
+    display: flex;
+    padding: 50px;
+    gap: 30px;
+}
+
+/* 제목 텍스트 */
+.sell-modal-title {
+  font-weight: bold;
+  font-size: 22px;
+  color: #F0F0F0;
+  padding: 10px;
+}
+
+/* 닫기 버튼 */
+.sell-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #F0F0F0;
+}
+
+/* 테이블 크기 지정 */
+.sell-table-wrapper {
+  height: 700px;         /* 보여줄 테이블 높이 제한 */
+  overflow-y: auto;      /* 세로 스크롤 생김 */
+  border: 1px solid #ccc; /* 눈에 보이게 테두리도 추가 */
+}
+
+/* 테이블 css */
+.sell-table {
+    border-collapse: collapse;
+    background-color: #fff;
+    width: 650px;
+    margin-top: 0px;
+}
+.sell-seat-input{
+    display: flex;
+    gap: 10px;
+}
+.sell-side-panel{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.sell-cart-items {
+  width: 410px;
+  color: white;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 10px;
+}
+.payment-methods {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.payment-methods input[type="radio"] {
+  display: none;
+}
+
+.payment-methods label {
+  width: calc((100% - 20px) / 3);
+  height: 50px;
+  background-color: #3d4b5a;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.payment-methods label:has(input[type="radio"]:checked) {
+  background-color: #f4d03f;
+  color: #000;
+  font-weight: bold;
+}
+.sell-order-button {
+  width: 100%;
+  background-color: #f1c40f;
+  color: black;
+  font-weight: bold;
+  border: none;
+  padding: 15px 0;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+.payment-order {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sell-cart-item {
+  padding: 0 15px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 10px;
+}

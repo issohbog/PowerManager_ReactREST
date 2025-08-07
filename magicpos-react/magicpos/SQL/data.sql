@@ -1,4 +1,4 @@
--- Active: 1750388003489@@127.0.0.1@3306@magicpos
+-- Active: 1750388007092@@127.0.0.1@3306@magicpos
 USE magicpos;
 
 -- 외래 키 제약 해제
@@ -338,3 +338,7 @@ INSERT INTO auths (u_no, auth) VALUES
 --   SELECT no FROM orders ORDER BY no DESC LIMIT 50
 -- ) o;
 
+-- seats_reservations 테이블에 user1 임시 데이터 추가
+INSERT INTO seats_reservations (u_no, seat_id, start_time, end_time) VALUES
+-- user1이 S1 좌석을 현재 사용 중 (2시간 전 시작, 4시간 후 종료 = 총 6시간 예약)
+(1, 'S1', NOW() - INTERVAL 2 HOUR, NOW() + INTERVAL 4 HOUR);

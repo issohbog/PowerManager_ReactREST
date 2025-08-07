@@ -17,4 +17,5 @@ public class Orders {
     private Long orderStatus;
     private Long paymentStatus;
     private LocalDateTime payAt;
+    private Long cashAmount;
 }

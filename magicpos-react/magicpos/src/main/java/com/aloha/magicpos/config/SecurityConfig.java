@@ -23,6 +23,10 @@ import com.aloha.magicpos.security.CustomLogoutSuccessHandler;
 import com.aloha.magicpos.service.UserDetailServiceImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 @Slf4j
 @Configuration
@@ -54,77 +58,97 @@ public class SecurityConfig {
 
 
     // 🔐 스프링 시큐리티 설정 메소드
-	@Bean
+	// @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+    //     // ✅ 인가 설정
+        
+    //         http
+    //         .csrf(csrf -> csrf.disable())
+    //         .cors(cors -> cors.configurationSource(corsConfigurationSource()))  // ← 추가
+    //         // ...기타 설정
+    //         ;
+
+
+    //     http.authorizeHttpRequests(auth -> auth
+    //                             // .requestMatchers("/login", "/users/signup", "/users/new", "/users/admin/check-id", "/css/**", "/js/**", "/img/**").permitAll()
+    //                             // .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/users/admin/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/products/admin/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/categories/admin/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/usertickets/admin/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/usertickets/ticket/**").hasRole("ADMIN")
+    //                             // .requestMatchers("/seats/**").hasRole("ADMwIN")
+    //                             // .requestMatchers("/menu", "/menu/**","/carts", "/carts/**", "/users/**").hasAnyRole("USER","ADMIN")
+    //                             // .requestMatchers("/userticket/insert").hasAnyRole("USER","ADMIN")
+    //                             .anyRequest().permitAll()
+    //                             );
+
+
+
+    //     // 🔐 폼 로그인
+    //     // http.formLogin(login -> login.permitAll());
+
+    //     // ✅ 커스텀 로그인 페이지
+    //     // http.formLogin(login -> login
+    //     //                              //.usernameParameter("id")       // 아이디 파라미터
+    //     //                              //.passwordParameter("pw")       // 비밀번호 파라미터
+    //     //                              .loginPage("/login")                   // 로그인 페이지 경로
+    //     //                             //  .loginProcessingUrl("/login") // 로그인 요청 경로
+    //     //                              // .defaultSuccessUrl("/?=true") // 로그인 성공 경로
+    //     //                              .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
+    //     //                              .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
+        
+    //     //                 );
+    //     http.formLogin(login -> login
+    //                                 .loginPage("/login") // 너가 만든 login.html이 /login 경로로 매핑되어야 해
+    //                                 .loginProcessingUrl("/login") // form action과 일치
+    //                                 .usernameParameter("id") // <input name="id">
+    //                                 .passwordParameter("password") // <input name="password">
+    //                                 .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
+    //                                 .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
+    //                                 .permitAll()
+    //                             );
+
+    //     http.exceptionHandling( exception -> exception
+    //                                         // 예외 처리 페이지 설정
+    //                                         // .accessDeniedPage("/exception")
+    //                                         // 접근 거부 핸들러 설정
+    //                                         .accessDeniedHandler(customAccessDeniedHandler)
+
+    //                             );                           
+
+    //     // 👩‍💼 사용자 정의 인증
+    //     http.userDetailsService(userDetailServiceImpl);
+
+    //     // 🔄 자동 로그인
+    //     http.rememberMe(me -> me
+    //             .key("aloha")
+    //             .tokenRepository(tokenRepository())
+    //             .tokenValiditySeconds(60 * 60 * 24 * 7));
+
+    //     // 🔓 로그아웃 설정
+    //     http.logout(logout -> logout
+    //                         .logoutUrl("/logout")   // 로그아웃 요청 경로
+    //                         .logoutSuccessUrl("/login?logout=true") // 로그아웃 성공 시 URL
+    //                         .invalidateHttpSession(true)        // 세션 초기화
+    //                         .deleteCookies("remember-id")       // 로그아웃 시, 아이디저장 쿠키 삭제
+    //                         .logoutSuccessHandler(customLogoutSuccessHandler)         // 로그아웃 성공 핸들러 설정
+    //                 );
+
+    //     return http.build();
+    // }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        // ✅ 인가 설정
+        http
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())  // 모든 요청 허용
+            .csrf(csrf -> csrf.disable())                                  // CSRF 비활성화
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 허용
+            .formLogin(form -> form.disable())                             // 폼 로그인 비활성화
+            .logout(logout -> logout.disable())                            // 로그아웃 비활성화
+            .httpBasic(basic -> basic.disable());                          // HTTP Basic 인증 비활성화
         
-        http.authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/login", "/users/signup", "/users/new", "/users/admin/check-id", "/css/**", "/js/**", "/img/**").permitAll()
-                                .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/users/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/products/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/categories/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/usertickets/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/usertickets/ticket/**").hasRole("ADMIN")
-                                .requestMatchers("/seats/**").hasRole("ADMwIN")
-                                .requestMatchers("/menu", "/menu/**","/carts", "/carts/**", "/users/**").hasAnyRole("USER","ADMIN")
-                                .requestMatchers("/userticket/insert").hasAnyRole("USER","ADMIN")
-                                .anyRequest().permitAll()
-                                );
-
-
-
-        // 🔐 폼 로그인
-        // http.formLogin(login -> login.permitAll());
-
-        // ✅ 커스텀 로그인 페이지
-        // http.formLogin(login -> login
-        //                              //.usernameParameter("id")       // 아이디 파라미터
-        //                              //.passwordParameter("pw")       // 비밀번호 파라미터
-        //                              .loginPage("/login")                   // 로그인 페이지 경로
-        //                             //  .loginProcessingUrl("/login") // 로그인 요청 경로
-        //                              // .defaultSuccessUrl("/?=true") // 로그인 성공 경로
-        //                              .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
-        //                              .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
-        
-        //                 );
-        http.formLogin(login -> login
-                                    .loginPage("/login") // 너가 만든 login.html이 /login 경로로 매핑되어야 해
-                                    .loginProcessingUrl("/login") // form action과 일치
-                                    .usernameParameter("id") // <input name="id">
-                                    .passwordParameter("password") // <input name="password">
-                                    .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
-                                    .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
-                                    .permitAll()
-                                );
-
-        http.exceptionHandling( exception -> exception
-                                            // 예외 처리 페이지 설정
-                                            // .accessDeniedPage("/exception")
-                                            // 접근 거부 핸들러 설정
-                                            .accessDeniedHandler(customAccessDeniedHandler)
-
-                                );                           
-
-        // 👩‍💼 사용자 정의 인증
-        http.userDetailsService(userDetailServiceImpl);
-
-        // 🔄 자동 로그인
-        http.rememberMe(me -> me
-                .key("aloha")
-                .tokenRepository(tokenRepository())
-                .tokenValiditySeconds(60 * 60 * 24 * 7));
-
-        // 🔓 로그아웃 설정
-        http.logout(logout -> logout
-                            .logoutUrl("/logout")   // 로그아웃 요청 경로
-                            .logoutSuccessUrl("/login?logout=true") // 로그아웃 성공 시 URL
-                            .invalidateHttpSession(true)        // 세션 초기화
-                            .deleteCookies("remember-id")       // 로그아웃 시, 아이디저장 쿠키 삭제
-                            .logoutSuccessHandler(customLogoutSuccessHandler)         // 로그아웃 성공 핸들러 설정
-                    );
-
         return http.build();
     }
 
@@ -165,4 +189,16 @@ public class SecurityConfig {
     //     return new BCryptPasswordEncoder();
     // }
     
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174")); // Vite 포트 둘 다
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

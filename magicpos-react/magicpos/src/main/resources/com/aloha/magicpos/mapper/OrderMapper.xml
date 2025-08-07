@@ -9,11 +9,11 @@
     <insert id="insert" useGeneratedKeys="true" keyProperty="no">
         INSERT INTO orders (
             u_no, seat_id, total_price, payment, message,
-            order_status, payment_status, pay_at
+            order_status, payment_status, pay_at, cash_amount
         )
         VALUES (
             #{uNo}, #{seatId}, #{totalPrice}, #{payment}, #{message},
-            #{orderStatus}, #{paymentStatus}, #{payAt}
+            #{orderStatus}, #{paymentStatus}, #{payAt}, #{cashAmount}
         )
     </insert>
 

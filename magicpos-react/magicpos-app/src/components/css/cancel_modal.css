@@ -1,0 +1,192 @@
+/* 전체 배경 */
+.cancel-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 50; /* 최상위에 뜨도록 */
+}
+/* 모달 박스 */
+.cancel-modal-box {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  margin: 100px auto;
+  border-radius: 10px;
+  position: relative;
+  z-index: 50;
+}
+
+/* 모달 상단 바 */
+.cancel-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #5D6D7E;
+}
+
+/* 제목 텍스트 */
+.cancel-modal-title {
+  font-weight: bold;
+  font-size: 22px;
+  color: #F0F0F0;
+  padding: 10px;
+}
+
+/* 닫기 버튼 */
+.cancel-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #F0F0F0;
+  padding: 10px;
+}
+
+/* 하단 버튼영역 */
+.cancel-modal-footer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 60px;
+}
+
+.current-quantity{
+  color: #ffffff;
+}
+
+.allCancel {
+  width: 370px;
+  height: 50px;
+
+  background-color: #e74c3c; /* 강렬한 빨강 */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+
+  border: none;
+  border-radius: 12px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.allCancel:hover {
+  background-color: #c0392b; /* hover 시 더 진한 빨강 */
+}
+
+
+.cart-item {
+  padding: 0 15px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 10px;
+}
+
+.cart-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.cart-item-right {
+  color:white;
+  text-align: right;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cancel-cart-items {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.cart-section {
+  overflow-y: auto;
+  height: 487px;
+  width: 100%;
+  flex-grow: 1;
+  background-color: #1A252F;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cart-section-box{
+  margin-top: 50px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cartcontrolBtn {
+  all: unset;
+  line-height: 1;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  text-align: end;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.total-price {
+  color: #ffffff;
+  flex-shrink: 0;
+  width: 100%;
+  height: 65px;
+  background-color: #222B33;
+  border-radius: 4px;
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.cancel-cart-items::-webkit-scrollbar {
+  width: 10px;
+}
+
+.cancel-cart-items::-webkit-scrollbar-track {
+  background: #2C3E50;  /* 너가 원하는 남색 배경 */
+  border-radius: 10px;
+}
+
+.cancel-cart-items::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.7);  /* 살짝 투명한 흰색 → 기본처럼 보이게 */
+  border-radius: 10px;
+}
+

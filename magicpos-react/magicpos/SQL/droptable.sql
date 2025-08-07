@@ -1,3 +1,4 @@
+-- Active: 1750388007092@@127.0.0.1@3306@magicpos
 DROP TABLE IF EXISTS orders_details;
 DROP TABLE IF EXISTS carts;
 DROP TABLE IF EXISTS user_tickets;

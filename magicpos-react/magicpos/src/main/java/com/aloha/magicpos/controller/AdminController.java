@@ -145,61 +145,6 @@ public class AdminController {
         }   
     }
 
-    // @GetMapping("/admin/sell/counter")
-    // public String sellcounter(@RequestParam(name = "keyword", required = false) String keyword, @RequestParam(name = "category", required = false) Long categoryNo, Model model, HttpSession session) throws Exception {
-    //     // ✅ 1. 세션에서 userNo 안전하게 변환
-    //     Object userNoObj = session.getAttribute("userNo");
-    //     Long userNo = null;
-    //     if (userNoObj instanceof Integer) {
-    //         userNo = ((Integer) userNoObj).longValue();
-    //     } else if (userNoObj instanceof Long) {
-    //         userNo = (Long) userNoObj;
-    //     } else if (userNoObj != null) {
-    //         userNo = Long.valueOf(userNoObj.toString());
-    //     }
-    //     // ✅ 2. 세션에 없으면 임시 userNo로 설정
-    //     if (userNo == null) {
-    //         userNo = 1L; // 임시 유저 번호
-    //         session.setAttribute("userNo", userNo);
-    //     }
-    //     // ✅ 3. 상품 목록 조회(검색, 필터 기능 포함)
-    //     List<Products> products;
-
-    //     if (keyword != null && !keyword.trim().isEmpty()) {
-    //         products = productService.searchProductsAll(keyword, categoryNo); // 검색 + 카테고리
-    //     } else if (categoryNo != null) {
-    //         products = productService.findByCategory(categoryNo); // 카테고리만
-    //     } else {
-    //         products = productService.findAll(); // 전체
-    //     }
-    //     model.addAttribute("products", products);
-    //     // -------------------------------------------------------------------
-    //     // 장바구니
-    //     List<Map<String, Object>> cartList = cartService.getCartWithProductByUser(userNo);
-    //     if (cartList == null) {
-    //         cartList = new ArrayList<>();
-    //     }
-    //     model.addAttribute("cartList", cartList);
-        
-    //     // 장바구니 총 주문 금액
-    //     int totalPrice = cartService.getTotalPrice(userNo);
-    //     model.addAttribute("totalPrice", totalPrice);
-
-        
-    //     List<Categories> categories = categoryService.findAll();
-        
-    //     // List<Categories>를 MCategories 객체들을 카테고리번호(no)를 키, 카테고리이름(cName)을 값으로 해서 
-    //     // Map<번호, 이름> 형태로 변환
-    //     Map<Long, String> categoryMap = categories.stream()
-    //     .collect(Collectors.toMap(Categories:: getNo, Categories::getCName));
-        
-        
-    //     model.addAttribute("categories", categories);
-    //     model.addAttribute("products", products);
-    //     model.addAttribute("categoryMap", categoryMap);
-    //     return "pages/admin/sellcounter";
-    // }
-
     // 카테고리 불러오기
     @GetMapping("/admin/categories/json")
     @ResponseBody

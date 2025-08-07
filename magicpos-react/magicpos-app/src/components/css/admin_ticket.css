@@ -1,0 +1,220 @@
+.admin-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background-color: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.admin-modal-content {
+  background: #fff;
+  width: 80%;
+  max-width: 1100px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-modal-header {
+  background-color: #5c6b7c;
+  color: white;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.admin-modal-body {
+  display: flex;
+  padding: 1.5rem;
+  gap: 1.5rem;
+}
+
+.admin-ticket-left {
+  width: 60%;
+}
+
+.admin-ticket-right {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-search-bar {
+  display: flex;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.admin-search-bar input {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 16px;
+}
+
+.admin-search-btn {
+  padding: 0.5rem 1rem;
+  background-color: #eee;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-user-search-result {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  border-radius: 0 0 4px 4px;
+}
+
+.admin-user-search-result li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.admin-user-search-result li:hover {
+  background-color: #f0f0f0;
+}
+/* userlist에서 따온것  */
+.search-box {
+    display: inline-block;
+    align-items: center;
+    position: relative;
+}
+
+.search-box input[type="text"] {
+    width: 220px;
+    border: 1px solid #D5D8DC;
+    box-sizing: border-box;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    background: inherit;
+}
+
+
+.search-icon img {
+    width: 18px;
+    height: 18px;
+}
+
+
+
+.admin-ticket-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-ticket-table th,
+.admin-ticket-table td {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.admin-add-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.admin-selected-ticket-box {
+  background-color: #222d38;
+  color: white;
+  padding: 1rem;
+  width: 100%;
+  height: 45%;
+  text-align: center;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.admin-ticket-name {
+  font-size: 14px;
+  margin-bottom: 0.3rem;
+}
+
+.admin-ticket-info {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.admin-pay-methods {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem;
+}
+
+.admin-pay-btn {
+  background-color: #5c6b7c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: large;
+  width: 130px;
+  height: 55px;
+}
+
+.admin-pay-btn:hover {
+  background-color: #4a5a6b;
+  transform: translateY(-2px);
+}
+
+.admin-pay-btn.selected {
+  background-color: #f9c841;
+  color: black;
+  box-shadow: 0 2px 8px rgba(249, 200, 65, 0.3);
+}
+
+.admin-confirm-btn {
+  background-color: #f9c841;
+  color: black;
+  padding: 0.8rem 2rem;
+  font-size: 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+  width: 67%;
+}

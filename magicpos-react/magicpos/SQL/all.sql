@@ -1,3 +1,4 @@
+-- Active: 1750388007092@@127.0.0.1@3306@magicpos
 USE magicpos;
 
 
@@ -73,6 +74,7 @@ CREATE TABLE orders (
   order_status BIGINT NOT NULL DEFAULT 0 COMMENT '상태(주문접수:0, 준비중:1, 전달완료:2)',
   payment_status BIGINT NOT NULL DEFAULT 0 COMMENT '상태(결제전:0, 결제완료:1)',
   pay_at TIMESTAMP NULL COMMENT '결제 시각',
+  cash_amount BIGINT NULL COMMENT '현금 결제 시 선택한 금액',
   PRIMARY KEY (no),
   FOREIGN KEY (u_no) REFERENCES users(no)
     ON DELETE CASCADE ON UPDATE CASCADE,
