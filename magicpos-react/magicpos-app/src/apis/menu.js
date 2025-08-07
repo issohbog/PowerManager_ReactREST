@@ -56,3 +56,16 @@ export const deleteCartItem = (cartNo) => {
 export const createOrder = (orderData) => {
   return axios.post('/api/users/orders/create', orderData);
 };
+
+// ✅ 토스페이먼츠 관련 API 추가
+export const getPaymentInfo = (orderData) => {
+  return axios.post('/api/users/orders/payment-info', orderData);
+};
+
+export const confirmPayment = (paymentData) => {
+  return axios.post('/api/users/orders/success', paymentData);
+};
+
+export const saveTempOrder = (orderData) => {
+  return axios.post('/api/users/orders/temp', orderData);
+};
