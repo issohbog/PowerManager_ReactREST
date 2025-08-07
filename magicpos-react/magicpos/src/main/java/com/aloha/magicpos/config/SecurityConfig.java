@@ -141,7 +141,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-<<<<<<< HEAD
         http
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())  // 모든 요청 허용
             .csrf(csrf -> csrf.disable())                                  // CSRF 비활성화
@@ -150,84 +149,6 @@ public class SecurityConfig {
             .logout(logout -> logout.disable())                            // 로그아웃 비활성화
             .httpBasic(basic -> basic.disable());                          // HTTP Basic 인증 비활성화
         
-=======
-        
-        // csrf 제거
-        http
-        .csrf(csrf -> csrf.disable()); // 최신 람다 방식
-        
-
-
-        // ✅ 인가 설정
-        
-        http.authorizeHttpRequests(auth -> auth
-                                // 인가설정 모든 구현 완료 후 주석 해제 
-                                // .requestMatchers("/login", "/users/signup", "/users/new", "/users/admin/check-id", "/css/**", "/js/**", "/img/**").permitAll()
-                                // .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-                                // .requestMatchers("/users/admin/**").hasRole("ADMIN")
-                                // .requestMatchers("/products/admin/**").hasRole("ADMIN")
-                                // .requestMatchers("/categories/admin/**").hasRole("ADMIN")
-                                // .requestMatchers("/usertickets/admin/**").hasRole("ADMIN")
-                                // .requestMatchers("/usertickets/ticket/**").hasRole("ADMIN")
-                                // .requestMatchers("/seats/**").hasRole("ADMwIN")
-                                // .requestMatchers("/menu", "/menu/**","/carts", "/carts/**", "/users/**").hasAnyRole("USER","ADMIN")
-                                // .requestMatchers("/userticket/insert").hasAnyRole("USER","ADMIN")
-                                .anyRequest().permitAll()
-                                );
-
-
-
-        // 🔐 폼 로그인
-        // http.formLogin(login -> login.permitAll());
-
-        // ✅ 커스텀 로그인 페이지
-        // http.formLogin(login -> login
-        //                              //.usernameParameter("id")       // 아이디 파라미터
-        //                              //.passwordParameter("pw")       // 비밀번호 파라미터
-        //                              .loginPage("/login")                   // 로그인 페이지 경로
-        //                             //  .loginProcessingUrl("/login") // 로그인 요청 경로
-        //                              // .defaultSuccessUrl("/?=true") // 로그인 성공 경로
-        //                              .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
-        //                              .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
-        
-        //                 );
-        http.formLogin(login -> login
-                                    .loginPage("/login") // 너가 만든 login.html이 /login 경로로 매핑되어야 해
-                                    .loginProcessingUrl("/login") // form action과 일치
-                                    .usernameParameter("id") // <input name="id">
-                                    .passwordParameter("password") // <input name="password">
-                                    .successHandler(loginSuccessHandler)      // 로그인 성공 핸들러 설정
-                                    .failureHandler(loginFailureHandler)      // 로그인 실패 핸들러 설정
-                                    .permitAll()
-                                );
-
-        http.exceptionHandling( exception -> exception
-                                            // 예외 처리 페이지 설정
-                                            // .accessDeniedPage("/exception")
-                                            // 접근 거부 핸들러 설정
-                                            .accessDeniedHandler(customAccessDeniedHandler)
-
-                                );                           
-
-        // 👩‍💼 사용자 정의 인증
-        http.userDetailsService(userDetailServiceImpl);
-
-        // 🔄 자동 로그인
-        http.rememberMe(me -> me
-                .key("aloha")
-                .tokenRepository(tokenRepository())
-                .tokenValiditySeconds(60 * 60 * 24 * 7));
-
-        // 🔓 로그아웃 설정
-        http.logout(logout -> logout
-                            .logoutUrl("/logout")   // 로그아웃 요청 경로
-                            .logoutSuccessUrl("/login?logout=true") // 로그아웃 성공 시 URL
-                            .invalidateHttpSession(true)        // 세션 초기화
-                            .deleteCookies("remember-id")       // 로그아웃 시, 아이디저장 쿠키 삭제
-                            .logoutSuccessHandler(customLogoutSuccessHandler)         // 로그아웃 성공 핸들러 설정
-                    );
-
->>>>>>> 0fe66bc743357f7cd6bd8b81e1ddabba7f876baf
         return http.build();
     }
 
