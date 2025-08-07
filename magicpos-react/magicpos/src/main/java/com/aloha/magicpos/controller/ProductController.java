@@ -2,6 +2,7 @@ package com.aloha.magicpos.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -9,17 +10,21 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.aloha.magicpos.domain.Categories;
@@ -32,6 +37,7 @@ import jakarta.servlet.ServletContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@RestController
 @Controller
 @RequestMapping("/products")
 public class ProductController {
@@ -49,7 +55,7 @@ public class ProductController {
     private String uploadDir;               // application.properties에서 주입받음
 
 
-    // 전체 상품 목록
+    // 전체 상품 목록                       // 안쓰는 것 같음 - REST 구현 완료 후 삭제 예정
     @GetMapping("/productlist")
     public String list(Model model) throws Exception{
         List<Products> products = productService.findAll();
@@ -59,12 +65,12 @@ public class ProductController {
 
     // 전체 상품 목록(관리자용)
     @GetMapping("/admin/productlist")
-    public String productlist(@RequestParam(name="type", required = false) String type,
+    public ResponseEntity<Map<String, Object>> productlist(
+                              @RequestParam(name="type", required = false) String type,
                               @RequestParam(name = "keyword", required = false) String keyword,
                               @RequestParam(name = "page", defaultValue = "1") int page,
-                              @RequestParam(name = "size", defaultValue = "10") int size,
-                              Model model) throws Exception{
-        
+                              @RequestParam(name = "size", defaultValue = "10") int size) throws Exception{
+
 
         // 전체 상품 수 
         int total = productService.countProducts(type, keyword);
@@ -100,17 +106,19 @@ public class ProductController {
         // Map<번호, 이름> 형태로 변환
         Map<Long, String> categoryMap = categories.stream()
                     .collect(Collectors.toMap(Categories:: getNo, Categories::getCName));
+        Map<String, Object> result = new HashMap<>();
+        
+        result.put("products", products);
+        result.put("categoryMap", categoryMap);
+        result.put("pagination", pagination);
+        result.put("type", type);               // 선택한 카테고리 유지
+        result.put("keyword", keyword);         // 검색어 유지
 
-        model.addAttribute("products", products);
-        model.addAttribute("categoryMap", categoryMap);
-        model.addAttribute("pagination", pagination);
-        model.addAttribute("type", type);       // 선택한 카테고리 유지
-        model.addAttribute("keyword", keyword); // 검색어 유지
 
-        return "pages/admin/admin_product_list";
+        return ResponseEntity.ok(result);
     }
 
-    // 재고 수정 
+    // 재고 수정                                // REST 구현 완료 후 추가 기능 구현 시 실행 예정
     @PostMapping("/admin/update-stock")
     @ResponseBody
     public String updateStock(@RequestBody Map<String, Object> request) throws Exception {
@@ -123,7 +131,7 @@ public class ProductController {
 
 
 
-    // 상품 등록 폼(사용 안함)
+    // 상품 등록 폼(사용 안함)                                // 안쓰는 것 같음 - REST 구현 완료 후 삭제 예정   
     @GetMapping("/new")
     public String form(Model model) throws Exception{
         model.addAttribute("product", new Products());
@@ -132,9 +140,12 @@ public class ProductController {
     }
 
     // 상품 등록 처리
-    @PostMapping("/admin/create")
-    @ResponseBody
-    public String insert(@ModelAttribute Products product) throws Exception{
+    @PostMapping(value ="/admin/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> insert(@ModelAttribute Products product) throws Exception{
+        log.info("상품 등록 요청: {}", product);
+
+        Map<String, Object> result = new HashMap<>();
+
          // 이미지 저장 처리
         MultipartFile file = product.getImageFile();
 
@@ -167,10 +178,12 @@ public class ProductController {
 
         // 서비스에 저장
         productService.insert(product);
-        return "ok";
+        result.put("status", "success");
+        result.put("message", "상품이 성공적으로 등록되었습니다.");
+        return ResponseEntity.ok(result);
     }
 
-    // 상품 수정 폼(사용 안함)
+    // 상품 수정 폼(사용 안함)                                  // 안쓰는 것 같음 - REST 구현 완료 후 삭제 예정
     @GetMapping("/{no}/edit")
     public String edit(@PathVariable Long no, Model model) throws Exception{
         Products product = productService.findById(no);
@@ -180,10 +193,14 @@ public class ProductController {
     }
 
     // 상품 수정 처리
-    @PostMapping("/admin/update")
-    @ResponseBody
-    public String updateProduct(@ModelAttribute Products product,
+    @PutMapping(value = "/admin/update", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, Object>> updateProduct(
+                                @ModelAttribute Products product,
                                 @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) throws Exception {
+        
+                                    
+        Map<String, Object> result = new HashMap<>();
+        
         // 1. 기존 상품 정보 조회 (기존 이미지 경로 얻기 위해)
         Products existingProduct = productService.findById(product.getNo());
 
@@ -216,32 +233,54 @@ public class ProductController {
         }
 
         // 3. DB 업데이트
-        productService.update(product);
+        boolean isUpdated = productService.update(product);
 
-        return "success";
+        if (isUpdated) {
+            result.put("status", "success");
+            result.put("message", "상품 정보가 성공적으로 업데이트되었습니다.");
+        } else {
+            result.put("status", "fail");
+            result.put("message", "해당 상품이 존재하지 않아 수정되지 않았습니다.");
+        }
+
+        return ResponseEntity.ok(result);
     }
 
 
     // 단건 상품 삭제
-    @PostMapping("/admin/{no}/delete")
-    @ResponseBody
-    public ResponseEntity<String> delete(@PathVariable("no") Long no) throws Exception {
-        productService.delete(no);
-        return ResponseEntity.ok("ok");
+    @DeleteMapping("/admin/{no}/delete")
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable("no") Long no) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            productService.delete(no);
+            result.put("success", true);
+            result.put("message", "상품이 삭제되었습니다.");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "상품 삭제에 실패했습니다.");
+        }
+        return ResponseEntity.ok(result);
     }
 
     // 체크된 상품 모두 삭제 
-    @PostMapping("/admin/deleteAll")
-    @ResponseBody
-    public ResponseEntity<String> deleteAll(@RequestParam("productNos") List<Long> userNos) throws Exception {
-        for (Long no : userNos) {
-            productService.delete(no);
+    @DeleteMapping("/admin/deleteAll")
+    public ResponseEntity<Map<String, Object>> deleteAll(@RequestBody List<Long> productNos) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            for (Long no : productNos) {
+                productService.delete(no);
+            }
+            result.put("success", true);
+            result.put("message", "선택한 상품이 삭제되었습니다.");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "상품 삭제에 실패했습니다.");
         }
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(result);
     }
 
 
-    // 🔍 상품 검색 (통합 검색) (사용안함)
+    // 🔍 상품 검색 (통합 검색) (사용안함)                          // REST 구현 완료 후 추가 기능 구현 시 실행 예정
     @GetMapping("/search")
     public String search(@RequestParam String keyword, Model model) throws Exception {
         List<Products> products = productService.searchProductsAll(keyword);
@@ -249,7 +288,7 @@ public class ProductController {
         return "product/list";
     }
 
-    // 🔍 상품 검색 + 분류 필터 (사용안함)
+    // 🔍 상품 검색 + 분류 필터 (사용안함)                          // REST 구현 완료 후 추가 기능 구현 시 실행 예정           
     @GetMapping("/filter")
     public String filter(@RequestParam("cNo") long cNo,
                          @RequestParam("keyword") String keyword,

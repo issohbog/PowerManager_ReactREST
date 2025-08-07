@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.magicpos.domain.Carts;
 import com.aloha.magicpos.domain.Categories;
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Controller
+@RestController
 public class AdminController {
 
 
@@ -118,20 +120,19 @@ public class AdminController {
 
 
     @GetMapping("/admin")
-    public String findAllSeat(Model model) throws Exception {
+    public ResponseEntity<Map<String, Object>> findAllSeat() throws Exception {
         
         Map<String, List<Seats>> seatMap = seatService.getSeatSections();
 
-        model.addAttribute("topSeats", seatMap.get("topSeats"));
-        model.addAttribute("middleSeats", seatMap.get("middleSeats"));
-        model.addAttribute("bottomSeats", seatMap.get("bottomSeats"));
+        Map<String, Object> result = new HashMap<>();
+        result.put("topSeats", seatMap.get("topSeats"));
+        result.put("middleSeats", seatMap.get("middleSeats"));
+        result.put("bottomSeats", seatMap.get("bottomSeats"));
 
         List<Map<String, Object>> currentUsage = seatReservationService.findCurrentSeatUsage();
-        model.addAttribute("currentUsage", currentUsage);
+        result.put("currentUsage", currentUsage);
 
-        
-        return "pages/admin/seat_status";
-    
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/admin/seats/clear/{seatId}")
