@@ -11,7 +11,7 @@ const App = () => {
   return (
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<Menu />} />
+      <Route path="/menu" element={<Menu />} />
 
       {/* 관리자 페이지 */}
       <Route path="/admin" element={<AdminLayout />}>
@@ -19,7 +19,10 @@ const App = () => {
           <Route path="seat-status" element={<SeatStatus />} />
           <Route path="product-list" element={<ProductList />} />
           <Route path="user-list" element={<UserList />} />
-    </Route>
+      </Route>
+
+      
+
     </Routes>
   </BrowserRouter>
   )
