@@ -25,8 +25,8 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats }) => {
         )}
 
         {seat.className === 'cleaning' && (
-          <button className={styles.clearBtn} data-seat-id={seat.seatId}>
-            <img src="/images/trash.png" alt="휴지통" className={styles.trashIcon} />
+          <button className={styles.trashIcon} data-seat-id={seat.seatId}>
+            <img src="/images/trash.png" alt="휴지통"  />
           </button>
         )}
       </div>
