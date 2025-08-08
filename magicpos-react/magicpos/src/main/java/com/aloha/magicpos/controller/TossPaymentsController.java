@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -169,7 +170,8 @@ public class TossPaymentsController {
     // 사용자 요금제 결제 실패
     @GetMapping("/users/payment/ticket/fail")
     public ResponseEntity<Map<String, Object>> userTicketPaymentFail(@RequestParam(value = "message", required = false) String message,
-                                      @RequestParam(value = "code", required = false) String code                                      
+                                      @RequestParam(value = "code", required = false) String code
+                                      
                             ) {
         log.info("💳 사용자 요금제 결제 실패: message={}, code={}", message, code);
         Map<String, Object> result = new HashMap<>();
@@ -182,194 +184,365 @@ public class TossPaymentsController {
     
     // ===== 상품 결제 (Products) =====
     
-    // 관리자 상품 결제 성공
+    // 결제 정보 생성 API
+    @PostMapping("/users/orders/payment-info")
+    public ResponseEntity<Map<String, Object>> getPaymentInfo(
+            @RequestBody Map<String, Object> orderData,
+            HttpSession session) {
+        
+        try {
+            String orderId = "ORDER_" + System.currentTimeMillis();
+            
+            // ✅ cartList에서 상품명 추출
+            String orderName = "PC방 주문"; // 기본값
+            
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> cartList = (List<Map<String, Object>>) orderData.get("cartList");
+            
+            if (cartList != null && !cartList.isEmpty()) {
+                String firstProductName = cartList.get(0).get("p_name").toString();
+                if (cartList.size() == 1) {
+                    orderName = firstProductName;
+                } else {
+                    orderName = firstProductName + " 외 " + (cartList.size() - 1) + "개";
+                }
+            }
+            Map<String, Object> paymentInfo = new HashMap<>();
+            paymentInfo.put("amount", orderData.get("totalPrice"));
+            paymentInfo.put("orderId", orderId);
+            paymentInfo.put("orderName", orderName);
+            paymentInfo.put("customerName", orderData.get("customerName"));
+            paymentInfo.put("successUrl", "http://localhost:5173/menu?payment=success");
+            paymentInfo.put("failUrl", "http://localhost:5173/menu?payment=fail");
+            
+            // 세션에 주문 정보 임시 저장
+            session.setAttribute("tempOrder_" + orderId, orderData);
+            
+            return ResponseEntity.ok(paymentInfo);
+            
+        } catch (Exception e) {
+            log.error("결제 정보 생성 실패: {}", e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "결제 정보 생성에 실패했습니다."));
+        }
+    }
+
+    // 결제 성공 확인 API
+    @PostMapping("/users/orders/success")
+    public ResponseEntity<Map<String, Object>> confirmPayment(
+            @RequestBody Map<String, Object> paymentData,
+            HttpSession session) {
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            String paymentKey = (String) paymentData.get("paymentKey");
+            String orderId = (String) paymentData.get("orderId");
+            Integer amount = (Integer) paymentData.get("amount");
+            
+            log.info("💳 사용자 상품 결제 성공 확인: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
+
+            // 세션에서 임시 주문 정보 꺼냄
+            Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder_" + orderId);
+            if (temp == null) {
+                result.put("success", false);
+                result.put("message", "주문 정보가 유실되었습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // 기존 주문 처리 로직 그대로 사용
+            String seatId = temp.get("seatId").toString();
+            Object userNoObj = session.getAttribute("userNo");
+            Long userNo = null;
+            if (userNoObj instanceof Integer) {
+                userNo = ((Integer) userNoObj).longValue();
+            } else if (userNoObj instanceof Long) {
+                userNo = (Long) userNoObj;
+            } else if (userNoObj != null) {
+                userNo = Long.valueOf(userNoObj.toString());
+            }
+            
+            String payment = (String) temp.get("payment");
+            
+            // 주문 생성
+            Orders order = new Orders();
+            order.setUNo(userNo);
+            order.setSeatId(seatId);
+            order.setTotalPrice(amount.longValue());
+            order.setOrderStatus(0L);
+            order.setPaymentStatus(1L);
+            order.setPayment(payment);
+            order.setPayAt(LocalDateTime.now());
+            orderService.insertOrder(order);
+            Long oNo = order.getNo();
+
+            // 상세정보 처리
+            List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
+            List<Integer> pNos = pNoObjs.stream()
+                .map(obj -> Integer.parseInt(obj.toString()))
+                .collect(Collectors.toList());
+
+            List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
+            List<Integer> quantities = quantityObjs.stream()
+                .map(obj -> Integer.parseInt(obj.toString()))
+                .collect(Collectors.toList());
+
+            for (int i = 0; i < pNos.size(); i++) {
+                OrdersDetails detail = new OrdersDetails();
+                detail.setONo(oNo);
+                detail.setPNo(Long.valueOf(pNos.get(i)));
+                detail.setQuantity(Long.valueOf(quantities.get(i)));
+                orderService.insertOrderDetail(oNo, detail);
+                productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+            }
+
+            // 장바구니 비우기
+            cartService.deleteAllByUserNo(userNo);
+
+            // 로그 남기기
+            Users user = (Users) session.getAttribute("usageInfo");
+            String username = (user != null) ? user.getUsername() : "알 수 없음";
+            String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
+            logService.insertLog(userNo, seatId, "상품 구매", desc);
+
+            // 세션 정리
+            session.removeAttribute("tempOrder_" + orderId);
+
+            result.put("success", true);
+            result.put("message", "결제가 완료되었습니다.");
+            result.put("paymentKey", paymentKey);
+            result.put("orderId", orderId);
+            result.put("amount", amount);
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("결제 확인 실패: {}", e.getMessage());
+            result.put("success", false);
+            result.put("message", "결제 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(result);
+        }
+    }
+
+    // 관리자 상품 결제 성공 - RestController로 변경
     @GetMapping("/admin/payment/product/success")
-    public String adminProductPaymentSuccess(@RequestParam("paymentKey") String paymentKey,
-    @RequestParam("orderId") String orderId,
-    @RequestParam("amount") int amount,
-    HttpSession session,
-    RedirectAttributes rttr) throws Exception {
+    public ResponseEntity<Map<String, Object>> adminProductPaymentSuccess(
+            @RequestParam("paymentKey") String paymentKey,
+            @RequestParam("orderId") String orderId,
+            @RequestParam("amount") int amount,
+            HttpSession session) {
 
-    log.info("💳 사용자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            log.info("💳 관리자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
 
-    // ✅ 1. 세션에서 임시 주문 정보 꺼냄
-    Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder");
-    if (temp == null) {
-    rttr.addFlashAttribute("error", "주문 정보가 유실되었습니다.");
-    return "redirect:/admin";
+            // ✅ 1. 세션에서 임시 주문 정보 꺼냄
+            Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder");
+            if (temp == null) {
+                result.put("success", false);
+                result.put("message", "주문 정보가 유실되었습니다.");
+                return ResponseEntity.badRequest().body(result);
+            }
+
+            // ✅ 2. 주문 기본 정보
+            String seatId = temp.get("seatId").toString();
+
+            Object userNoObj = session.getAttribute("userNo");
+
+            Long userNo = null;
+            if (userNoObj instanceof Integer) {
+                userNo = ((Integer) userNoObj).longValue();
+            } else if (userNoObj instanceof Long) {
+                userNo = (Long) userNoObj;
+            } else if (userNoObj != null) {
+                userNo = Long.valueOf(userNoObj.toString());
+            }
+            String payment = (String) temp.get("payment");
+            
+            // ✅ 3. 주문 insert
+            Orders order = new Orders();
+            order.setUNo(userNo);
+            order.setSeatId(seatId);
+            order.setTotalPrice((long) amount);
+            order.setOrderStatus(0L);
+            order.setPaymentStatus(1L); // 카드 결제 성공
+            order.setPayment(payment);
+            order.setPayAt(LocalDateTime.now());
+            orderService.insertOrder(order);
+            Long oNo = order.getNo();
+
+            // ✅ 4. 상세정보 insert + 재고 감소
+            List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
+            List<Integer> pNos = pNoObjs.stream()
+                    .map(obj -> Integer.parseInt(obj.toString()))
+                    .collect(Collectors.toList());
+
+            List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
+            List<Integer> quantities = quantityObjs.stream()
+                    .map(obj -> Integer.parseInt(obj.toString()))
+                    .collect(Collectors.toList());
+
+            for (int i = 0; i < pNos.size(); i++) {
+                OrdersDetails detail = new OrdersDetails();
+                detail.setONo(oNo);
+                detail.setPNo(Long.valueOf(pNos.get(i)));
+                detail.setQuantity(Long.valueOf(quantities.get(i)));
+                orderService.insertOrderDetail(oNo, detail);
+                productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+            }
+
+            // 장바구니 비우기
+            cartService.deleteAllByUserNo(userNo);
+
+            // ✅ 5. 로그 남기기
+            Users user = (Users) session.getAttribute("usageInfo");
+            String username = (user != null) ? user.getUsername() : "알 수 없음";
+            String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
+            logService.insertLog(userNo, seatId, "상품 구매", desc);
+
+            // ✅ 6. 세션에서 temp 제거
+            session.removeAttribute("tempOrder");
+
+            result.put("success", true);
+            result.put("message", "관리자 상품 결제가 완료되었습니다.");
+            result.put("paymentKey", paymentKey);
+            result.put("orderId", orderId);
+            result.put("amount", amount);
+
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("관리자 상품 결제 처리 실패: {}", e.getMessage());
+            result.put("success", false);
+            result.put("message", "결제 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(result);
+        }
     }
 
-    // ✅ 2. 주문 기본 정보
-    String seatId = temp.get("seatId").toString();
-
-    Object userNoObj = session.getAttribute("userNo");
-
-    Long userNo = null;
-    if (userNoObj instanceof Integer) {
-    userNo = ((Integer) userNoObj).longValue();
-    } else if (userNoObj instanceof Long) {
-    userNo = (Long) userNoObj;
-    } else if (userNoObj != null) {
-    userNo = Long.valueOf(userNoObj.toString());
-    }
-    String payment = (String) temp.get("payment");
-    // ✅ 3. 주문 insert
-    Orders order = new Orders();
-    order.setUNo(userNo);
-    order.setSeatId(seatId);
-    order.setTotalPrice((long) amount);
-    order.setOrderStatus(0L);
-    order.setPaymentStatus(1L); // 카드 결제 성공
-    order.setPayment(payment);
-    order.setPayAt(LocalDateTime.now());
-    orderService.insertOrder(order);
-    Long oNo = order.getNo();
-
-    // ✅ 4. 상세정보 insert + 재고 감소
-    List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
-    List<Integer> pNos = pNoObjs.stream()
-    .map(obj -> Integer.parseInt(obj.toString()))
-    .collect(Collectors.toList());
-
-    List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
-    List<Integer> quantities = quantityObjs.stream()
-        .map(obj -> Integer.parseInt(obj.toString()))
-        .collect(Collectors.toList());
-
-    List<String> pNames = (List<String>) temp.get("pNameList");
-
-    for (int i = 0; i < pNos.size(); i++) {
-    OrdersDetails detail = new OrdersDetails();
-    detail.setONo(oNo);
-    detail.setPNo(Long.valueOf(pNos.get(i)));
-    detail.setQuantity(Long.valueOf(quantities.get(i)));
-    orderService.insertOrderDetail(oNo, detail);
-    productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
-    }
-
-    // 장바구니 비우기
-    cartService.deleteAllByUserNo(userNo);
-
-
-    // ✅ 5. 로그 남기기
-    Users user = (Users) session.getAttribute("usageInfo");
-    String username = (user != null) ? user.getUsername() : "알 수 없음";
-    String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
-    logService.insertLog(userNo, seatId, "상품 구매", desc);
-
-    // ✅ 6. 세션에서 temp 제거
-    session.removeAttribute("tempOrder");
-
-    // ✅ 7. 주문 완료 모달 뜨게 redirect
-    return "redirect:/admin";
-}
-    
-
-    
-    // 관리자 상품 결제 실패
+    // 관리자 상품 결제 실패 - RestController로 변경
     @GetMapping("/admin/payment/product/fail")
-    public String adminProductPaymentFail(@RequestParam(value = "message", required = false) String message,
-                                        @RequestParam(value = "code", required = false) String code,
-                                        Model model) {
+    public ResponseEntity<Map<String, Object>> adminProductPaymentFail(
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "code", required = false) String code) {
+        
         log.info("💳 관리자 상품 결제 실패: message={}, code={}", message, code);
         
-        model.addAttribute("message", message != null ? message : "관리자 상품 결제에 실패했습니다.");
-        model.addAttribute("code", code);
-        return "payment/fail";
-    }
-    
-    // 사용자 상품 결제 성공
-    @GetMapping("/users/payment/product/success")
-    public String userProductPaymentSuccess(@RequestParam("paymentKey") String paymentKey,
-                                            @RequestParam("orderId") String orderId,
-                                            @RequestParam("amount") int amount,
-                                            HttpSession session,
-                                            RedirectAttributes rttr) throws Exception {
-
-        log.info("💳 사용자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
-
-        // ✅ 1. 세션에서 임시 주문 정보 꺼냄
-        Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder");
-        if (temp == null) {
-            rttr.addFlashAttribute("error", "주문 정보가 유실되었습니다.");
-            return "redirect:/menu";
-        }
-
-        // ✅ 2. 주문 기본 정보
-        String seatId = temp.get("seatId").toString();
-
-        Object userNoObj = session.getAttribute("userNo");
-
-        Long userNo = null;
-        if (userNoObj instanceof Integer) {
-            userNo = ((Integer) userNoObj).longValue();
-        } else if (userNoObj instanceof Long) {
-            userNo = (Long) userNoObj;
-        } else if (userNoObj != null) {
-            userNo = Long.valueOf(userNoObj.toString());
-        }
-        String payment = (String) temp.get("payment");
-        // ✅ 3. 주문 insert
-        Orders order = new Orders();
-        order.setUNo(userNo);
-        order.setSeatId(seatId);
-        order.setTotalPrice((long) amount);
-        order.setOrderStatus(0L);
-        order.setPaymentStatus(1L); // 카드 결제 성공
-        order.setPayment(payment);
-        order.setPayAt(LocalDateTime.now());
-        orderService.insertOrder(order);
-        Long oNo = order.getNo();
-
-        // ✅ 4. 상세정보 insert + 재고 감소
-        List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
-        List<Integer> pNos = pNoObjs.stream()
-                                    .map(obj -> Integer.parseInt(obj.toString()))
-                                    .collect(Collectors.toList());
-
-        List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
-        List<Integer> quantities = quantityObjs.stream()
-                                            .map(obj -> Integer.parseInt(obj.toString()))
-                                            .collect(Collectors.toList());
-
-        List<String> pNames = (List<String>) temp.get("pNameList");
-
-        for (int i = 0; i < pNos.size(); i++) {
-            OrdersDetails detail = new OrdersDetails();
-            detail.setONo(oNo);
-            detail.setPNo(Long.valueOf(pNos.get(i)));
-            detail.setQuantity(Long.valueOf(quantities.get(i)));
-            orderService.insertOrderDetail(oNo, detail);
-            productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
-        }
-
-        // 장바구니 비우기
-        cartService.deleteAllByUserNo(userNo);
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("message", message != null ? message : "관리자 상품 결제에 실패했습니다.");
+        result.put("code", code);
         
-
-        // ✅ 5. 로그 남기기
-        Users user = (Users) session.getAttribute("usageInfo");
-        String username = (user != null) ? user.getUsername() : "알 수 없음";
-        String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
-        logService.insertLog(userNo, seatId, "상품 구매", desc);
-
-        // ✅ 6. 세션에서 temp 제거
-        session.removeAttribute("tempOrder");
-
-        // ✅ 7. 주문 완료 모달 뜨게 redirect
-        return "redirect:/menu?orderSuccess=true";
+        return ResponseEntity.ok(result);
     }
 
-    
-    // 사용자 상품 결제 실패
+    // // 사용자 상품 결제 성공 - 수정 필요
+    // @GetMapping("/users/payment/product/success")
+    // public ResponseEntity<Map<String, Object>> userProductPaymentSuccess(
+    //         @RequestParam("paymentKey") String paymentKey,
+    //         @RequestParam("orderId") String orderId,
+    //         @RequestParam("amount") int amount,
+    //         HttpSession session) {
+
+    //     Map<String, Object> result = new HashMap<>();
+        
+    //     try {
+    //         log.info("💳 사용자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
+
+    //         // ✅ 1. 세션에서 임시 주문 정보 꺼냄
+    //         Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder");
+    //         if (temp == null) {
+    //             result.put("success", false);
+    //             result.put("message", "주문 정보가 유실되었습니다.");
+    //             return ResponseEntity.badRequest().body(result);
+    //         }
+
+    //         // ✅ 2. 주문 기본 정보
+    //         String seatId = temp.get("seatId").toString();
+    //         Object userNoObj = session.getAttribute("userNo");
+    //         Long userNo = null;
+    //         if (userNoObj instanceof Integer) {
+    //             userNo = ((Integer) userNoObj).longValue();
+    //         } else if (userNoObj instanceof Long) {
+    //             userNo = (Long) userNoObj;
+    //         } else if (userNoObj != null) {
+    //             userNo = Long.valueOf(userNoObj.toString());
+    //         }
+    //         String payment = (String) temp.get("payment");
+            
+    //         // ✅ 3. 주문 insert
+    //         Orders order = new Orders();
+    //         order.setUNo(userNo);
+    //         order.setSeatId(seatId);
+    //         order.setTotalPrice((long) amount);
+    //         order.setOrderStatus(0L);
+    //         order.setPaymentStatus(1L); // 카드 결제 성공
+    //         order.setPayment(payment);
+    //         order.setPayAt(LocalDateTime.now());
+    //         orderService.insertOrder(order);
+    //         Long oNo = order.getNo();
+
+    //         // ✅ 4. 상세정보 insert + 재고 감소
+    //         List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
+    //         List<Integer> pNos = pNoObjs.stream()
+    //                                 .map(obj -> Integer.parseInt(obj.toString()))
+    //                                 .collect(Collectors.toList());
+
+    //         List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
+    //         List<Integer> quantities = quantityObjs.stream()
+    //                                         .map(obj -> Integer.parseInt(obj.toString()))
+    //                                         .collect(Collectors.toList());
+
+    //         for (int i = 0; i < pNos.size(); i++) {
+    //             OrdersDetails detail = new OrdersDetails();
+    //             detail.setONo(oNo);
+    //             detail.setPNo(Long.valueOf(pNos.get(i)));
+    //             detail.setQuantity(Long.valueOf(quantities.get(i)));
+    //             orderService.insertOrderDetail(oNo, detail);
+    //             productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+    //         }
+
+    //         // 장바구니 비우기
+    //         cartService.deleteAllByUserNo(userNo);
+
+    //         // ✅ 5. 로그 남기기
+    //         Users user = (Users) session.getAttribute("usageInfo");
+    //         String username = (user != null) ? user.getUsername() : "알 수 없음";
+    //         String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
+    //         logService.insertLog(userNo, seatId, "상품 구매", desc);
+
+    //         // ✅ 6. 세션에서 temp 제거
+    //         session.removeAttribute("tempOrder");
+
+    //         result.put("success", true);
+    //         result.put("message", "상품 결제가 완료되었습니다.");
+    //         result.put("paymentKey", paymentKey);
+    //         result.put("orderId", orderId);
+    //         result.put("amount", amount);
+
+    //         return ResponseEntity.ok(result);
+            
+    //     } catch (Exception e) {
+    //         log.error("사용자 상품 결제 처리 실패: {}", e.getMessage());
+    //         result.put("success", false);
+    //         result.put("message", "결제 처리 중 오류가 발생했습니다.");
+    //         return ResponseEntity.status(500).body(result);
+    //     }
+    // }
+
+    // 사용자 상품 결제 실패 - 수정
     @GetMapping("/users/payment/product/fail")
-    public String userProductPaymentFail(@RequestParam(value = "message", required = false) String message,
-                                       @RequestParam(value = "code", required = false) String code,
-                                       Model model) {
+    public ResponseEntity<Map<String, Object>> userProductPaymentFail(
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "code", required = false) String code) {
+    
         log.info("💳 사용자 상품 결제 실패: message={}, code={}", message, code);
-        
-        model.addAttribute("message", message != null ? message : "사용자 상품 결제에 실패했습니다.");
-        model.addAttribute("code", code);
-        return "payment/fail";
+    
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", false);
+        result.put("message", message != null ? message : "사용자 상품 결제에 실패했습니다.");
+        result.put("code", code);
+    
+        return ResponseEntity.ok(result);
     }
-} 
+
+}
