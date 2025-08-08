@@ -68,56 +68,6 @@ public class AdminController {
     @Autowired
     private SeatReservationService seatReservationService;
 
-    @GetMapping("/admin/orderpopup/fetch")
-    public String fetchOrderPopup(@RequestParam(name = "status", required = false) String status, Model model) throws Exception {
-    List<Long> statusList = "1".equals(status) ? List.of(1L) : List.of(0L, 1L);
-    List<Orders> orderList = orderService.findOrdersByStatus(statusList);
-    
-    System.out.println("🔥 orderList size: " + orderList.size());
-    model.addAttribute("orderList", orderList);
-
-    Map<Long, List<Map<String, Object>>> orderDetailsMap = new HashMap<>();
-    Map<Long, String> menuNamesMap = new HashMap<>();
-    Map<Long, Long> waitTimeMap = new HashMap<>();
-    long now = System.currentTimeMillis();
-
-    for (Orders order : orderList) {
-        Long oNo = order.getNo();
-        List<Map<String, Object>> details = orderService.findDetailsWithProductNames(oNo);
-
-        if (details == null) details = new ArrayList<>();
-        orderDetailsMap.put(oNo, details);
-
-        // 메뉴 이름 조합
-        String names = details.stream()
-            .map(d -> {
-                String name = d.get("p_name") != null ? d.get("p_name").toString() : "이름없음";
-                Object qObj = d.get("quantity");
-                int quantity = (qObj != null) ? Integer.parseInt(qObj.toString()) : 1;
-                return name + "(" + quantity + ")";
-            })
-            .collect(Collectors.joining(", "));
-        menuNamesMap.put(oNo, names);
-
-        // 대기 시간 계산
-        if (order.getOrderTime() != null) {
-            long waitMillis = now - order.getOrderTime().getTime();
-            waitTimeMap.put(oNo, waitMillis / (60 * 1000));
-        } else {
-            waitTimeMap.put(oNo, 0L);
-        }
-    }
-
-    model.addAttribute("menuNamesMap", menuNamesMap);
-    model.addAttribute("orderDetailsMap", orderDetailsMap);
-    model.addAttribute("orderCount", orderService.countByStatus(List.of(0L, 1L)));
-    model.addAttribute("preparingCount", orderService.countByStatus(List.of(1L)));
-    model.addAttribute("waitTime", waitTimeMap);
-    model.addAttribute("requestURI", "/admin/orderpopup");
-
-    return "fragments/admin/orderpopup :: orderpopup"; // ✅ fragment만!
-    }
-
 
     @GetMapping("/admin")
     public ResponseEntity<Map<String, Object>> findAllSeat() throws Exception {
@@ -153,72 +103,7 @@ public class AdminController {
         return categoryService.findAll();
     }
     
-    // 장바구니에 항목 추가
-    @PostMapping("/admin/sellcounter/add")
-    @ResponseBody
-    public String addToCart(Carts carts, HttpSession session) throws Exception {
-        // userNo 안전하게 변환
-        Object userNoObj = session.getAttribute("userNo");
-        Long uNo = null;
-        if (userNoObj instanceof Integer) {
-            uNo = ((Integer) userNoObj).longValue();
-        } else if (userNoObj instanceof Long) {
-            uNo = (Long) userNoObj;
-        } else if (userNoObj != null) {
-            uNo = Long.valueOf(userNoObj.toString());
-        }
-        System.out.println("userNo 세션 값: " + uNo);
-        carts.setUNo(uNo); // 서버에서 직접 넣어줌
-        if (carts.getQuantity() == null) {
-            carts.setQuantity(1L); // 기본값 1
-        }
-        cartService.addToCart(carts);
-        return "ok";
-    }
 
-    // 장바구니 항목 삭제
-    @PostMapping("/admin/sellcounter/delete")
-    @ResponseBody
-    public String deleteItem(@RequestParam("cNo") Long cNo) throws Exception{
-        cartService.delete(cNo);
-        return "ok";
-    }
-    
-    // 장바구니 수량 증가
-    @PostMapping("/admin/sellcounter/increase")
-    @ResponseBody
-    public String increaseQuantity(@RequestParam("pNo") Long pNo, HttpSession session) throws Exception{
-        // userNo 안전하게 변환
-        Object userNoObj = session.getAttribute("userNo");
-        Long uNo = null;
-        if (userNoObj instanceof Integer) {
-            uNo = ((Integer) userNoObj).longValue();
-        } else if (userNoObj instanceof Long) {
-            uNo = (Long) userNoObj;
-        } else if (userNoObj != null) {
-            uNo = Long.valueOf(userNoObj.toString());
-        }
-        cartService.increaseQuantity(uNo, pNo);
-        return "ok";
-    }
-
-    // 장바구니 수량 감소
-    @PostMapping("/admin/sellcounter/decrease")
-    @ResponseBody
-    public String decreaseQuantity(@RequestParam("pNo") Long pNo, HttpSession session) throws Exception{
-        // userNo 안전하게 변환
-        Object userNoObj = session.getAttribute("userNo");
-        Long uNo = null;
-        if (userNoObj instanceof Integer) {
-            uNo = ((Integer) userNoObj).longValue();
-        } else if (userNoObj instanceof Long) {
-            uNo = (Long) userNoObj;
-        } else if (userNoObj != null) {
-            uNo = Long.valueOf(userNoObj.toString());
-        }
-        cartService.decreaseQuantity(uNo,pNo);
-        return "ok";
-    }
     // 주문 등록
     @PostMapping("/admin/sellcounter/create")
     @ResponseBody

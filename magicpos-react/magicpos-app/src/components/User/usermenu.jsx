@@ -143,7 +143,7 @@ function UserMenu({
             <img src="/images/다음페이지.png" alt="다음페이지" />
           </button>
           {/* 검색 폼 */}
-          <form className="search-form" onSubmit={handleSearchSubmit}>
+          <form className="menu-search-form" onSubmit={handleSearchSubmit}>
             <input 
               type="text" 
               name="keyword" 

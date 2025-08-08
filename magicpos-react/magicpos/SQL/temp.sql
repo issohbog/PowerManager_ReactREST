@@ -152,3 +152,44 @@ WHERE DATE(l.created_at) BETWEEN #{startDate} AND #{endDate}
 ORDER BY l.created_at DESC
 LIMIT #{index}, #{size}
 ;
+
+        SELECT * FROM (
+            -- 주문결제 묶기
+            SELECT 
+                '주문결제' AS history_type,
+                GROUP_CONCAT(p.p_name SEPARATOR ', ') AS item_name,
+                u.username,
+                u.id AS user_id,
+                o.seat_id,
+                o.total_price AS price,
+                o.pay_at AS time
+            FROM orders o
+            JOIN users u ON o.u_no = u.no
+            JOIN orders_details od ON o.no = od.o_no
+            JOIN products p ON od.p_no = p.no
+            WHERE DATE(o.pay_at) = CURDATE()
+            AND o.payment_status = 1
+            GROUP BY o.no
+
+            UNION ALL
+
+            SELECT 
+                '이용권구매' AS history_type,
+                t.ticket_name AS item_name,
+                u.username,
+                u.id AS user_id,
+                NULL AS seat_id,
+                t.price AS price,
+                ut.pay_at AS time
+            FROM user_tickets ut
+            JOIN users u ON ut.u_no = u.no
+            JOIN tickets t ON ut.t_no = t.no
+            WHERE DATE(ut.pay_at) = CURDATE()
+        ) AS combined
+        ORDER BY time DESC
+        
+
+        -- ✅ 주문 데이터 있는지 확인
+    SELECT COUNT(*) AS order_count 
+FROM orders 
+WHERE DATE(pay_at) = CURDATE() AND payment_status = 1;

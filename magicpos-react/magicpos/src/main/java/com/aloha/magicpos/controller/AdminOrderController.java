@@ -1,10 +1,13 @@
 package com.aloha.magicpos.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.ui.Model;
@@ -43,6 +46,71 @@ public class AdminOrderController {
     @Autowired
     private ProductService productService;
     
+
+    // ✅ 주문 팝업 데이터 조회 (REST API로 변환)
+    @GetMapping("/orderpopup")
+    public ResponseEntity<?> fetchOrderPopup(@RequestParam(name = "status", required = false) String status) {
+        try {
+            log.info("📥 주문 팝업 데이터 조회 요청 - status: {}", status);
+
+            List<Long> statusList = "1".equals(status) ? List.of(1L) : List.of(0L, 1L);
+            List<Orders> orderList = orderService.findOrdersByStatus(statusList);
+            
+            log.info("🔥 orderList size: {}", orderList.size());
+
+            Map<Long, List<Map<String, Object>>> orderDetailsMap = new HashMap<>();
+            Map<Long, String> menuNamesMap = new HashMap<>();
+            Map<Long, Long> waitTimeMap = new HashMap<>();
+            long now = System.currentTimeMillis();
+
+            for (Orders order : orderList) {
+                Long oNo = order.getNo();
+                List<Map<String, Object>> details = orderService.findDetailsWithProductNames(oNo);
+
+                if (details == null) details = new ArrayList<>();
+                orderDetailsMap.put(oNo, details);
+
+                // 메뉴 이름 조합
+                String names = details.stream()
+                    .map(d -> {
+                        String name = d.get("p_name") != null ? d.get("p_name").toString() : "이름없음";
+                        Object qObj = d.get("quantity");
+                        int quantity = (qObj != null) ? Integer.parseInt(qObj.toString()) : 1;
+                        return name + "(" + quantity + ")";
+                    })
+                    .collect(Collectors.joining(", "));
+                menuNamesMap.put(oNo, names);
+
+                // 대기 시간 계산
+                if (order.getOrderTime() != null) {
+                    long waitMillis = now - order.getOrderTime().getTime();
+                    waitTimeMap.put(oNo, waitMillis / (60 * 1000));
+                } else {
+                    waitTimeMap.put(oNo, 0L);
+                }
+            }
+
+            // ✅ ResponseEntity로 JSON 응답
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("orderList", orderList);
+            response.put("menuNamesMap", menuNamesMap);
+            response.put("orderDetailsMap", orderDetailsMap);
+            response.put("orderCount", orderService.countByStatus(List.of(0L, 1L)));
+            response.put("preparingCount", orderService.countByStatus(List.of(1L)));
+            response.put("waitTime", waitTimeMap);
+
+            log.info("✅ 주문 팝업 데이터 조회 완료");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("❌ 주문 팝업 데이터 조회 실패: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "주문 팝업 데이터 조회 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
     
     // 🔸 주문 삭제 (주문 + 상세 함께 삭제)
     @PostMapping("/delete")
