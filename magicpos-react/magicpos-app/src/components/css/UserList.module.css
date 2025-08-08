@@ -1,0 +1,461 @@
+/* 모달 서서히 기능 */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 모달 상태용 클래스 */
+.modal.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.modal.fade-out {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+/* ----------------------모달 클래스 정의 끝 ---------------------- */
+
+
+ /* 전체  */
+.content {
+position: absolute;
+top: 100px;
+left: 70px;
+width: calc(100vw - 140px);
+height: calc(100vh - 100px);
+box-sizing: border-box;
+padding: 30px;
+}
+
+.top-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+select, input[type="text"], button {
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+.admin_category {
+    border-color: #D5D8DC;
+}
+
+.search-box {
+    display: inline-block;
+    align-items: center;
+    position: relative;
+}
+
+.search-box input[type="text"] {
+    width: 220px;
+    border: 1px solid #D5D8DC;
+    box-sizing: border-box;
+}
+
+.admin_category {
+    padding-right: 20px;
+}
+.search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    background: inherit;
+}
+
+
+.search-icon img {
+    width: 18px;
+    height: 18px;
+}
+
+
+table {
+    border-collapse: collapse;
+    background-color: #fff;
+    width: calc(100vw - 200px);
+    margin-top: 10px;
+}
+
+thead {
+    background-color: #5D6D7E;
+    color: white;
+}
+
+
+th, td {
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+table tbody tr:hover {
+  background-color: #D5D8DC;
+  cursor: pointer;
+}
+
+button.action {
+    background-color: #ffffff;
+    border: 1px solid #B0B3B8;
+    color: #333333;
+    padding: 4px 10px;
+    cursor: pointer;
+    width: 100px;
+}
+
+button.action:hover {
+    background-color: #5D6D7E;
+    color: #ffffff;
+}
+
+
+/* 모달 */
+/* 전체 모달 배경 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 모달 내용 상자 */
+.modal-content.large {
+  width: 850px;
+  height: 402px;
+  background: #fff;
+  width: 700px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* 헤더 */
+.modal-header {
+  background-color: #5D6D7E;
+  color: white;
+  padding: 10px 15px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+/* 닫기 버튼 */
+.modal-header .close-btn {
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  
+  /* 연습중 */
+  display: inline-block;
+}
+
+/* 폼 구조 */
+.modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 0px 15px;
+}
+
+.modal-body .form-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.modal-body label {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="date"],
+.modal-body input[type="email"],
+.modal-body input[type="number"],
+.modal-body textarea {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+}
+
+/* 아이디 input + 중복체크 */
+
+/* 아이디 input + 중복확인 버튼 정렬용 */
+.inline-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+      width: 189px;
+}
+
+/* input은 너비를 꽉 차게 */
+.inline-field input {
+  flex: 1;
+  width: 125px;
+  height: 30px;
+}
+
+/* 버튼은 크기 고정 + 줄바꿈 방지 */
+.inline-field button {
+  flex-shrink: 0;
+  padding: 3px 4px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  height: 100%;
+  background-color: #ddd;
+  color: #333;
+  border: none;
+  border-radius: 2px;
+}
+
+.form-message {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.form-message.error {
+  color: red;
+}
+
+.form-message.success {
+  color: green;
+}
+
+.id-row {
+  position: relative;
+}
+
+#id-check-message{
+      position: absolute;
+    top: 26px;
+    left: 91px;
+}
+
+textarea#memo {
+    width: 67%;
+    height: 100px;
+    resize: none;
+}
+
+.radio-group {
+    display: flex;
+    gap: 16px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+#usedMin, #remainMin {
+    width: 30%;
+}
+
+.modal-body .form-row label {
+    width: 80px;
+    
+}
+/* 모달 분할 */
+
+.with-divider {
+  position: relative;  /* 기준 부모 */
+  display: flex;
+}
+
+/* 양쪽 컬럼 */
+.left-column,
+.right-column {
+  flex: 1;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+
+/* ✅ 가운데 절대 위치한 세로선 */
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background-color: #D5D8DC;
+  transform: translateX(-50%);
+}
+
+
+.modal-footer {
+  text-align: right;
+  margin-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 1px solid #ddd;
+  margin-right: 10px; 
+}
+
+.modal-footer button {
+  padding: 6px 14px;
+  margin-left: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-footer button[type="submit"] {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.modal-footer button[type="button"] {
+  background-color: #ddd;
+  color: #333;
+}
+
+/* 전체 모달 button */
+.btn-cancel {
+  background-color: #ddd;
+  color: #333;
+}
+
+.btn-save {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.btn-edit {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.btn-delete {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btn-reset {
+  background-color: #f0c040;
+  color: #333;
+}
+
+/* 모달끝  */
+
+
+/* ✅ 임시 비밀번호 안내 모달 전체 영역 */
+
+/* 임시비번 모달 */
+.modal-content.small {
+  width: 400px;
+}
+
+#temp-password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6); /* 어두운 반투명 배경 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999 !important; /* 항상 위에 뜨게 */
+}
+
+/* ✅ 모달 내용 상자 */
+#temp-password-modal .modal-content {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  min-width: 360px;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* ✅ 모달 제목 영역 */
+#temp-password-modal .modal-header {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+/* ✅ 모달 본문 */
+#temp-password-modal .modal-body p {
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+/* ✅ 강조된 임시 비밀번호 */
+#temp-password-modal .modal-body span {
+  color: red;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* ✅ 모달 하단 버튼 */
+#temp-password-modal .modal-footer {
+  margin-top: 20px;
+}
+
+#temp-password-modal .modal-footer button {
+  padding: 8px 20px;
+  background-color: #5D6D7E;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#temp-password-modal .modal-footer button:hover {
+  background-color: #34495E;
+}
+
+/* 닫기 버튼 (오른쪽 상단 X 버튼이 있다면) */
+#temp-password-modal .close-btn {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+}
+

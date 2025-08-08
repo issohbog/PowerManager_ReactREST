@@ -1,4 +1,4 @@
-.sidebar-right {
+.sidebarRight {
   position: absolute;
   top: 100px;
   right: 0;
@@ -16,7 +16,7 @@
     height: 78px;
 }
 
-.sidebar-right a {
+.sidebarRight a {
   width: 70px;
   height: 150px;
   background-color: #F4D03F;
@@ -32,13 +32,13 @@
   justify-content: center;
 }
 
-.sidebar-right a img {
+.sidebarRight a img {
   width: 26px;
   height: 26px;
   margin-bottom: 4px;
 }
 
-.sidebar-right .toggle-btn {
+.sidebarRight .toggleBtn {
   background-color: #F4D03F;
   border: none;
   width: 100%;
@@ -49,6 +49,6 @@
   border-bottom: 1px solid white;
 }
 
-.sidebar-right a:hover {
+.sidebarRight a:hover {
   background-color: #E6C100;
 }

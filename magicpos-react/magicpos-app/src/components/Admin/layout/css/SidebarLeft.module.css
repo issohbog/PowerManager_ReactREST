@@ -1,4 +1,4 @@
-.sidebar-left {
+.sidebarLeft {
   width: 70px;
   height: calc(100vh - 100px);
   background-color: #233142;
@@ -10,7 +10,7 @@
 }
 
 /* 버튼 대신 a 태그 스타일 */
-.sidebar-left a {
+.sidebarLeft a {
   background-color: #2C3E50;
   text-decoration: none;
   width: 100%;
@@ -27,11 +27,11 @@
   transition: background-color 0.2s;
 }
 
-.sidebar-left a:hover {
+.sidebarLeft a:hover {
   background-color: #34495E;
 }
 
-.sidebar-left a img {
+.sidebarLeft a img {
   width: 32px;
   height: 32px;
 }

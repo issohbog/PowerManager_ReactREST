@@ -1,0 +1,10 @@
+.admin-content {
+    background-color: aqua;
+    position: absolute;
+    top: 100px;
+    left: 70px;
+    width: calc(100vw - 140px);
+    height: calc(100vh - 100px);
+    box-sizing: border-box;
+    padding: 30px;
+}

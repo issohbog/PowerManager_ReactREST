@@ -1,0 +1,148 @@
+  .content {
+    top: 100px;
+    left: 70px;
+  }
+  
+  .seatDashboard {
+    z-index: 10;
+    position: absolute;
+    top: 100px;
+    left: 70px;
+    /* display: flex;
+    flex-direction: row;
+    gap: 30px; */
+    background-color: #0e1b28;
+    width: calc(100vw - 140px);
+    height: calc(100vh - 100px);
+  }
+
+  .rowContainer {
+    box-sizing: border-box;
+    margin-top: 30px;
+    margin-left: 30px;
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  /* ✅ 6개씩 한 줄 */
+  .seatRow.row-6 {
+    display: grid;
+    grid-template-columns: repeat(6, 160px);
+    gap: 10px;
+    justify-content: start;
+  }
+
+  /* ✅ 5개씩 한 줄 */
+  .seatRow.row-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 160px);
+    gap: 10px;
+    justify-content: start;
+  }
+
+  #middle-seats {
+    margin-top: 65px;
+  }
+
+  #bottom-seats {
+    margin-top: 65px;
+  }
+
+  .seat {
+    position: relative;
+    box-sizing: border-box;
+    height: 100px;
+    border-radius: 3px;
+    padding: 4px;
+    font-size: 17px;
+  }
+
+  .seatNumber {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 3px;
+  }
+
+  .memberName {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .in-use-green .memberName {
+    color: black;
+  }
+
+  .in-use-red .member-name {
+    color: white;
+  }
+
+  .time-left {
+    position: absolute;
+    top: 27px;
+    right: 6px;
+    color: #666;
+    font-size: 17px;
+  }
+
+  .in-use-green .time-left {
+    color: black;
+  }
+
+  .in-use-red .time-left {
+    color: white;
+  }
+
+  .broken-label {
+    font-size: 17px;
+  }
+  .in-use-green { background-color: #27ae60; color: black; }
+  .in-use-red { background-color: #e74c3c; color: white; }
+  .available { background-color: #ffffff; color: black; }
+  .broken { background-color: #f1c40f; color: black; }
+  .cleaning {
+    background-color: #ffffff;
+    border: 2px solid #ccc;
+    position: relative;
+  }
+  .clear-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .counter {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 111px;
+    height: 311px;
+    background-color: white;
+    font-size: 30px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+  }
+
+  .trashIcon {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
