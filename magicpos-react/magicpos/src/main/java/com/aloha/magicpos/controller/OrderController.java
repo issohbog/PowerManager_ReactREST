@@ -129,6 +129,7 @@ public class OrderController {
             // ✅ 결제 방법에 따른 paymentStatus 설정
             if ("카드".equals(payment) || "카카오페이".equals(payment)) {
                 order.setPaymentStatus(1L);  // 카드/카카오페이는 결제 완료
+                order.setPayAt(LocalDateTime.now());
             } else {
                 order.setPaymentStatus(0L);  // 현금도 미결제
             }
@@ -138,6 +139,7 @@ public class OrderController {
             order.setCashAmount(cashAmount);
             order.setMessage(message);
             order.setTotalPrice(totalPrice);
+            
 
             boolean inserted = orderService.insertOrder(order);
             if (!inserted) {

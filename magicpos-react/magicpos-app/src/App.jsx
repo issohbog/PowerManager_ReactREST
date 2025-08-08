@@ -6,6 +6,8 @@ import AdminLayout from './components/Admin/layout/AdminLayout';
 import SeatStatus from './pages/Admin/SeatStatus';
 import ProductList from './pages/Admin/ProductList';
 import UserList from './pages/Admin/UserList';
+import Logs from './pages/Admin/Logs';
+import TodayHistoryList from './pages/Admin/TodayHistoryList';
 
 const App = () => {
   return (
@@ -19,6 +21,8 @@ const App = () => {
           <Route path="seat-status" element={<SeatStatus />} />
           <Route path="product-list" element={<ProductList />} />
           <Route path="user-list" element={<UserList />} />
+          <Route path="logs" element={<Logs />} />
+          <Route path="todayhistory" element={<TodayHistoryList />} />
       </Route>
 
       

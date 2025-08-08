@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/history/today")
+@RequestMapping("/admin/history")
 public class TodayHistoryController {
 
     
@@ -29,7 +29,7 @@ public class TodayHistoryController {
     /**
      * 오늘의 내역 리스트를 조건에 따라 페이징하여 반환 (REST API)
      */
-    @GetMapping("/all")
+    @GetMapping("/today")
     public ResponseEntity<?> getTodayHistoryRest(
         @RequestParam(name = "keyword", required = false) String keyword,
         @RequestParam(name = "type", required = false) String type,
@@ -39,6 +39,7 @@ public class TodayHistoryController {
         try {
             // 타입 기본값 처리
             if (type == null) type = "";
+            if (keyword == null) keyword = "";
 
             List<Map<String, Object>> todayList;
             long total = 0;

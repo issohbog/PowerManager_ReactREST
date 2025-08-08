@@ -57,12 +57,12 @@
     font-weight: bold;
 }
 
-.search-form {
+.menu-search-form {
   position: relative;
   display: inline-block;
 }
 
-.search-form input {
+.menu-search-form input {
   width: 220px;
   border-radius: 10px;
   border: none;
@@ -71,7 +71,7 @@
   padding: 5px 35px 5px 10px;
 }
 
-.search-form button {
+.menu-search-form button {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -82,7 +82,7 @@
   cursor: pointer;
 }
 
-.search-form img {
+.menu-search-form img {
   width: 18px;
   height: 18px;
 }

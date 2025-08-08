@@ -31,7 +31,7 @@ const Header = () => {
         {/* 메뉴 */}
         <nav className={styles['header-nav']}>
           <Link to="/admin">매장관리</Link>
-          <Link to="/admin/history/today/all">당일내역</Link>
+          <Link to="/admin/todayhistory">당일내역</Link>
           <Link to="/admin/user-list">회원관리</Link>
           <Link to="/admin/sales">운영매출</Link>
           <Link to="/admin/product-list">상품관리</Link>

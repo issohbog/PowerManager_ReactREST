@@ -44,6 +44,7 @@ public class LogController {
             if (startDate == null) startDate = LocalDate.now();
             if (endDate == null) endDate = LocalDate.now();
             if (type == null) type = "";
+            if (keyword == null) keyword = "";
 
             String start = startDate.toString(); // 시작일 문자열 변환
             String end = endDate.toString();     // 종료일 문자열 변환
