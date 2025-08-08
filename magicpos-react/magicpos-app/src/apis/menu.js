@@ -65,7 +65,3 @@ export const getPaymentInfo = (orderData) => {
 export const confirmPayment = (paymentData) => {
   return axios.post('/api/users/orders/success', paymentData);
 };
-
-export const saveTempOrder = (orderData) => {
-  return axios.post('/api/users/orders/temp', orderData);
-};

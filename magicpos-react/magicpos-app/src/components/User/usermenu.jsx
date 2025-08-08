@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { loadTossPayments } from '@tosspayments/payment-sdk';
-
+import React, { useState } from "react";
 
 // 프레젠테이셔널 컴포넌트: props로 데이터와 핸들러만 받아서 화면만 렌더링
 function UserMenu({
@@ -20,8 +18,7 @@ function UserMenu({
   onCartIncrease,
   onCartDecrease,
   onCartDelete,
-  onOpenOrderModal,
-  onOrderComplete  
+  onOpenOrderModal
 }) {
   const [flippedCards, setFlippedCards] = useState({});
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -31,24 +28,6 @@ function UserMenu({
     cashManual: '',
     message: ''
   });
-  
-  // ✅ 토스페이먼츠 상태 추가
-  const [tossPayments, setTossPayments] = useState(null);
-
-  // ✅ 토스페이먼츠 초기화
-  useEffect(() => {
-    const initTossPayments = async () => {
-      try {
-        const payments = await loadTossPayments("test_ck_ZLKGPx4M3MGPnBZkRAlwrBaWypv1");
-        setTossPayments(payments);
-        console.log("✅ 토스페이먼츠 초기화 완료");
-      } catch (error) {
-        console.error("❌ 토스페이먼츠 초기화 실패:", error);
-      }
-    };
-
-    initTossPayments();
-  }, []);
 
   const toggleFlip = (productNo) => {
     setFlippedCards(prev => ({
@@ -71,7 +50,7 @@ function UserMenu({
     }));
   };
 
-  // ✅ 주문 처리 함수 수정
+  // ✅ 주문 처리 함수 - 깔끔하게 복원
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
 
@@ -106,84 +85,40 @@ function UserMenu({
     }
 
     // 3. 최종 주문 데이터 구성
-    const finalOrderData = {
+    let finalOrderData = {
       seatId: usageInfo.seat_id,
       cartList,
       totalPrice,
-      cashAmount: cashAmount,
-      ...orderData
+      payment: orderData.payment,
+      message: orderData.message || ''
     };
 
-    // 4. ✅ 결제 방법에 따른 처리
+    // ✅ 현금 결제인 경우에만 현금 관련 데이터 추가
     if (orderData.payment === '현금') {
-      // 현금 결제는 기존 방식
-      try {
-        if (onOrder) {
-          await onOrder(finalOrderData);
-          onOrderComplete && onOrderComplete();
-        }
-      } catch (error) {
-        console.error('현금 주문 실패:', error);
-      }
+      finalOrderData = {
+        ...finalOrderData,
+        cash: orderData.cash,
+        cashAmount: cashAmount,  // 계산된 값
+        cashManual: orderData.cashManual
+      };
     } else {
-      // 전자 결제는 토스페이먼츠
-      await handleTossPayment(finalOrderData);
+      // ✅ 카드/QR 결제인 경우 현금 관련 데이터 null
+      finalOrderData = {
+        ...finalOrderData,
+        cash: null,
+        cashAmount: null,
+        cashManual: ""
+      };
     }
-  };
-
-  // ✅ 토스페이먼츠 처리 함수
-  const handleTossPayment = async (finalOrderData) => {
-    if (!tossPayments) {
-      alert("결제 시스템을 초기화하는 중입니다. 잠시 후 다시 시도해주세요.");
-      return;
-    }
-
+    // 주문 요청
     try {
-      console.log("🚀 토스페이먼츠 결제 시작...");
-
-      // 1. 결제 정보 생성 요청
-      const paymentInfo = await requestPaymentInfo(finalOrderData);
-      
-      // 2. 토스페이먼츠 결제 요청
-      await tossPayments.requestPayment(finalOrderData.payment, {
-        amount: paymentInfo.amount,
-        orderId: paymentInfo.orderId,
-        orderName: paymentInfo.orderName,
-        customerName: paymentInfo.customerName,
-        successUrl: paymentInfo.successUrl,
-        failUrl: paymentInfo.failUrl
-      });
-
+      await onOrder(finalOrderData);  
     } catch (error) {
-      console.error("❌ 토스페이먼츠 결제 중 오류:", error);
-      alert("결제 도중 문제가 발생했습니다.");
+      console.error("주문 처리 실패:", error);
+      alert("주문 중 오류가 발생했습니다.");
     }
   };
 
-  // ✅ 결제 정보 요청 함수
-  const requestPaymentInfo = async (orderData) => {
-    const response = await fetch('/api/users/orders/payment-info', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        seatId: orderData.seatId,
-        pNoList: orderData.cartList.map(cart => cart.p_no),
-        quantityList: orderData.cartList.map(cart => cart.quantity),
-        pNameList: orderData.cartList.map(cart => cart.p_name),
-        totalPrice: orderData.totalPrice,
-        payment: orderData.payment,
-        message: orderData.message
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("결제 정보 요청 실패");
-    }
-
-    return await response.json();
-  };
 
   return (
     <div className="container">
@@ -207,7 +142,7 @@ function UserMenu({
           <button className="icon-button">
             <img src="/images/다음페이지.png" alt="다음페이지" />
           </button>
-          {/* ✅ 검색 폼 수정 */}
+          {/* 검색 폼 */}
           <form className="search-form" onSubmit={handleSearchSubmit}>
             <input 
               type="text" 
@@ -270,6 +205,7 @@ function UserMenu({
           <div>좌석번호 <strong>{usageInfo.seat_id || "50"}</strong></div>
           <button id="openModalBtn" onClick={onOpenOrderModal}>주문내역보기</button>
         </div>
+        
         {/* 장바구니 영역 */}
         <div className="cart-section">
           <div className="cart-items">
@@ -312,7 +248,7 @@ function UserMenu({
           </div>
         </div>
 
-        {/* ✅ 주문 폼 - 장바구니 바로 아래 */}
+        {/* 주문 폼 */}
         <form id="orderForm" onSubmit={handleOrderSubmit}>
           {/* Hidden inputs */}
           <input type="hidden" name="seatId" value={usageInfo.seat_id} />
@@ -360,7 +296,7 @@ function UserMenu({
             </label>
           </div>
 
-          {/* ✅ 현금 결제 옵션 - 조건 제거하여 항상 표시 */}
+          {/* 현금 결제 옵션 */}
           <div className="cash-options">
             <div className="cash-quick">
               <label>

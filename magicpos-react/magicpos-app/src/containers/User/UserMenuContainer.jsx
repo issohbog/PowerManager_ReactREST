@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import UserMenu from "../../components/User/usermenu";
-import OrderCompleteModal from "../../components/User/modal/orderCompleteModal";  // ✅ 모달 import
+import OrderCompleteModal from "../../components/User/modal/orderCompleteModal";
 import { 
   getMenu, 
   getMenuByCategory,
@@ -8,7 +8,9 @@ import {
   increaseCartItem, 
   decreaseCartItem, 
   deleteCartItem, 
-  createOrder 
+  createOrder,
+  getPaymentInfo,
+  confirmPayment
 } from "../../apis/menu";
 import "../../components/css/menu.css";
 import OrderModal from "../../components/User/modal/ordermodal";
@@ -23,22 +25,33 @@ function UserMenuContainer() {
     usageInfo: {},
     orderList: [],
     orderDetailsMap: {},
-    ongoingOrderList: [],    // ✅ 이미 있음
-    historyOrderList: [],    // ✅ 이미 있음
+    ongoingOrderList: [],    
+    historyOrderList: [],    
   });
   const [selectedCategory, setSelectedCategory] = useState(1);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
-  const [isOrderCompleteModalOpen, setIsOrderCompleteModalOpen] = useState(false);  // ✅ 모달 상태 추가
+  const [isOrderCompleteModalOpen, setIsOrderCompleteModalOpen] = useState(false);
 
   // 메뉴 데이터 fetch
   useEffect(() => {
-    loadMenuData(); // ✅ 초기 로드
+    loadMenuData();
   }, []);
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const isSuccess = params.get("payment") === "success";
 
+  if (isSuccess) {
+    setIsOrderCompleteModalOpen(true);  // ✅ 주문 완료 모달 열기
+
+    // ✅ URL 정리 (뒤로가기 시 또 안뜨게)
+    window.history.replaceState({}, '', '/menu');
+  }
+}, []);
+  
   // 메뉴 데이터 로드 함수
-  const loadMenuData = async () => {
+  const loadMenuData = async (keyword) => {
     try {
-      const response = await getMenu();
+      const response = await getMenu(keyword); // ✅ 검색 키워드 파라미터 추가
       const data = response.data;
       setMenuData({
         categories: data.categories || [],
@@ -75,10 +88,9 @@ function UserMenuContainer() {
   // 상품 담기 핸들러
   const handleAddToCart = async (product) => {
     try {
-      console.log('장바구니에 추가할 상품:', product); // 디버깅용
-      await addToCart(product.no); // product.no가 올바른 값인지 확인
+      console.log('장바구니에 추가할 상품:', product);
+      await addToCart(product.no);
       
-      // 장바구니 추가 후 최신 장바구니 정보 다시 가져오기
       const response = await getMenu();
       setMenuData(prevState => ({
         ...prevState,
@@ -87,17 +99,16 @@ function UserMenuContainer() {
       }));
     } catch (error) {
       console.error('장바구니 추가 실패:', error);
-      console.error('에러 응답:', error.response?.data); // 상세 에러 확인
+      console.error('에러 응답:', error.response?.data);
       alert('장바구니 추가에 실패했습니다.');
     }
   };
 
-  // ✅ 장바구니 수량 증가 핸들러 - menu.js 함수 사용
+  // 장바구니 수량 증가 핸들러
   const handleCartIncrease = async (productNo) => {
     try {
-      await increaseCartItem(productNo);  // ← API 함수 사용
+      await increaseCartItem(productNo);
       
-      // 최신 장바구니 정보 다시 가져오기
       const response = await getMenu();
       setMenuData(prevState => ({
         ...prevState,
@@ -110,12 +121,11 @@ function UserMenuContainer() {
     }
   };
 
-  // ✅ 장바구니 수량 감소 핸들러 - menu.js 함수 사용
+  // 장바구니 수량 감소 핸들러
   const handleCartDecrease = async (productNo) => {
     try {
-      await decreaseCartItem(productNo);  // ← API 함수 사용
+      await decreaseCartItem(productNo);
       
-      // 최신 장바구니 정보 다시 가져오기
       const response = await getMenu();
       setMenuData(prevState => ({
         ...prevState,
@@ -128,12 +138,11 @@ function UserMenuContainer() {
     }
   };
 
-  // ✅ 장바구니 항목 삭제 핸들러 - menu.js 함수 사용
+  // 장바구니 항목 삭제 핸들러
   const handleCartDelete = async (cartNo) => {
     try {
-      await deleteCartItem(cartNo);  // ← API 함수 사용
+      await deleteCartItem(cartNo);
       
-      // 최신 장바구니 정보 다시 가져오기
       const response = await getMenu();
       setMenuData(prevState => ({
         ...prevState,
@@ -146,21 +155,67 @@ function UserMenuContainer() {
     }
   };
 
-  // 주문하기 버튼 핸들러
-  const handleOrder = async (orderData) => {
+  // ✅ 수정된 주문하기 버튼 핸들러 (finalOrderData로 변경)
+  const handleOrder = async (finalOrderData) => {
     try {
-      await createOrder(orderData);
+      console.log('📝 주문 데이터:', finalOrderData);
       
-      // ✅ 주문 성공 후 최신 데이터 로드
+      const response = await createOrder(finalOrderData);
+      const orderNo = response.data.orderNo;
+      
+    if (finalOrderData.payment === '카드' || finalOrderData.payment === '카카오페이') {
+      // ✅ 백엔드에 결제 정보 요청
+      const paymentInfoRes = await getPaymentInfo({
+        orderNo: orderNo,
+        seatId: finalOrderData.seatId,
+        totalPrice: finalOrderData.totalPrice,
+        customerName: menuData.usageInfo?.username || '비회원',
+        payment: finalOrderData.payment,
+        cartList: finalOrderData.cartList
+      });
+
+      // Toss 창 열기
+      await handleTossPaymentWindow(paymentInfoRes.data, finalOrderData);
+
+    } else {
+      console.log('✅ 현금 주문 성공!');
       await loadMenuData();
+      handleOrderComplete();
+    }
       
     } catch (error) {
-      console.error('주문 실패:', error);
-      alert('주문에 실패했습니다.');
+      console.error('❌ 주문 실패:', error);
+      alert(`주문에 실패했습니다.\n사유: ${error.response?.data?.message || error.message}`);
+    }
+  }; // ✅ 함수 제대로 닫기
+
+  // ✅ 토스페이먼츠 결제창 호출 함수 (finalOrderData로 변경)
+  const handleTossPaymentWindow = async (paymentInfo, finalOrderData) => {
+    try {
+      console.log('💳 토스페이먼츠 결제 시작:', paymentInfo);
+      
+      const { loadTossPayments } = await import('@tosspayments/payment-sdk');
+      const tossPayments = await loadTossPayments('test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq');
+
+      // 결제 방법 결정
+      const paymentMethod = finalOrderData.payment === '카드' ? '카드' : '간편결제';
+      
+      await tossPayments.requestPayment(paymentMethod, {
+        amount: paymentInfo.amount,
+        orderId: paymentInfo.orderId,
+        orderName: paymentInfo.orderName,
+        customerName: paymentInfo.customerName,
+        successUrl: paymentInfo.successUrl,
+        failUrl: paymentInfo.failUrl,
+      });
+
+    } catch (error) {
+      console.error('토스페이먼츠 결제 실패:', error);
+      alert('결제에 실패했습니다.');
     }
   };
 
-  // 검색 핸들러
+  // ✅ 검색 핸들러 (별도 함수로 분리)
   const handleSearch = (keyword) => {
     if (keyword) {
       loadMenuData(keyword);  // 검색어가 있으면 전체 검색
@@ -169,25 +224,23 @@ function UserMenuContainer() {
     }
   };
 
-  // 주문내역 모달 열기 (필요시 최신 데이터 로드)
+  // 주문내역 모달 열기
   const handleOpenOrderModal = async () => {
     try {
-      // ✅ 모달 열기 전에 최신 주문내역 로드
       await loadMenuData();
       setIsOrderModalOpen(true);
     } catch (error) {
       console.error('데이터 로드 실패:', error);
-      // 에러가 나도 기존 데이터로 모달 열기
       setIsOrderModalOpen(true);
     }
   };
 
-  // ✅ 주문 완료 모달 열기
+  // 주문 완료 모달 열기
   const handleOrderComplete = () => {
     setIsOrderCompleteModalOpen(true);
   };
 
-  // ✅ 주문 완료 모달 닫기
+  // 주문 완료 모달 닫기
   const closeOrderCompleteModal = () => {
     setIsOrderCompleteModalOpen(false);
   };
@@ -212,18 +265,16 @@ function UserMenuContainer() {
         onCartDecrease={handleCartDecrease}
         onCartDelete={handleCartDelete}
         onOpenOrderModal={handleOpenOrderModal}
-        onOrderComplete={handleOrderComplete}  
       />
       
       <OrderModal
         isOpen={isOrderModalOpen}
-        ongoingOrders={menuData.ongoingOrderList}     // ✅ 기존 데이터 사용
-        historyOrders={menuData.historyOrderList}     // ✅ 기존 데이터 사용
-        orderDetailsMap={menuData.orderDetailsMap}    // ✅ 기존 데이터 사용
+        ongoingOrders={menuData.ongoingOrderList}
+        historyOrders={menuData.historyOrderList}
+        orderDetailsMap={menuData.orderDetailsMap}
         onClose={() => setIsOrderModalOpen(false)}
       />
 
-      {/* ✅ 주문 완료 모달 */}
       <OrderCompleteModal 
         isOpen={isOrderCompleteModalOpen}
         onClose={closeOrderCompleteModal}

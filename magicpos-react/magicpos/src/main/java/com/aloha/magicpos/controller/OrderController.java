@@ -125,10 +125,17 @@ public class OrderController {
             Orders order = new Orders();
             order.setUNo(userNo);
             order.setOrderStatus(0L);
-            order.setPaymentStatus(0L);
+
+            // ✅ 결제 방법에 따른 paymentStatus 설정
+            if ("카드".equals(payment) || "카카오페이".equals(payment)) {
+                order.setPaymentStatus(1L);  // 카드/카카오페이는 결제 완료
+            } else {
+                order.setPaymentStatus(0L);  // 현금도 미결제
+            }
+
             order.setSeatId(seatId);
             order.setPayment(payment);
-            order.setCashAmount(cashAmount);  // ✅ 현금 금액 설정
+            order.setCashAmount(cashAmount);
             order.setMessage(message);
             order.setTotalPrice(totalPrice);
 
@@ -161,73 +168,27 @@ public class OrderController {
             String description = username + "님이 " + order.getTotalPrice() + "원어치 상품을 주문하였습니다.";
             logService.insertLog(userNo, seatId, "상품 구매", description);
             
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "orderNo", oNo,
-                "cashOption", cashOption,      // ✅ 현금 옵션 반환
-                "cashAmount", cashAmount,      // ✅ 현금 금액 반환
-                "message", "주문이 성공적으로 처리되었습니다."
-            ));
+            // ✅ 수정된 성공 응답
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("success", true);
+            successResponse.put("orderNo", oNo);
+            successResponse.put("cashOption", cashOption);  
+            successResponse.put("cashAmount", cashAmount);  
+            successResponse.put("message", "주문이 성공적으로 처리되었습니다.");
+
+            return ResponseEntity.ok(successResponse);
             
         } catch (Exception e) {
             log.error("주문 처리 실패: ", e);
+            
+            // ✅ 에러 메시지 안전하게 처리
+            String errorMessage = (e.getMessage() != null) ? e.getMessage() : "알 수 없는 오류";
+            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("success", false, "message", "주문 처리 중 오류가 발생했습니다: " + e.getMessage()));
-        }
-    }
-
-    // ✅ 결제 정보 API (기존 유지)
-    @PostMapping("/payment-info")
-    public ResponseEntity<Map<String, Object>> getProductOrderPaymentInfo(
-            @RequestBody Map<String, Object> params, 
-            HttpServletRequest request) {
-        try {
-            log.info("결제 정보 요청: {}", params);
-            
-            String seatId = params.get("seatId").toString();
-            int totalPrice = Integer.parseInt(params.get("totalPrice").toString());
-            String payment = params.get("payment").toString();
-            
-            // userNo 안전하게 변환
-            Object userNoObj = params.get("userNo");
-            Long userNo = 1L; // 기본값
-            if (userNoObj instanceof Integer) {
-                userNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                userNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                userNo = Long.valueOf(userNoObj.toString());
-            }
-            
-            Users user = userService.findByNo(userNo);  
-            String customerName = (user != null) ? user.getUsername() : "고객";
-
-            // 상품명 최대 2개만 보여줌
-            @SuppressWarnings("unchecked")
-            List<String> productNames = ((List<?>) params.get("pNameList")).stream()
-                .map(Object::toString)
-                .collect(Collectors.toList());
-            
-            String orderName = productNames.stream().limit(2)
-                .collect(Collectors.joining(", ")) + (productNames.size() > 2 ? " 외" : "");
-
-            String orderId = "order-" + System.currentTimeMillis() + "_seat" + seatId;
-            String ip = InetAddress.getLocalHost().getHostAddress();
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("orderId", orderId);
-            result.put("orderName", orderName);
-            result.put("amount", totalPrice);
-            result.put("customerName", customerName);
-            result.put("successUrl", "http://" + ip + ":8080/users/payment/product/success");
-            result.put("failUrl", "http://" + ip + ":8080/users/payment/product/fail");
-
-            return ResponseEntity.ok(result);
-            
-        } catch (Exception e) {
-            log.error("결제 정보 생성 실패: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "결제 정보 생성에 실패했습니다: " + e.getMessage()));
+                .body(Map.of(
+                    "success", false,
+                    "message", "주문 처리 중 오류가 발생했습니다: " + errorMessage
+                ));
         }
     }
 }
