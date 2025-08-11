@@ -1,4 +1,36 @@
 /* 모달 */
+/* 모달 서서히 기능 */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 모달 상태용 클래스 */
+.fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+.fadeOut {
+  animation: fadeOut 0.5s ease-in forwards;
+}
+
 /* 전체 모달 배경 */
 .modalOverlay {
   position: fixed;
@@ -12,6 +44,12 @@
   align-items: center;
   z-index: 1000;
 }
+
+.modalOverlay.fadeOut {
+  animation: fadeOut 0.5s ease-in forwards;
+  pointer-events: none;
+}
+
 
 /* 모달 내용 상자 */
 .modalContent {

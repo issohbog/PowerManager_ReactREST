@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../../css/UserModal.module.css';
+import { format, set } from 'date-fns';
 
 const defaultUser = {
   username: '',
@@ -23,15 +24,35 @@ const UserModal = ({
   onIdCheck,
   idCheckMessage,
   idCheckStatus, // 'error' | 'success'
+  onResetPassword, // 비밀번호 초기화 함수
+  onEdit,
   handle
 }) => {
   const [form, setForm] = useState(defaultUser);
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
+  const [animationClass, setAnimationClass] = useState('');     // 모달 애니메이션 상태 추가
 
   useEffect(() => {
     setForm(user ? { ...defaultUser, ...user } : defaultUser);
   }, [user, open]);
+
+  useEffect(() => {
+    if (open) {
+      setAnimationClass(styles.fadeIn); // 모달 열릴 때
+    } else if (animationClass === styles.fadeIn) {
+      setAnimationClass(styles.fadeOut); // 모달 닫힐 때
+      setTimeout(() => onClose(), 500); // 애니메이션 종료 후 모달 닫기
+    }
+  }, [open]);
+
+  const handleAnimationEnd = () => {    
+    if (animationClass === styles.fadeOut) {
+      onClose(); // 애니메이션이 끝나면 모달 닫기
+    }
+  };
+
+  if (!open && animationClass !== styles.fadeOut) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,18 +64,18 @@ const UserModal = ({
     if (!isView && onSave) onSave(form);
   };
 
-  if (!open) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+    <div className={`${styles.modalOverlay} ${animationClass}`} 
+          onAnimationEnd={handleAnimationEnd}>
+      <div className={`${styles.modalContent} ${animationClass}`}>
         <div className={styles.modalHeader}>
           <span className={styles.modalTitle}>
             {mode === 'register' && '회원등록'}
             {mode === 'edit' && '회원수정'}
             {mode === 'view' && '회원정보'}
           </span>
-          <span className={styles.closeBtn} onClick={onClose}>×</span>
+          <span className={styles.closeBtn} onClick={() => setAnimationClass(styles.fadeOut)}>×</span>
         </div>
         <form onSubmit={handleSubmit}>
           <div className={`${styles.modalBody} ${styles.twoColumns} ${styles.withDivider}`}>
@@ -143,7 +164,7 @@ const UserModal = ({
                   type="date"
                   name="birth"
                   id="birth"
-                  value={form.birth || ''}
+                  value={form.birth ? format(new Date(form.birth), 'yyyy-MM-dd') : ''}
                   onChange={handleChange}
                   readOnly={isView}
                 />
@@ -202,10 +223,42 @@ const UserModal = ({
             <div className={styles.divider}></div>
           </div>
           <div className={styles.modalFooter} id="modal-footer">
-            <button type="button" className={styles.btnCancel} onClick={onClose}>취소</button>
+            <button 
+                type="button" 
+                className={styles.btnCancel} 
+                onClick={() => setAnimationClass(styles.fadeOut)}>
+                  취소
+                  </button>
             {!isView && <button type="submit" className={styles.btnSave} id="modal-submit-btn">저장</button>}
             {isEdit && onDelete && (
-              <button type="button" className={styles.btnDelete} onClick={() => onDelete(form.no)}>삭제</button>
+              <button type="button" className={styles.btnDelete} onClick={() => {
+                                                                    if (window.confirm('정말 삭제하시겠습니까?')) {
+                                                                      onDelete(form.no); // onDelete 호출
+                                                                      setAnimationClass(styles.fadeOut); // 닫기 애니메이션 실행
+                                                                    }
+                                                                  }}>삭제</button>
+            )}
+            {isView && (
+              <>
+                <button
+                  type="button"
+                  className={styles.btnReset}
+                  onClick={() => {
+                    if (window.confirm('정말 비밀번호를 초기화하시겠습니까?')) {
+                      onResetPassword(user.no); // 비밀번호 초기화 함수 호출
+                    }
+                  }}
+                >
+                  비밀번호 초기화
+                </button>
+                <button
+                  type="button"
+                  className={styles.btnEdit}
+                  onClick={() => onEdit(user)} // 수정 모달로 전환
+                >
+                  회원정보 수정
+                </button>
+              </>
             )}
           </div>
         </form>
