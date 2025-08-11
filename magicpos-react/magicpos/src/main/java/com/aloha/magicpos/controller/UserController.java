@@ -213,6 +213,7 @@ public class UserController {
         Map<String, Object> result = new HashMap<>();
         try {
             userService.update(user);
+            result.put("updatedUser", user);
             result.put("success", true);
             result.put("message", "회원 정보가 수정되었습니다.");
         } catch (Exception e) {
