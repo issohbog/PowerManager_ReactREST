@@ -5,14 +5,14 @@ import { format } from 'date-fns';                  // 날짜 포맷팅을 위�
 
 // UserList를 forwardRef 로 변경 => 부모에서 props 처럼 제어 가능 
 const UserList = forwardRef((props, ref) => {
-  const { users, pagination, onSearch, onEdit, onRegister, onDelete, onPageChange, onView } = props;
+  const { users, pagination, onSearch, onEdit, onRegister, onDelete, onPageChange, onView, clearSelectedUserNos } = props;
   const [type, setType] = useState('');
   const [keyword, setKeyword] = useState('');
   const [selectedUserNos, setSelectedUserNos] = useState([]); // 선택된 유저 번호 배열
 
   // 외부에서 선택해제 할 수 있도록 함수 노출 
   useImperativeHandle(ref, () => ({
-    clearSelection: () => setSelectedUserNos([])
+    clearSelection: () => clearSelectedUserNos()
   }));
 
   const handleSearchSubmit = (e) => {
@@ -53,7 +53,7 @@ const UserList = forwardRef((props, ref) => {
     }
     // 여러 명 삭제도 지원하려면 배열 전체 전달
     onDelete(selectedUserNos);
-    setSelectedUserNos([]); // 삭제 후 선택 해제
+    clearSelectedUserNos(); // 삭제 후 선택 해제
   };
 
 

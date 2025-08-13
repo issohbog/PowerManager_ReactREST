@@ -24,6 +24,7 @@ const UserListContainer = () => {
   const [animationClass, setAnimationClass] = useState(''); // 모달 애니메이션 상태
   const [passwordResetModalOpen, setPasswordResetModalOpen] = useState(false);
   const [resetInfo, setResetInfo] = useState({ username: '', tempPassword: '' });
+  const [selectedUserNos, setSelectedUserNos] = useState([]); // 선택된 유저 번호 배열
 
   const userListRef = useRef();
 
@@ -33,6 +34,8 @@ const UserListContainer = () => {
       userListRef.current.clearSelection();
     }
   };
+
+  const clearSelectedUserNos = () => setSelectedUserNos([]);
 
   // 모든 모달 닫기
   const closeAllModals = () => {
@@ -167,6 +170,7 @@ const UserListContainer = () => {
         onDelete={handleDelete}
         onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
         onView={(user) => openModal('view', user)}
+        clearSelectedUserNos={clearSelectedUserNos}
       />
 
 
@@ -183,6 +187,7 @@ const UserListContainer = () => {
             idCheckStatus={idCheckStatus} // 중복확인 상태
             onResetPassword={handleResetPassword} // 비밀번호 초기화 함수
             onEdit={handleEdit} // 회원 수정 함수
+            clearSelectedUserNos={clearSelectedUserNos}
         />
       )}
 
@@ -190,12 +195,14 @@ const UserListContainer = () => {
         open={registerModalOpen}
         onClose={() => setRegisterModalOpen(false)}
         result={registerResult}
-      /> 
+        clearSelectedUserNos={clearSelectedUserNos}
+      />
 
       <EditResultModal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         result={editResult}
+        clearSelectedUserNos={clearSelectedUserNos}
       />
 
       <PasswordResetModal
@@ -203,6 +210,7 @@ const UserListContainer = () => {
         onClose={closeAllModals}          // 모든 모달 닫기 
         username={resetInfo.username}
         tempPassword={resetInfo.tempPassword}
+        clearSelectedUserNos={clearSelectedUserNos}
       />  
     </div>
   );

@@ -158,18 +158,27 @@
         LIMIT #{index}, #{size}
     </select>
 
-    <!-- 🔍 상품 검색 (이름, 설명, 가격) + 분류 필터링 (관리자용 - 페이지네이션)-->
+    <!-- 🔍 관리자용 상품 검색 (이름, 설명, 가격) + 분류 필터링 (관리자용 - 페이지네이션)-->
     <select id="searchProductsforAdmin" resultType="Products">
         SELECT *
         FROM products
         WHERE 
-            c_no = #{cNo}
+            (#{cNo} IS NULL OR c_no = #{cNo}) -- 카테고리가 NULL이거나 특정 값일 때 전체 검색
             AND (
                 p_name LIKE CONCAT('%', #{keyword}, '%') OR
                 description LIKE CONCAT('%', #{keyword}, '%') OR
                 CAST(p_price AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
             )
         ORDER BY no DESC
+        LIMIT #{index}, #{size}
+    </select>
+    
+    <!-- 관리자용 상품검색 (카테고리 만으로, 검색어 없이 ) -->
+    <select id="findProductsByCategory" parameterType="map" resultType="Products">
+        SELECT *
+        FROM products
+        WHERE c_no = #{cNo}
+        ORDER BY no ASC
         LIMIT #{index}, #{size}
     </select>
 

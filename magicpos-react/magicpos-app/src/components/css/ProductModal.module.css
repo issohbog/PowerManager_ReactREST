@@ -1,0 +1,218 @@
+/* 상품 등록/수정 모달 시작 */
+/* 모달 서서히 기능 */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 모달 상태용 클래스 */
+.fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+.fadeOut {
+  animation: fadeOut 0.5s ease-in forwards;
+}
+
+/* 전체 모달 배경 */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalOverlay.fadeOut {
+  animation: fadeOut 0.5s ease-in forwards;
+  pointer-events: none;
+}
+
+/* 모달 내용 상자  */
+.modalContent {
+  background: #fff;
+  width: 800px;
+  border-radius: 10px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+.modalHeader {
+  background: #5D6D7E;
+  padding: 16px 20px;
+  font-size: 20px;
+  font-weight: normal;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  color: #fff;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 20px;
+  align-items: center;
+}
+
+.productContainer {
+  display: flex;
+  justify-content: space-between;
+  background-color: #ECEFF1;
+  width: 100%;
+}
+
+.productImageBox {
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+}
+
+.imagePlaceholder {
+  width: 200px;
+  height: 200px;
+  background-color: #e9ecef;
+  border: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  border-radius: 8px;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.imagePlaceholder img {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.imageBtn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  background: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.productLeft {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  padding: 25px;
+}
+
+.productRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 25px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.formRow label {
+  font-weight: normal;
+  font-size: 14px;
+  width: 60px;
+}
+
+.formRow input[type="text"],
+.formRow textarea {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.formRow textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.formSelect {
+  width: 190px;
+  padding: 9px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.checkboxGroup {
+  display: flex;
+  gap: 16px;
+}
+
+.checkboxGroup label {
+  font-size: 14px;
+  width: 100px;
+}
+
+.productModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.btnCancel,
+.btnSave {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btnCancel {
+  background: #dee2e6;
+  color: #212529;
+}
+
+.btnSave {
+  background: #51cf66;
+  color: white;
+}
+/* 상품 등록/수정 모달 끝 */

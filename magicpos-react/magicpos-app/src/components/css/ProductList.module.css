@@ -34,7 +34,7 @@
 
 
  /* 전체  */
-.content {
+.productList {
 position: absolute;
 top: 100px;
 left: 70px;
@@ -44,8 +44,9 @@ box-sizing: border-box;
 padding: 30px;
 }
 
+
 /* 셀렉트박스 + 검색창  */
-.top-controls {
+.topControls {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
@@ -56,26 +57,28 @@ select, input[type="text"], button {
     font-size: 14px;
 }
 
-.admin_product_category {
+.adminCategory {
     border-color: #D5D8DC;
 }
 
-.search-box {
+.searchBox {
     display: inline-block;
     align-items: center;
     position: relative;
+    display: flex;
+    gap: 10px;
 }
 
-.search-box input[type="text"] {
+.searchBox input[type="text"] {
     width: 220px;
     border: 1px solid #D5D8DC;
     box-sizing: border-box;
 }
 
-.admin_category {
+.adminCategory {
     padding-right: 20px;
 }
-.search-icon {
+.searchIcon {
     position: absolute;
     right: 10px;
     top: 50%;
@@ -89,9 +92,9 @@ select, input[type="text"], button {
     border: none;
     background: inherit;
 }
+  
 
-
-.search-icon img {
+.searchIcon img {
     width: 18px;
     height: 18px;
 }
@@ -123,7 +126,15 @@ table tbody tr:hover {
   cursor: pointer;
 }
 
-button.action {
+.buttonGroup {
+    display: flex;
+    gap: 10px;
+    /* margin-top: 10px; */
+}
+
+.btnRegister,
+.btnEdit, .btnDelete,
+.btnCategory {
     background-color: #ffffff;
     border: 1px solid #B0B3B8;
     color: #333333;
@@ -132,7 +143,9 @@ button.action {
     width: 100px;
 }
 
-button.action:hover {
+.btnRegister:hover,
+.btnEdit:hover, .btnDelete:hover,
+.btnCategory:hover {
     background-color: #5D6D7E;
     color: #ffffff;
 }

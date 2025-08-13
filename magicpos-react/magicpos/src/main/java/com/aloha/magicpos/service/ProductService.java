@@ -24,6 +24,9 @@ public interface ProductService {
     // 🔍 상품 검색 (분류 + 키워드) throws Exception
     public List<Products> searchProductsforAdmin(Long cNo, String keyword, int index, int size) throws Exception;
 
+    // 카테고리로 상품 조회
+    public List<Products> findProductsByCategory(Long cNo, int index, int size) throws Exception;
+
     // 전체 상품 조회
     public List<Products> findAll() throws Exception;
 

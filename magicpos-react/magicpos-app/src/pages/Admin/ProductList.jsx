@@ -1,8 +1,9 @@
 import React from 'react'
+import ProductListContainer from '../../containers/Admin/ProductListContainer'
 
 const ProductList = () => {
   return (
-    <div>ProductList</div>
+    <ProductListContainer />
   )
 }
 

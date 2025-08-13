@@ -1,0 +1,148 @@
+/* 모달 */
+/* 모달 서서히 기능 */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 모달 상태용 클래스 */
+.fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+.fadeOut {
+  animation: fadeOut 0.5s ease-in forwards;
+}
+
+
+
+.modalOverlay {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #f8f9fa;
+  width: 400px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.categoryModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  background-color: #5D6D7E;
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+  padding: 10px;
+  color: #ddd;
+}
+
+.categoryModalHeader h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: normal;
+}
+
+.categoryModalBody {
+  margin: 15px 15px;
+}
+
+.categoryCloseBtn {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.categoryTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.categoryTable th,
+.categoryTable td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+.categoryTable input[type="text"] {
+  height: 25px;
+  border: 1px solid #C8C9CE;
+}
+
+.categoryInputGroup {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.categoryInputGroup label {
+  flex-shrink: 0;
+}
+
+.categoryInputGroup input {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #D5D8DC;
+}
+
+.categoryInputButton {
+  display: flex;
+  gap: 10px;
+}
+
+.categoryInputGroup button {
+  border: 1px solid #D5D8DC;
+  background: #5D6D7E;
+  color: #FFFFFF;
+}
+
+.categoryButtonGroup {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cancelBtn {
+  background: #c4c4c4;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+}
+
+.saveBtn {
+  background: #f9cc3b;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+}

@@ -126,6 +126,10 @@ public class ProductServiceImpl implements ProductService  {
     public List<Products> searchProductsforAdmin(Long cNo, String keyword, int index, int size) throws Exception {
         return productMapper.searchProductsforAdmin(cNo, keyword, index, size);
     }   
+    @Override
+    public List<Products> findProductsByCategory(Long cNo, int index, int size) throws Exception {
+        return productMapper.findProductsByCategory(cNo, index, size);
+    }
     
     @Override
     public List<Map<String, Object>> searchProductsAllWithCategory(String keyword) {
@@ -136,6 +140,7 @@ public class ProductServiceImpl implements ProductService  {
     public List<Map<String, Object>> findProductsByCategoryWithCategoryName(Long categoryNo) {
         return productMapper.findProductsByCategoryWithCategoryName(categoryNo);
     }
+
 
 
 }
