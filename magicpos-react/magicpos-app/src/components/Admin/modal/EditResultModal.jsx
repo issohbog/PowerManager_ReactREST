@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../../css/EditResultModal.module.css';
 
-const EditResultModal = ({ open, onClose, result }) => {
+const EditResultModal = ({ open, onClose, result, clearSelectedUserNos }) => {
   if (!open || !result) return null;
   return (
     <div className={styles.modalOverlay}>

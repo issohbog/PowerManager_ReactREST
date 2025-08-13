@@ -80,15 +80,31 @@ public class ProductController {
 
         // 상품 목록 조회 
         List<Products> products;
-        if (type != null && !type.isEmpty() && keyword != null && !keyword.isEmpty()) {
+        if ((type == null || type.isEmpty()) && (keyword != null && !keyword.isEmpty())) {
+            // 카테고리가 없고 검색어만 있을 때
+            log.info("searchProductsforAdmin 호출");
+            log.info("카테고리 없음, 검색어: {}", keyword);
+            products = productService.searchProductsforAdmin(null, keyword, (page - 1) * size, size);
+        } else if (type != null && !type.isEmpty()) {
             try {
                 Long categoryNo = Long.parseLong(type);
-                products = productService.searchProductsforAdmin(categoryNo, keyword, (page - 1) * size, size);
+                if (keyword != null && !keyword.isEmpty()) {
+                    log.info("searchProductsforAdmin 호출");
+                    log.info("카테고리 번호: {}, 검색어: {}", categoryNo, keyword);
+                    products = productService.searchProductsforAdmin(categoryNo, keyword, (page - 1) * size, size);
+                } else {
+                    log.info("카테고리 번호: {}", categoryNo);
+                    log.info("findProductsByCategory 호출");
+                    products = productService.findProductsByCategory(categoryNo, (page - 1) * size, size);
+                    log.info("조회된 상품 : {}", products.toString());
+                }
             } catch (NumberFormatException e) {
                 // 잘못된 type 값일 경우 전체 목록으로 fallback
+                log.info("findAllforAdmin 호출");
                 products = productService.findAllforAdmin((page - 1) * size, size);
             }
         } else {
+            log.info("findAllforAdmin 호출");
             products = productService.findAllforAdmin((page - 1) * size, size);
         }
 

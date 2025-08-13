@@ -26,6 +26,7 @@ const UserModal = ({
   idCheckStatus, // 'error' | 'success'
   onResetPassword, // 비밀번호 초기화 함수
   onEdit,
+  clearSelectedUserNos, // 체크박스 선택 해제 함수
   handle
 }) => {
   const [form, setForm] = useState(defaultUser);
@@ -48,6 +49,7 @@ const UserModal = ({
 
   const handleAnimationEnd = () => {    
     if (animationClass === styles.fadeOut) {
+      clearSelectedUserNos();
       onClose(); // 애니메이션이 끝나면 모달 닫기
     }
   };
