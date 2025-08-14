@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from './css/SidebarLeft.module.css'
 
-const SidebarLeft = () => {
+const SidebarLeft = ({ onOpenAdminTicketModal }) => {
 return (
     <div className={styles.sidebarLeft}>
       <a href="/members">
@@ -12,7 +12,7 @@ return (
         <img src="/images/icons8-cart-54.png" alt="상품판매 아이콘" />
         <span>상품판매</span>
       </a>
-      <a href="#" id="openAdminTicketModalBtn">
+      <a href="#" id="openAdminTicketModalBtn" onClick={(e) => { e.preventDefault(); onOpenAdminTicketModal(); }}>
         <img src="/images/icons8-ticket-52 (2).png" alt="이용권 판매 아이콘" />
         <span>이용권 판매</span>
       </a>
