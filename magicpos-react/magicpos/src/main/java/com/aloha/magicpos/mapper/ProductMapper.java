@@ -27,7 +27,10 @@ public interface ProductMapper {
 
     // 상품 검색 (분류 + 키워드 + 페이지네이션)
     List<Products> searchProductsforAdmin(@Param("cNo") Long cNo, @Param("keyword") String keyword, @Param("index") int index, @Param("size") int size);
-    
+
+    // 카테고리로 상품 조회 (페이지네이션)
+    List<Products> findProductsByCategory(@Param("cNo") Long cNo, @Param("index") int index, @Param("size") int size);
+
     // 상품 전체 조회 (페이지네이션)
     List<Products> findAllforAdmin(@Param("index") int index, @Param("size") int size);
 

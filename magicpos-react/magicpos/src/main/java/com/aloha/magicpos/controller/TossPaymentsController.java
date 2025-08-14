@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.aloha.magicpos.domain.UserTickets;
 import com.aloha.magicpos.domain.Users;
@@ -68,27 +69,36 @@ public class TossPaymentsController {
     
     // 관리자 요금제 결제 성공
     @GetMapping("/admin/payment/ticket/success")
-    public ResponseEntity<Map<String, Object>> adminTicketPaymentSuccess
+    public RedirectView adminTicketPaymentSuccess
                                          (@RequestParam("paymentKey") String paymentKey,
                                           @RequestParam("orderId") String orderId,
-                                          @RequestParam("amount") int amount
+                                          @RequestParam("amount") int amount, 
+                                          @RequestParam("currentPage") String currentPage,
+                                          HttpServletRequest request
                                           ) throws Exception {
 
-        log.info("💳 관리자 요금제 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
-        Map<String, Object> result = new HashMap<>();
+        log.info("💳 관리자 요금제 결제 성공: paymentKey={}, orderId={}, amount={}, currentPage={}", paymentKey, orderId, amount, currentPage);
+        // Map<String, Object> result = new HashMap<>();
+
+        log.info("#############################################################");
+        log.info("client ip : {}", request.getRemoteAddr());
+        log.info("server ip : {}", InetAddress.getLocalHost().getHostAddress());
+        InetAddress inetAddress = InetAddress.getLocalHost();
+        String ip = inetAddress.getHostAddress();
+        log.info("#############################################################");
 
         try {
             // 주문 정보에서 요금제 구매 정보 추출
             String[] orderParts = orderId.split("_");
             if (orderParts.length >= 3 && orderParts[0].equals("admin") && orderParts[1].equals("ticket")) {
                 try {
-                    // orderId 예시: admin_ticket_1752646983802_user2_ticket3
+                    // orderId 예시: admin_ticket_1752646983802_user_2_ticket_3
                     String[] idParts = orderId.split("_");
-                    if (idParts.length >= 5 && idParts[3].startsWith("user") && idParts[4].startsWith("ticket")) {
+                    if (idParts.length >= 7 && idParts[3].equals("user") && idParts[5].equals("ticket")) {
                         try {
-                            Long userNo = Long.parseLong(idParts[3].replace("user", ""));
-                            Long ticketNo = Long.parseLong(idParts[4].replace("ticket", ""));
-                            
+                            Long userNo = Long.parseLong(idParts[4]);
+                            Long ticketNo = Long.parseLong(idParts[6]);
+
                             // UserTickets 객체 생성 및 insertUserTicketByAdmin 사용
                             UserTickets userTicket = new UserTickets();
                             userTicket.setUNo(userNo);
@@ -100,12 +110,12 @@ public class TossPaymentsController {
                             boolean insertSuccess = userTicketService.insertUserTicketByAdmin(userTicket);
                             if (insertSuccess) {
                                 log.info("💳 관리자 요금제 구매 완료: userNo={}, ticketNo={}, amount={}", userNo, ticketNo, amount);
-                                result.put("message", "관리자 요금제 결제가 성공적으로 완료되었습니다.");
-                                result.put("success", true);
+                                // result.put("message", "관리자 요금제 결제가 성공적으로 완료되었습니다.");
+                                // result.put("success", true);
                             } else {
                                 log.error("💳 관리자 요금제 구매 저장 실패: userNo={}, ticketNo={}", userNo, ticketNo);
-                                result.put("success", false);
-                                result.put("message", "관리자 요금제 결제 저장에 실패했습니다.");
+                                // result.put("success", false);
+                                // result.put("message", "관리자 요금제 결제 저장에 실패했습니다.");
                             }
                         } catch (Exception e) {
                             log.error("💳 userNo/ticketNo 파싱 오류: {}", e.getMessage(), e);
@@ -118,13 +128,15 @@ public class TossPaymentsController {
                 }
             }
             
-            result.put("paymentKey", paymentKey);
-            result.put("orderId", orderId);
-            result.put("amount", amount);
-            return ResponseEntity.ok(result);
+            // result.put("paymentKey", paymentKey);
+            // result.put("orderId", orderId);
+            // result.put("amount", amount);
+            // return ResponseEntity.ok(result);
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
+
         } catch (Exception e) {
             log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "관리자 요금제 결제 승인 처리 중 오류가 발생했습니다."));
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
         }
 
     }

@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: '0.0.0.0',
     // 프록시 설정
     proxy: {
       '/api' : {
@@ -12,6 +13,11 @@ export default defineConfig({
         changeOrigin: true,               // 요청헤더의 Host 도 변경
         secure: false,                    // https 지원 여부
         rewrite: (path) => path.replace(/^\/api/, '') 
+      },
+      '/upload': { // 이미지 업로드/서빙용
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

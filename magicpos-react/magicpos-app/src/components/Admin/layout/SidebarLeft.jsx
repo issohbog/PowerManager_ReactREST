@@ -3,7 +3,7 @@ import styles from './css/SidebarLeft.module.css';
 import UsingUserModalContainer from '../../../containers/Admin/UsingUserModalContainer';
 import SellCounterModalContainer from '../../../containers/Admin/SellCounterModalContainer';
 
-const SidebarLeft = () => {
+const SidebarLeft = ({ onOpenAdminTicketModal }) => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
 
@@ -39,8 +39,9 @@ const SidebarLeft = () => {
         <img src="/images/icons8-cart-54.png" alt="상품판매 아이콘" />
         <span>상품판매</span>
       </a>
-      
-      <a href="#" id="openAdminTicketModalBtn">
+
+      <a href="#" id="openAdminTicketModalBtn" onClick={(e) => { e.preventDefault(); onOpenAdminTicketModal(); }}>
+
         <img src="/images/icons8-ticket-52 (2).png" alt="이용권 판매 아이콘" />
         <span>이용권 판매</span>
       </a>
