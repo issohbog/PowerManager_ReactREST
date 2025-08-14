@@ -1,0 +1,65 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modalBox {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 32px;
+  min-width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.checkmarkWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.checkmark {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.subText {
+  font-size: 1rem;
+  color: #666;
+}
+
+.closeBtn {
+  margin-top: 24px;
+  padding: 10px 32px;
+  border-radius: 8px;
+  border: none;
+  background: #4f8a8b;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+@keyframes checkmark {
+  0% { stroke-dashoffset: 50; }
+  60% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}

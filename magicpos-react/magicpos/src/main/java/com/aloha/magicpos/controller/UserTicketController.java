@@ -45,78 +45,58 @@ public class UserTicketController {
     @Autowired
     private UserService userService;
     
-    // 이용권 등록 (결제 시) - 관리자 용     [✔ REST API 구현 완료] 
+    // 이용권 목록 조회 - 관리자 이용권 결제용     [✔ REST API 구현 완료] 
     @GetMapping("/admin/tickets")
-    public List<Tickets> ticketlist(Model model) throws Exception {
-        return ticketService.findAll();
+    public ResponseEntity<Map<String, Object>> ticketlist(Model model) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        List<Tickets> tickets = ticketService.findAll();
+        result.put("tickets", tickets);
+        result.put("success", true);
+        return ResponseEntity.ok(result);
     }
     
-    // 이용권 등록 전 회원 검색 용          [✔ REST API 구현 완료]
+    // 이용권 등록 전 회원 검색 - 관리자 이용권 결제용          [✔ REST API 구현 완료]
     @GetMapping("/admin/usersearch")
-    public List<Map<String,Object>> searchUserByKeywordList(@RequestParam("keyword") String keyword) throws Exception {
+    public ResponseEntity<Map<String, Object>> searchUserByKeywordList(@RequestParam("keyword") String keyword) throws Exception {
         List<Users> users = userService.searchUsersByKeyword(keyword);
 
-        return users.stream().map(user -> {
+        List<Map<String, Object>> userlist = users.stream().map(user -> {
             Map<String,Object> map = new HashMap<>();
             map.put("userNo", user.getNo());
             map.put("username", user.getUsername());
             map.put("userId", user.getId());
             return map;
         }).collect(Collectors.toList());
-    }
-    
-    
-    // 🔸 이용권 등록 (결제 시) - 사용자 화면용
-    @PostMapping("/insert")
-    public ResponseEntity<String> insertUserTicket(@RequestBody UserTickets userTicket) throws Exception {
-        log.info("🧾 받은 userTicket = {}", userTicket);
 
-        // 임시로 setter 강제 사용
-        if (userTicket.getUNo() == null) {
-            log.error("🔥 uNo가 null이야!");
-            return ResponseEntity.badRequest().body("fail");
-        }
-        boolean success = userticketService.insert(userTicket);
-        return ResponseEntity.ok(success ? "success" : "fail");
+        // REST 응답용 Map 생성
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", userlist);
+        result.put("success", true);
+        return ResponseEntity.ok(result);
     }
 
-    // 🔸 전체 이용권 내역 조회 (관리자용)
-    @GetMapping
-    public List<UserTickets> getAllUserTickets() throws Exception {
-        return userticketService.selectAll();
-    }
-
-    // 🔸 특정 유저의 이용권 내역 조회
-    @GetMapping("/user/{uNo}")
-    public List<UserTickets> getUserTicketsByUserNo(@PathVariable long uNo) throws Exception {
-        return userticketService.findByUserNo(uNo);
-    }
-
-
-    // 🔸 특정 유저의 남은 시간 조회
-    @GetMapping("/user/{uNo}/remain-time")
-    public Integer getRemainTime(@PathVariable long uNo) throws Exception {
-        return userticketService.findRemainTimeByUserNo(uNo);
-    }
-
-    // 🔸 관리자용 요금제 구매 (결제 시)
+    // 🔸 관리자용 요금제 구매 (결제 시) 🥌                 [✔ REST API 구현 완료]
     @PostMapping("/admin/insert")
-    public ResponseEntity<String> insertUserTicketByAdmin(@RequestBody UserTickets userTicket) throws Exception {
+    public ResponseEntity<Map<String, Object>> insertUserTicketByAdmin(@RequestBody UserTickets userTicket) throws Exception {
         log.info("🧾 관리자 요금제 구매 - 받은 userTicket = {}", userTicket);
 
+        Map<String, Object> result = new HashMap<>();
         // 유효성 검사
-        if (userTicket.getUNo() == null || userTicket.getUNo() == null) {
+        if (userTicket.getUNo() == null || userTicket.getTNo() == null) {
             log.error("🔥 uNo 또는 tNo가 null이야!");
-            return ResponseEntity.badRequest().body("fail");
+            result.put("success", false);
+            result.put("message", "uNo 또는 tNo가 null입니다.");
+            return ResponseEntity.badRequest().body(result);
         }
         
         // 서비스에서 티켓 정보 조회 및 요금제 구매 처리
         boolean success = userticketService.insertUserTicketByAdmin(userTicket);
-        log.info("요금제 구매 성공 여부 : ", success);
-        return ResponseEntity.ok(success ? "success" : "fail");
+        log.info("요금제 구매 성공 여부 : {}", success);
+        result.put("success", true);
+        return ResponseEntity.ok(result);
     }
 
-    // 🔸 티켓 번호로 티켓 정보 조회 (가격 포함)
+    // 🔸 티켓 번호로 티켓 정보 조회 (가격 포함) -- 관리자 요금제 구매용 🥌     [✔ REST API 구현 완료]
     @GetMapping("/ticket/{ticketNo}")
     public ResponseEntity<Map<String, Object>> getTicketInfo(@PathVariable("ticketNo") Long ticketNo) throws Exception {
         log.info("🎫 티켓 정보 조회 시작: ticketNo={}", ticketNo);
@@ -150,8 +130,27 @@ public class UserTicketController {
             return ResponseEntity.status(500).body(error);
         }
     }
+    
+    
+    // 🔸 이용권 등록 (결제 시) - 사용자 이용권 결제용 🥌       [✔ REST API 구현 완료]
+    @PostMapping("/insert")
+    public ResponseEntity<Map<String, Object>> insertUserTicket(@RequestBody UserTickets userTicket) throws Exception {
+        log.info("🧾 받은 userTicket = {}", userTicket);
+        Map<String, Object> result = new HashMap<>();
+        // 임시로 setter 강제 사용
+        if (userTicket.getUNo() == null) {
+            log.error("🔥 uNo가 null이야!");
+            result.put("success", false);
+            result.put("message", "uNo가 null입니다.");
+            return ResponseEntity.badRequest().body(result);
+        }
+        boolean success = userticketService.insert(userTicket);
+        result.put("success", success);
+        return ResponseEntity.ok(result);
+    }
 
-    // 🔸 사용자 결제 정보 반환 (TossPayments 연동용)
+    
+    // 🔸 사용자 결제 정보 반환 (TossPayments 연동용) - 사용자 요금제 구매 용 🥌         [✔ REST API 구현 완료]
     @PostMapping("/payment-info")
     public ResponseEntity<Map<String, Object>> getPaymentInfo(@RequestBody Map<String, Object> params, HttpServletRequest request) throws Exception {
         log.info("#############################################################");
@@ -185,4 +184,29 @@ public class UserTicketController {
 
         return ResponseEntity.ok(result);
     }
+
+    
+    // 🔸 전체 이용권 내역 조회 (관리자용)  -- 사용안함 추후 삭제 예정
+    @GetMapping
+    public List<UserTickets> getAllUserTickets() throws Exception {
+        return userticketService.selectAll();
+    }
+
+
+    // 🔸 특정 유저의 이용권 내역 조회      -- 사용안함 추후 삭제 예정
+    @GetMapping("/user/{uNo}")
+    public List<UserTickets> getUserTicketsByUserNo(@PathVariable long uNo) throws Exception {
+        return userticketService.findByUserNo(uNo);
+    }
+
+
+    // 🔸 특정 유저의 남은 시간 조회        -- 사용안함 추후 삭제 예정
+    @GetMapping("/user/{uNo}/remain-time")
+    public Integer getRemainTime(@PathVariable long uNo) throws Exception {
+        return userticketService.findRemainTimeByUserNo(uNo);
+    }
+
+
+    
+
 }
