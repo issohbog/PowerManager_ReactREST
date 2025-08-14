@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 /**
  * 주문 리스트 조회
@@ -52,25 +53,33 @@ export const getOrderDetails = (orderNo) => {
   return axios.get(`/admin/orders/${orderNo}/details`);
 };
 
-/**
- * 주문 상품 수량 변경
- * @param {number} orderNo - 주문 번호
- * @param {number} orderDetailNo - 주문 상세 번호 (o_no)
- * @param {number} productNo - 상품 번호 (p_no)
- * @param {string} action - 'increase' 또는 'decrease'
- */
-export const updateOrderQuantity = (orderNo, orderDetailNo, productNo, action) => {
+// 공통 에러 알림 함수
+export function showErrorAlert(message) {
+  Swal.fire({
+    icon: 'warning',
+    title: '알림',
+    text: message,
+  });
+}
+
+// 주문 상품 수량 변경
+export const updateOrderQuantity = async (orderNo, orderDetailNo, productNo, action) => {
   console.log('📤 수량 변경 API 호출:', { orderNo, orderDetailNo, productNo, action });
-  
+
   const endpoint = action === 'increase' ? 'increaseQuantity' : 'decreaseQuantity';
-  
-  return axios.post(`/admin/orders/${endpoint}`, null, {
+
+  const res = await axios.post(`/admin/orders/${endpoint}`, null, {
     params: {
       oNo: orderDetailNo,
       pNo: productNo,
       orderNo: orderNo
     }
   });
+
+  if (res.data && res.data.success === false) {
+    showErrorAlert(res.data.message);
+  }
+  return res;
 };
 
 /**

@@ -84,5 +84,18 @@
         SET pay_at = NOW()
         WHERE no = #{no}
     </update>
+
+    <!-- 주문 총액 업데이트 -->
+    <update id="updateTotalPrice">
+        UPDATE orders
+        SET total_price = (
+            SELECT IFNULL(SUM(od.quantity * p.p_price), 0)
+            FROM orders_details od
+            JOIN products p ON od.p_no = p.no
+            WHERE od.o_no = #{orderNo}
+        )
+        WHERE no = #{orderNo}
+    </update>
+
 </mapper>
 

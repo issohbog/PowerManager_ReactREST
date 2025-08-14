@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.aloha.magicpos.domain.Carts;
 import com.aloha.magicpos.service.CartService;
+import com.aloha.magicpos.service.ProductService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ public class CartController {
     @Autowired
     private CartService cartService;
     
+    @Autowired
+    private ProductService productService;
 
     // 장바구니에 항목 추가
     @PostMapping("/add")
@@ -87,7 +90,11 @@ public class CartController {
     // 장바구니 수량 증가
     @PostMapping("/increase")
     @ResponseBody
-    public ResponseEntity<?> increaseQuantityRest(@RequestBody(required = false) Long pNo, @RequestParam(value = "pNo", required = false) Long pNoParam, HttpSession session) {
+    public ResponseEntity<?> increaseQuantityRest(
+        @RequestBody(required = false) Long pNo,
+        @RequestParam(value = "pNo", required = false) Long pNoParam,
+        HttpSession session
+    ) {
         try {
             Object userNoObj = session.getAttribute("userNo");
             Long uNo = null;
@@ -99,6 +106,22 @@ public class CartController {
                 uNo = Long.valueOf(userNoObj.toString());
             }
             Long targetPNo = pNo != null ? pNo : pNoParam;
+
+            // 현재 장바구니 수량 조회
+            Long cartQty = cartService.getQuantity(uNo, targetPNo);
+            if (cartQty == null) cartQty = 0L;
+
+            // 상품 재고 조회
+            Long stock = productService.selectStockByPNo(targetPNo);
+
+            // 수량 증가 시 재고 초과 체크
+            if (stock == null || cartQty + 1 > stock) {
+                return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "message", "재고가 부족합니다."
+                ));
+            }
+
             cartService.increaseQuantity(uNo, targetPNo);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {

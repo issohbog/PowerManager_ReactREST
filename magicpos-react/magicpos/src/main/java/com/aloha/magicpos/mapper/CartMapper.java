@@ -36,5 +36,7 @@ public interface CartMapper {
 
     // 사용자 장바구니 전체 삭제
     int deleteAllByUserNo(Long userNo);
-
+    
+    // 장바구니 상품 수량 조회
+    Long getQuantity(@Param("uNo") Long uNo, @Param("pNo") Long pNo);
 }

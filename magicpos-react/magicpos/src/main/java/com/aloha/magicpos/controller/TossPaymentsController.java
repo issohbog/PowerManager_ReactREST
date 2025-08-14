@@ -1,5 +1,7 @@
 package com.aloha.magicpos.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ import com.aloha.magicpos.domain.UserTickets;
 import com.aloha.magicpos.domain.Users;
 import com.aloha.magicpos.service.UserTicketService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import com.aloha.magicpos.service.CartService;
@@ -56,6 +59,9 @@ public class TossPaymentsController {
 
     @Autowired
     private LogService logService;
+
+    @Autowired
+    private UserService userService;
 
     
     // ===== 요금제 결제 (Tickets) =====
@@ -323,16 +329,55 @@ public class TossPaymentsController {
         }
     }
 
-    // 관리자 상품 결제 성공 - RestController로 변경
-    @GetMapping("/admin/payment/product/success")
-    public ResponseEntity<Map<String, Object>> adminProductPaymentSuccess(
-            @RequestParam("paymentKey") String paymentKey,
-            @RequestParam("orderId") String orderId,
-            @RequestParam("amount") int amount,
-            HttpSession session) {
+    // 🔸 관리자 상품 구매 (TossPayments 연동용)
+    @PostMapping("/admin/sellcounter/payment-info")
+    @ResponseBody
+    public Map<String, Object> getProductOrderPaymentInfo(@RequestBody Map<String, Object> params, HttpServletRequest request) throws UnknownHostException {
+        log.info("#############################################################");
+        log.info("client ip : {}", request.getRemoteAddr());
+        log.info("server ip : {}", InetAddress.getLocalHost().getHostAddress());
+        InetAddress inetAddress = InetAddress.getLocalHost();
+        String ip = inetAddress.getHostAddress();
+        log.info("#############################################################");
+        
+        
+        String seatId = params.get("seatId").toString();
+        int totalPrice = Integer.parseInt(params.get("totalPrice").toString());
+        String payment = params.get("payment").toString();
+        Long userNo = Long.valueOf(params.get("userNo").toString());
+        Users user = userService.findByNo(userNo);  
+        String customerName = user.getUsername();  
+
+        // 상품명 최대 2개만 보여줌
+        List<String> productNames = ((List<?>) params.get("pNameList")).stream()
+                                                        .map(Object::toString)
+                                                        .collect(Collectors.toList());
+        String orderName = productNames.stream().limit(2).collect(Collectors.joining(", ")) + (productNames.size() > 2 ? " 외" : "");
+
+        String orderId = "order-" + System.currentTimeMillis() + "_seat" + seatId;
 
         Map<String, Object> result = new HashMap<>();
-        
+        result.put("orderId", orderId);
+        result.put("orderName", orderName);
+        result.put("amount", totalPrice);
+        result.put("customerName", customerName); // 또는 로그인 유저 이름 등
+        result.put("successUrl", "http://localhost:5173/admin?payment=success");
+        result.put("failUrl", "http://localhost:5173/admin?payment=fail");
+
+        return result;
+    }
+
+    // 관리자 상품 결제 성공 - RestController로 변경
+    @PostMapping("/admin/payment/product/success")
+    public ResponseEntity<Map<String, Object>> adminProductPaymentSuccess(
+            @RequestBody Map<String, Object> paymentData,
+            HttpSession session) {
+
+        String paymentKey = (String) paymentData.get("paymentKey");
+        String orderId = (String) paymentData.get("orderId");
+        int amount = Integer.parseInt(paymentData.get("amount").toString());
+
+        Map<String, Object> result = new HashMap<>();
         try {
             log.info("💳 관리자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
 
@@ -434,100 +479,6 @@ public class TossPaymentsController {
         
         return ResponseEntity.ok(result);
     }
-
-    // // 사용자 상품 결제 성공 - 수정 필요
-    // @GetMapping("/users/payment/product/success")
-    // public ResponseEntity<Map<String, Object>> userProductPaymentSuccess(
-    //         @RequestParam("paymentKey") String paymentKey,
-    //         @RequestParam("orderId") String orderId,
-    //         @RequestParam("amount") int amount,
-    //         HttpSession session) {
-
-    //     Map<String, Object> result = new HashMap<>();
-        
-    //     try {
-    //         log.info("💳 사용자 상품 결제 성공: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
-
-    //         // ✅ 1. 세션에서 임시 주문 정보 꺼냄
-    //         Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder");
-    //         if (temp == null) {
-    //             result.put("success", false);
-    //             result.put("message", "주문 정보가 유실되었습니다.");
-    //             return ResponseEntity.badRequest().body(result);
-    //         }
-
-    //         // ✅ 2. 주문 기본 정보
-    //         String seatId = temp.get("seatId").toString();
-    //         Object userNoObj = session.getAttribute("userNo");
-    //         Long userNo = null;
-    //         if (userNoObj instanceof Integer) {
-    //             userNo = ((Integer) userNoObj).longValue();
-    //         } else if (userNoObj instanceof Long) {
-    //             userNo = (Long) userNoObj;
-    //         } else if (userNoObj != null) {
-    //             userNo = Long.valueOf(userNoObj.toString());
-    //         }
-    //         String payment = (String) temp.get("payment");
-            
-    //         // ✅ 3. 주문 insert
-    //         Orders order = new Orders();
-    //         order.setUNo(userNo);
-    //         order.setSeatId(seatId);
-    //         order.setTotalPrice((long) amount);
-    //         order.setOrderStatus(0L);
-    //         order.setPaymentStatus(1L); // 카드 결제 성공
-    //         order.setPayment(payment);
-    //         order.setPayAt(LocalDateTime.now());
-    //         orderService.insertOrder(order);
-    //         Long oNo = order.getNo();
-
-    //         // ✅ 4. 상세정보 insert + 재고 감소
-    //         List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
-    //         List<Integer> pNos = pNoObjs.stream()
-    //                                 .map(obj -> Integer.parseInt(obj.toString()))
-    //                                 .collect(Collectors.toList());
-
-    //         List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
-    //         List<Integer> quantities = quantityObjs.stream()
-    //                                         .map(obj -> Integer.parseInt(obj.toString()))
-    //                                         .collect(Collectors.toList());
-
-    //         for (int i = 0; i < pNos.size(); i++) {
-    //             OrdersDetails detail = new OrdersDetails();
-    //             detail.setONo(oNo);
-    //             detail.setPNo(Long.valueOf(pNos.get(i)));
-    //             detail.setQuantity(Long.valueOf(quantities.get(i)));
-    //             orderService.insertOrderDetail(oNo, detail);
-    //             productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
-    //         }
-
-    //         // 장바구니 비우기
-    //         cartService.deleteAllByUserNo(userNo);
-
-    //         // ✅ 5. 로그 남기기
-    //         Users user = (Users) session.getAttribute("usageInfo");
-    //         String username = (user != null) ? user.getUsername() : "알 수 없음";
-    //         String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
-    //         logService.insertLog(userNo, seatId, "상품 구매", desc);
-
-    //         // ✅ 6. 세션에서 temp 제거
-    //         session.removeAttribute("tempOrder");
-
-    //         result.put("success", true);
-    //         result.put("message", "상품 결제가 완료되었습니다.");
-    //         result.put("paymentKey", paymentKey);
-    //         result.put("orderId", orderId);
-    //         result.put("amount", amount);
-
-    //         return ResponseEntity.ok(result);
-            
-    //     } catch (Exception e) {
-    //         log.error("사용자 상품 결제 처리 실패: {}", e.getMessage());
-    //         result.put("success", false);
-    //         result.put("message", "결제 처리 중 오류가 발생했습니다.");
-    //         return ResponseEntity.status(500).body(result);
-    //     }
-    // }
 
     // 사용자 상품 결제 실패 - 수정
     @GetMapping("/users/payment/product/fail")

@@ -5,9 +5,10 @@ import './components/css/reset.css';
 import AdminLayout from './components/Admin/layout/AdminLayout';
 import SeatStatus from './pages/Admin/SeatStatus';
 import ProductList from './pages/Admin/ProductList';
-import UserList from './pages/Admin/UserList';
 import Logs from './pages/Admin/Logs';
 import TodayHistoryList from './pages/Admin/TodayHistoryList';
+import Sales from './pages/Admin/Sales';
+import UserList from './pages/Admin/UserList';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="seat-status" element={<SeatStatus />} />
           <Route path="product-list" element={<ProductList />} />
           <Route path="user-list" element={<UserList />} />
+          <Route path="sales" element={<Sales />} />
           <Route path="logs" element={<Logs />} />
           <Route path="todayhistory" element={<TodayHistoryList />} />
       </Route>

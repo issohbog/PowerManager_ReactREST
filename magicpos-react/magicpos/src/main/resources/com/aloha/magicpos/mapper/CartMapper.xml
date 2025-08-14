@@ -80,6 +80,14 @@
         WHERE c.u_no = #{uNo}
     </select>
 
+    <!-- 특정 사용자(u_no)의 장바구니에 담긴 특정 상품(p_no)의 수량 조회 -->
+    <select id="getQuantity" resultType="long">
+        SELECT IFNULL(quantity, 0)
+        FROM carts
+        WHERE u_no = #{uNo}
+            AND p_no = #{pNo}
+    </select>
+
 
 </mapper>
 

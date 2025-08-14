@@ -331,12 +331,3 @@
   border-radius: 4px;
   border: 1px solid rgba(40, 167, 69, 0.3);
 }
-
-.price-box .paid-text {
-  font-size: 11px;
-  color: #28a745;
-  background-color: rgba(40, 167, 69, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(40, 167, 69, 0.3);
-}

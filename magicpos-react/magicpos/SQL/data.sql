@@ -183,7 +183,6 @@ VALUES
 
 
 INSERT INTO seats (seat_id, seat_name, seat_status) VALUES
-('S1', '좌석1', 0),
 ('S2', '좌석2', 0),
 ('S3', '좌석3', 0),
 ('S4', '좌석4', 0),
@@ -228,7 +227,7 @@ INSERT INTO seats (seat_id, seat_name, seat_status) VALUES
 
 
 INSERT INTO user_tickets (u_no, t_no, remain_time, pay_at, payment) VALUES
-(1, 1, 60, NOW(), 'CASH'),
+(1, 1, 150, NOW(), 'CASH'),
 (2, 2, 120, NOW(), 'CASH'),
 (3, 3, 180, NOW(), 'CASH'),
 (4, 2, 240, NOW(), 'CASH'),
@@ -339,6 +338,33 @@ INSERT INTO auths (u_no, auth) VALUES
 -- ) o;
 
 -- seats_reservations 테이블에 user1 임시 데이터 추가
+-- INSERT INTO seats_reservations (u_no, seat_id, start_time, end_time) VALUES
+-- -- user1이 S1 좌석을 현재 사용 중 (2시간 전 시작, 4시간 후 종료 = 총 6시간 예약)
+-- (1, 'S1', NOW() - INTERVAL 2 HOUR, NOW() + INTERVAL 4 HOUR);
+
+-- 기존 S1이 있다면 상태만 변경
+UPDATE seats SET seat_status = 1 WHERE seat_id = 'S1';
+
+-- S1이 아예 없다면 추가
+INSERT IGNORE INTO seats (seat_id, seat_name, seat_status) VALUES
+('S1', '좌석1', 1);
+
+-- 예약 데이터 추가
 INSERT INTO seats_reservations (u_no, seat_id, start_time, end_time) VALUES
--- user1이 S1 좌석을 현재 사용 중 (2시간 전 시작, 4시간 후 종료 = 총 6시간 예약)
 (1, 'S1', NOW() - INTERVAL 2 HOUR, NOW() + INTERVAL 4 HOUR);
+
+-- SELECT DISTINCT
+--     u.no AS userNo,
+--     u.username,
+--     u.id AS userId,
+--     u.phone,
+--     s.seat_id,
+--     s.seat_status,
+--     sr.start_time,
+--     sr.end_time
+-- FROM seats s 
+-- JOIN seats_reservations sr ON s.seat_id = sr.seat_id 
+-- JOIN users u ON sr.u_no = u.no 
+-- WHERE s.seat_status = 1 
+-- AND sr.end_time > NOW()
+-- ORDER BY sr.start_time DESC;

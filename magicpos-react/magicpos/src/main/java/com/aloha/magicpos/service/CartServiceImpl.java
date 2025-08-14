@@ -89,4 +89,10 @@ public class CartServiceImpl implements CartService{
     public List<Map<String, Object>> findCartWithProductByUser(Long userNo) {
         return cartMapper.findCartWithProductByUser(userNo);
     }
+
+    @Override
+    public Long getQuantity(Long uNo, Long pNo) throws Exception {
+        Long qty = cartMapper.getQuantity(uNo, pNo);
+        return qty == null ? 0L : qty;
+    }
 }

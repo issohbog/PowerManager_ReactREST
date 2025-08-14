@@ -193,3 +193,19 @@ LIMIT #{index}, #{size}
     SELECT COUNT(*) AS order_count 
 FROM orders 
 WHERE DATE(pay_at) = CURDATE() AND payment_status = 1;
+
+
+        SELECT DISTINCT
+            u.no AS userNo,
+            u.username,
+            u.id AS userId,
+            u.phone,
+            ut.remain_time,
+            sr.start_time
+        FROM seats s
+        JOIN seats_reservations sr ON s.seat_id = sr.seat_id
+        JOIN users u ON sr.u_no = u.no
+        LEFT JOIN user_tickets ut ON ut.u_no = u.no
+        WHERE s.seat_status = 1
+        AND sr.end_time > NOW()
+        ORDER BY sr.start_time DESC
