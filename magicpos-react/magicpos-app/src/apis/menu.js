@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 // 메뉴 전체 조회 (검색 포함)
 export const getMenu = (keyword = '') => {
@@ -26,12 +27,20 @@ export const addToCart = (productNo) => {
 };
 
 // 장바구니 수량 증가 - 직접 Long 값 전송
-export const increaseCartItem = (productNo) => {
-  return axios.post('/carts/increase', productNo, {
+export const increaseCartItem = async (productNo) => {
+  const res = await axios.post('/carts/increase', productNo, {
     headers: {
       'Content-Type': 'application/json'
     }
   });
+  if (res.data && res.data.success === false) {
+    Swal.fire({
+      icon: 'warning',
+      title: '알림',
+      text: res.data.message,
+    });
+  }
+  return res;
 };
 
 // 장바구니 수량 감소 - 직접 Long 값 전송

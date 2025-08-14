@@ -1,5 +1,6 @@
 import React from 'react';
 import '../css/admin_today_list.css';
+import Pagination from './Pagination';
 
 const TodayList = ({
   // 데이터 props
@@ -32,56 +33,6 @@ const TodayList = ({
     return new Intl.NumberFormat('ko-KR').format(price) + '원';
   };
 
-  // ✅ 페이지네이션 렌더링 (원래 HTML 구조와 동일)
-  const renderPagination = () => {
-    const pages = [];
-    
-    // 이전 버튼
-    if (pagination.page > 1) {
-      pages.push(
-        <li key="prev">
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(pagination.page - 1);
-          }}>« 이전</a>
-        </li>
-      );
-    }
-    
-    // 페이지 번호들
-    for (let i = pagination.start; i <= pagination.end; i++) {
-      pages.push(
-        <li key={i} className={i === pagination.page ? 'active' : ''}>
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(i);
-          }}>
-            {i}
-          </a>
-        </li>
-      );
-    }
-    
-    // 다음 버튼
-    if (pagination.page < pagination.last) {
-      pages.push(
-        <li key="next">
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(pagination.page + 1);
-          }}>다음 »</a>
-        </li>
-      );
-    }
-    
-    return (
-      <div className="pagination">
-        <ul>
-          {pages}
-        </ul>
-      </div>
-    );
-  };
 
   return (
     <div className="today-container">
@@ -158,7 +109,7 @@ const TodayList = ({
               </table>
 
               {/* ✅ 페이지네이션 - 원래 구조 */}
-              {pagination.last > 1 && renderPagination()}
+              <Pagination pagination={pagination} onPageChange={onPageChange} />
             </>
           )}
         </div>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import OrderUpdateModal from '../../components/Admin/modal/OrderUpdateModal';
 import { 
   getOrderList, 
   updateOrderStatus, 
@@ -10,6 +9,7 @@ import {
   deleteOrder
 } from '../../apis/orderpopup';
 import OrderPopup from '../../components/Admin/orderpopup';
+import OrderUpdateModal from '../../components/Admin/modal/OrderUpdatemodal';
 
 const OrderPopupContainer = ({ isVisible, onClose }) => {
   
@@ -116,6 +116,8 @@ const OrderPopupContainer = ({ isVisible, onClose }) => {
         // 주문 상세 다시 로드
         const updatedDetails = await loadOrderDetails(orderNo);
         setOrderDetails(updatedDetails);
+        setShowUpdateModal(false)
+        // setShowUpdateModal(true); // 모달 다시 열기
         
         // 전체 주문 데이터도 다시 로드 (총 금액 변경 등)
         await loadOrderData(currentStatus);
@@ -133,6 +135,7 @@ const OrderPopupContainer = ({ isVisible, onClose }) => {
       const response = await deleteOrderItem(orderNo, orderDetailNo, productNo);
       
       if (response.data.success) {
+        setShowUpdateModal(false)
         // 주문 상세 다시 로드
         const updatedDetails = await loadOrderDetails(orderNo);
         setOrderDetails(updatedDetails);

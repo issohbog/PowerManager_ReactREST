@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-@Controller
 @RestController
 public class AdminController {
 
@@ -61,9 +61,6 @@ public class AdminController {
 
     @Autowired
     private CartService cartService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private SeatReservationService seatReservationService;
@@ -237,55 +234,19 @@ public class AdminController {
     }
 
     // 사용중 회원 리스트
-    @GetMapping("/admin/users/modal")
-    public String getUserListModal(@RequestParam(name = "keyword", required = false) String keyword, Model model) {
+    @GetMapping("/admin/users/search")
+    public Map<String, Object> getUserListModal(@RequestParam(name = "keyword", required = false) String keyword) {
         List<Map<String, Object>> users = seatService.searchActiveUsers(keyword);
-        System.out.println("사용자 수: " + users.size());
-        model.addAttribute("users", users);
-        System.out.println("🧪 조회된 사용자 수: " + users.size());
-        for (Map<String, Object> user : users) {
-            System.out.println(user);
-        }
-        return "fragments/admin/modal/userlistcontent :: userlistcontent";
-    }
-
-    // 🔸 관리자 상품 구매 (TossPayments 연동용)
-    @PostMapping("/admin/sellcounter/payment-info")
-    @ResponseBody
-    public Map<String, Object> getProductOrderPaymentInfo(@RequestBody Map<String, Object> params, HttpServletRequest request) throws UnknownHostException {
-        log.info("#############################################################");
-        log.info("client ip : {}", request.getRemoteAddr());
-        log.info("server ip : {}", InetAddress.getLocalHost().getHostAddress());
-        InetAddress inetAddress = InetAddress.getLocalHost();
-        String ip = inetAddress.getHostAddress();
-        log.info("#############################################################");
-        
-        
-        String seatId = params.get("seatId").toString();
-        int totalPrice = Integer.parseInt(params.get("totalPrice").toString());
-        String payment = params.get("payment").toString();
-        Long userNo = Long.valueOf(params.get("userNo").toString());
-        Users user = userService.findByNo(userNo);  
-        String customerName = user.getUsername();  
-
-        // 상품명 최대 2개만 보여줌
-        List<String> productNames = ((List<?>) params.get("pNameList")).stream()
-                                                        .map(Object::toString)
-                                                        .collect(Collectors.toList());
-        String orderName = productNames.stream().limit(2).collect(Collectors.joining(", ")) + (productNames.size() > 2 ? " 외" : "");
-
-        String orderId = "order-" + System.currentTimeMillis() + "_seat" + seatId;
-
+        log.info("🧪 조회된 사용자 수: {}", users.size());
         Map<String, Object> result = new HashMap<>();
-        result.put("orderId", orderId);
-        result.put("orderName", orderName);
-        result.put("amount", totalPrice);
-        result.put("customerName", customerName); // 또는 로그인 유저 이름 등
-        result.put("successUrl", "http://" + ip + ":8080/admin/payment/product/success");
-        result.put("failUrl", "http://"+ ip + ":8080/admin/payment/product/fail");
-
+        result.put("success", true);
+        result.put("userList", users);
+        result.put("totalCount", users.size());
+        result.put("keyword", keyword);
+        result.put("message", users.isEmpty() ? "사용 중인 회원이 없습니다" : "검색 완료");
         return result;
     }
+
 
     @PostMapping("/admin/orders/temp")
     @ResponseBody
@@ -294,5 +255,5 @@ public class AdminController {
         return "ok";
     }
 }
-    
+
 

@@ -143,4 +143,8 @@ public class OrderServiceImpl implements OrderService{
             orderMapper.updatePayAtNow(no);
         }
     }
+    @Override
+    public void updateTotalPrice(Long orderNo) throws Exception {
+        orderMapper.updateTotalPrice(orderNo);
+    }
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import '../css/admin_log_list.css';
+import Pagination from './Pagination';
 
 const LogsList = ({
   // 데이터 props
@@ -32,56 +33,6 @@ const LogsList = ({
     return new Intl.NumberFormat('ko-KR').format(price) + '원';
   };
 
-  // ✅ 원래 HTML 구조와 동일하게 페이지네이션 렌더링
-  const renderPagination = () => {
-    const pages = [];
-    
-    // 이전 버튼 (원래: th:if="${pagination.page > 1}")
-    if (pagination.page > 1) {
-      pages.push(
-        <li key="prev">
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(pagination.page - 1);
-          }}>« 이전</a>
-        </li>
-      );
-    }
-    
-    // 페이지 번호들 (원래: th:each="i : ${#numbers.sequence(pagination.start, pagination.end)}")
-    for (let i = pagination.start; i <= pagination.end; i++) {
-      pages.push(
-        <li key={i} className={i === pagination.page ? 'active' : ''}>
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(i);
-          }}>
-            {i}
-          </a>
-        </li>
-      );
-    }
-    
-    // 다음 버튼 (원래: th:if="${pagination.page < pagination.last}")
-    if (pagination.page < pagination.last) {
-      pages.push(
-        <li key="next">
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            onPageChange(pagination.page + 1);
-          }}>다음 »</a>
-        </li>
-      );
-    }
-    
-    return (
-      <div className="pagination">  {/* ✅ 원래와 동일한 클래스명 */}
-        <ul>  {/* ✅ 원래와 동일한 구조 */}
-          {pages}
-        </ul>
-      </div>
-    );
-  };
 
   return (
     <div className="logs-container">
@@ -171,7 +122,7 @@ const LogsList = ({
               </table>
 
               {/* ✅ 페이지네이션 - 원래 구조와 동일 */}
-              {pagination.last > 1 && renderPagination()}
+              <Pagination pagination={pagination} onPageChange={onPageChange} />
             </>
           )}
         </div>

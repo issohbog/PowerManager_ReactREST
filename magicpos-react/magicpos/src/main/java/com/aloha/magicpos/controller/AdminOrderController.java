@@ -143,6 +143,10 @@ public class AdminOrderController {
             Long quantity = orderService.getQuantityByOrderAndProduct(oNo, pNo);
             orderService.deleteOrderDetail(oNo, pNo);
             productService.increaseStock(pNo, quantity);
+            
+            // 주문 총액 업데이트
+            orderService.updateTotalPrice(oNo);
+
             Orders order = orderService.findOrderByNo(oNo);
             if (order == null) {
                 result.put("success", true);
@@ -160,12 +164,32 @@ public class AdminOrderController {
     }
     // 🔸 주문 상세 1 수량 증가
     @PostMapping("/increaseQuantity")
-    public ResponseEntity<Map<String, Object>> increaseOrderDetailQuantity(@RequestParam("oNo") Long orderNo,
-                                               @RequestParam("pNo") Long productNo) {
+    public ResponseEntity<Map<String, Object>> increaseOrderDetailQuantity(
+        @RequestParam("oNo") Long orderNo,
+        @RequestParam("pNo") Long productNo
+    ) {
         Map<String, Object> result = new HashMap<>();
         try {
+            // 현재 주문 상세 수량 조회
+            Long currentQty = orderService.getQuantityByOrderAndProduct(orderNo, productNo);
+            if (currentQty == null) currentQty = 0L;
+
+            // 상품 재고 조회
+            Long stock = productService.selectStockByPNo(productNo);
+
+            // 수량 증가 시 재고 초과 체크
+            if (stock == null || currentQty + 1 > stock) {
+                result.put("success", false);
+                result.put("message", "재고가 부족합니다.");
+                return ResponseEntity.ok(result);
+            }
+
             orderService.increaseQuantity(orderNo, productNo);
             productService.decreaseStock(productNo, 1L);
+
+            // 주문 총액 업데이트
+            orderService.updateTotalPrice(orderNo);
+
             result.put("success", true);
             result.put("message", "수량이 증가되었습니다.");
             return ResponseEntity.ok(result);
@@ -178,32 +202,20 @@ public class AdminOrderController {
     
     // 🔸 주문 상세 1 수량 감소
     @PostMapping("/decreaseQuantity")
-    public ResponseEntity<Map<String, Object>> decreaseOrderDetailQuantity(@RequestParam("oNo") Long orderNo,
-    @RequestParam("pNo") Long productNo) {
+    public ResponseEntity<Map<String, Object>> decreaseOrderDetailQuantity(
+        @RequestParam("oNo") Long orderNo,
+        @RequestParam("pNo") Long productNo
+    ) {
         Map<String, Object> result = new HashMap<>();
         try {
             orderService.decreaseQuantity(orderNo, productNo);
             productService.increaseStock(productNo, 1L);
+
+            // 주문 총액 업데이트
+            orderService.updateTotalPrice(orderNo);
+
             result.put("success", true);
             result.put("message", "수량이 감소되었습니다.");
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", e.getMessage());
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(result);
-        }
-    }
-    
-    // 🔸 주문 상세 수량 수정
-    @PostMapping("/updateQuantity")
-    public ResponseEntity<Map<String, Object>> updateOrderDetailQuantity(@RequestParam Long orderNo,
-                                            @RequestParam Long productNo,
-                                            @RequestParam Long quantity) {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            orderService.updateOrderDetailQuantity(orderNo, productNo, quantity);
-            result.put("success", true);
-            result.put("message", "수량이 수정되었습니다.");
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             result.put("success", false);

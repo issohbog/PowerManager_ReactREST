@@ -36,7 +36,7 @@ button img {
   transform: translate(-50%, -50%);
   
   border-radius: 10px;
-  z-index: 10000;
+  z-index: 1000;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   overflow: hidden;
 }
@@ -91,12 +91,12 @@ button img {
     display: flex;
     gap: 10px;
 }
-.sell-side-panel{
+.sellcounter-side-panel{
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-.sell-cart-items {
+.sellcounter-cart-items {
   width: 410px;
   color: white;
   flex-grow: 1;
@@ -105,18 +105,18 @@ button img {
   overflow-y: auto;
   padding: 10px;
 }
-.payment-methods {
+.sellcounter-payment-methods {
   width: 100%;
   display: flex;
   gap: 10px;
   font-size: 16px;
 }
 
-.payment-methods input[type="radio"] {
+.sellcounter-payment-methods input[type="radio"] {
   display: none;
 }
 
-.payment-methods label {
+.sellcounter-payment-methods label {
   width: calc((100% - 20px) / 3);
   height: 50px;
   background-color: #3d4b5a;
@@ -130,7 +130,7 @@ button img {
   justify-content: center;
   align-items: center;
 }
-.payment-methods label:has(input[type="radio"]:checked) {
+.sellcounter-payment-methods label:has(input[type="radio"]:checked) {
   background-color: #f4d03f;
   color: #000;
   font-weight: bold;
@@ -160,4 +160,9 @@ button img {
   align-items: flex-start;
   border-bottom: 1px solid #f0f0f0;
   padding: 10px;
+}
+
+/* 예시: App.css 또는 index.css 등 */
+.swal-zindex {
+  z-index: 9999 !important;
 }

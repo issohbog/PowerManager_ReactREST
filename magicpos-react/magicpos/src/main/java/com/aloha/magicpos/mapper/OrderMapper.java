@@ -37,4 +37,8 @@ public interface OrderMapper {
 
     // 현금만 pay_at 업데이트
     void updatePayAtNow(@Param("no") Long no);
+
+    // 주문총액 업데이트
+    void updateTotalPrice(@Param("orderNo") Long orderNo);
+
 }

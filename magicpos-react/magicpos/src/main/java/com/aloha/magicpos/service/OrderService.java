@@ -28,8 +28,9 @@ public interface OrderService {
     public boolean deleteOrderDetail(Long oNo, Long pNo) throws Exception;
     // 재고 조회
     public Long getQuantityByOrderAndProduct(Long oNo, Long pNo);
-
     // 현금 pay_at 업데이트
     void updateStatusWithPayAt(Long no, Long orderStatus, Long paymentStatus);
+    // 주문 총액 업데이트
+    void updateTotalPrice(Long orderNo) throws Exception;
 
 }

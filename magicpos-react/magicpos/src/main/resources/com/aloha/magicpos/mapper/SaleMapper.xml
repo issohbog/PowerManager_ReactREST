@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.SaleMapper">
+
+  <!-- 기간별 주문 매출 조회 -->
+  <select id="findOrderSales" resultType="map">
+  <![CDATA[
+    SELECT
+      DATE(o.pay_at) AS date,
+      IFNULL(SUM(o.total_price), 0) AS productSales
+    FROM orders o
+    WHERE o.payment_status = 1
+      AND o.pay_at >= #{start}
+      AND o.pay_at < DATE_ADD(#{end}, INTERVAL 1 DAY)
+    GROUP BY DATE(o.pay_at)
+    ORDER BY date
+    ]]>
+  </select>
+
+  <!-- 기간별 이용권 매출 조회 -->
+  <select id="findTicketSales" resultType="map">
+  <![CDATA[
+    SELECT
+      DATE(ut.pay_at) AS date,
+      IFNULL(SUM(t.price), 0) AS ticketSales
+    FROM user_tickets ut
+    JOIN tickets t ON ut.t_no = t.no
+    WHERE ut.pay_at >= #{start}
+      AND ut.pay_at < DATE_ADD(#{end}, INTERVAL 1 DAY)
+    GROUP BY DATE(ut.pay_at)
+    ORDER BY date
+    ]]>
+  </select>
+
+  <!-- 상위 3개 상품 조회 -->
+  <select id="findTopProducts" resultType="map">
+  <![CDATA[
+    SELECT
+      p.p_name AS name,
+      IFNULL(SUM(od.quantity), 0) AS value
+    FROM orders_details od  
+    JOIN orders o   ON od.o_no = o.no
+    JOIN products p ON od.p_no = p.no
+    WHERE o.payment_status = 1
+      AND o.pay_at >= #{start}
+      AND o.pay_at < DATE_ADD(#{end}, INTERVAL 1 DAY)
+    GROUP BY p.no, p.p_name
+    ORDER BY value DESC
+    LIMIT 3
+    ]]>
+  </select>
+
+  <!-- 하위 3개 상품 조회 (전체 상품 기준, 주문 없는 상품도 포함) -->
+  <select id="findWorstProducts" resultType="map">
+  <![CDATA[
+    SELECT
+      p.p_name AS name,
+      IFNULL(SUM(od.quantity), 0) AS value
+    FROM products p
+    LEFT JOIN orders_details od ON p.no = od.p_no
+    LEFT JOIN orders o ON od.o_no = o.no
+      AND o.payment_status = 1
+      AND o.pay_at >= #{start}
+      AND o.pay_at < DATE_ADD(#{end}, INTERVAL 1 DAY)
+    GROUP BY p.no, p.p_name
+    ORDER BY value ASC
+    LIMIT 3
+  ]]>
+</select>
+
+</mapper>

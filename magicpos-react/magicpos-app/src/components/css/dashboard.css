@@ -1,0 +1,253 @@
+/* 전체 레이아웃 컨테이너 */
+.dashboard-content {
+  position: absolute;
+  top: 100px;
+  left: 70px;
+  width: calc(100vw - 140px);
+  height: calc(100vh - 100px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 10px 20px 0px 20px;
+  background: #223040;
+  color: #222;
+}
+
+/* 전체 배경 및 텍스트 */
+.dashboard-bg {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-group{
+  display: flex;
+  width: 100%;
+}
+
+.dashboard-summary{
+  width: 40%;
+}
+.dashboard-trend{
+  width: 60%;
+}
+
+/* 카드 및 섹션 */
+.dashboard-section,
+.dashboard-card {
+  background: #fff;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 26px;
+  margin-bottom: 0;
+}
+
+.dashboard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  border-bottom: none;
+}
+
+.dashboard-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dashboard-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #223040;
+}
+
+.dashboard-action-btn {
+  background: none;
+  border: none;
+  color: #223040;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.dashboard-action-btn:hover {
+  background: #e5e7eb;
+  color: #223040;
+}
+
+.dashboard-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.dashboard-total {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #223040;
+  margin-bottom: 8px;
+}
+
+.dashboard-diff {
+  font-size: 1rem;
+  color: #f87171;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+/* 기간 버튼 */
+.dashboard-range-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.dashboard-range-btn {
+  background: #e5e7eb;
+  color: #223040;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dashboard-range-btn.active,
+.dashboard-range-btn:hover {
+  background: #223040;
+  color: #fff;
+}
+
+/* 범례 */
+.dashboard-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.dashboard-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: #223040;
+}
+
+.dashboard-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.bg-cyan { background: #22d3ee; }
+.bg-sky { background: #0ea5e9; }
+.bg-yellow { background: #fbbf24; }
+.bg-pink { background: #fca5a5; }
+.bg-blue { background: #60a5fa; }
+
+/* 차트 */
+.dashboard-chart {
+  height: 300px;
+  background: #fff;
+  border-radius: 0;
+  padding: 16px 0 0 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+/* 랭크 리스트 */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rank-item {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.rank-index {
+  font-size: 1.1rem;
+  color: #223040;
+  width: 28px;
+  text-align: center;
+}
+
+.rank-crown {
+  color: #fbbf24;
+  font-size: 1.2rem;
+  margin-right: 4px;
+}
+
+.rank-name {
+  font-weight: 500;
+  color: #223040;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-bar-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank-bar-bg {
+  background: #e5e7eb;
+  border-radius: 8px;
+  height: 18px;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 80px;
+}
+
+.rank-bar-main {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.rank-bar-sub {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  height: 100%;
+  background: #fca5a5;
+  opacity: 0.7;
+  border-radius: 8px;
+}
+
+.rank-bar-number {
+  font-size: 0.95rem;
+  font-weight: bold;
+  margin-left: 6px;
+  min-width: 32px;
+  text-align: left;
+  /* 색상은 막대와 동일하게 동적으로 적용 */
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .dashboard-card, .dashboard-section, .dashboard-chart {
+    padding: 16px;
+  }
+  .dashboard-total {
+    font-size: 1.5rem;
+  }
+  .dashboard-title {
+    font-size: 1rem;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
