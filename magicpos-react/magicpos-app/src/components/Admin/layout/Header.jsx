@@ -1,8 +1,37 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import powerIcon from '/images/전원.png'
 import styles from './css/Header.module.css'
+import { fetchSeatInfo } from '../../../apis/seatStatus'
 const Header = () => {
+
+  const [usedSeat, setUsedSeat] = useState(0);
+  const [totalSeat, setTotalSeat] = useState(0);
+
+  useEffect(() => {
+    const getSeatInfo = async () => {
+      try {
+        const response = await fetchSeatInfo();
+        const data = response.data;
+        if (data.success) {
+          setUsedSeat(data.currentUsage);
+          setTotalSeat(data.totalSeats);
+        }
+      } catch (error) {
+        setTotalSeat(0);
+        setUsedSeat(0);
+      }
+    };
+
+    getSeatInfo();
+
+  }, []);
+
+  // 3자리로 분리
+  const toDigits = (num) =>  num.toString().padStart(3, '0').split('');
+  const usedDigits = toDigits(usedSeat);
+  const totalDigits = toDigits(totalSeat);
+
   return (
     <div className={styles.header}>
       <div className={styles['seat-wrapper']}>
@@ -11,16 +40,18 @@ const Header = () => {
         {/* 좌석 현황 */}
         <div className={styles['seat-info']}>
           <div className={styles['seat-con-used']} id="used-seat-count">
-            <div className={styles['seat-cell']}>0</div>
-            <div className={styles['seat-cell']}>0</div>
-            <div className={styles['seat-cell']}>0</div>
+            <div className={styles['seat-cell']}>{usedDigits[0]}</div>
+            <div className={styles['seat-cell']}>{usedDigits[1]}</div>
+            <div className={styles['seat-cell']}>{usedDigits[2]}</div>
           </div>
           <div className={styles['seat-con-all']} id="total-seat-count">
-            <div className={styles['seat-cell']}>0</div>
-            <div className={styles['seat-cell']}>0</div>
-            <div className={styles['seat-cell']}>0</div>
+            <div className={styles['seat-cell']}>{totalDigits[0]}</div>
+            <div className={styles['seat-cell']}>{totalDigits[1]}</div>
+            <div className={styles['seat-cell']}>{totalDigits[2]}</div>
           </div>
         </div>
+
+
       </div>
 
       {/* 좌석 수 서버에서 받아오는 부분은 useEffect + state로 나중에 구현 가능 */}

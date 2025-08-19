@@ -1,7 +1,7 @@
 import axios from "axios";
 axios.defaults.baseURL = "/api";
 
-// 이용권 목록 조회 (관리자)
+// 이용권 목록 조회 (관리자, 사용자)
 export const fetchTickets = () => axios.get('/usertickets/admin/tickets');
 
 // 이용권 등록 전 회원 검색 (관리자)

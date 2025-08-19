@@ -192,7 +192,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174")); // Vite 포트 둘 다
+        // configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.36:5173")); // Vite 포트 둘 다
+        configuration.addAllowedOriginPattern("*"); // 모든 Origin 허용
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

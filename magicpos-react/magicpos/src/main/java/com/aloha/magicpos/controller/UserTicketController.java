@@ -163,7 +163,6 @@ public class UserTicketController {
         
         Long userNo = Long.valueOf(params.get("userNo").toString());
         Long ticketNo = Long.valueOf(params.get("ticketNo").toString());
-
         Tickets ticket = ticketService.findByNo(ticketNo);
         Users user = userService.findByNo(userNo);
 
@@ -178,6 +177,11 @@ public class UserTicketController {
         result.put("orderName", orderName);
         result.put("amount", amount);
         result.put("customerName", customerName);
+
+        log.info("orderId : {}", orderId);
+        log.info("orderName : {}", orderName);
+        log.info("amount : {}", amount);
+        log.info("customerName : {}", customerName);
 
         result.put("successUrl", "http://" + ip + ":8080/users/payment/ticket/success?userNo=" + userNo + "&ticketNo=" + ticketNo);
         result.put("failUrl", "http://"+ ip + ":8080/users/payment/ticket/fail");

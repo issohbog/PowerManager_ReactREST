@@ -1,6 +1,6 @@
 // containers/admin/SeatStatusContainer.jsx
 import { useEffect, useState } from 'react'
-import { select } from '../../apis/seatStatus'
+import { clearSeat, select } from '../../apis/seatStatus'
 import SeatStatus from '../../components/Admin/SeatStatus'
 
 const SeatStatusContainer = () => {
@@ -22,6 +22,35 @@ const SeatStatusContainer = () => {
     }
   }
 
+  // 좌석 상태 변경 핸들러(청소중 -> 이용가능)
+  const handleChangeSeatStatus = async (seatId) => {
+    try {
+      const result = await clearSeat(seatId)
+      if (result.data && result.data.success) {
+        setTopSeats(seats =>
+          seats.map(seat =>
+            seat.seatId === seatId ? { ...seat, className: 'available' } : seat
+          )
+        )
+        setMiddleSeats(seats =>
+          seats.map(seat =>
+            seat.seatId === seatId ? { ...seat, className: 'available' } : seat
+          )
+        )
+        setBottomSeats(seats =>
+          seats.map(seat =>
+            seat.seatId === seatId ? { ...seat, className: 'available' } : seat
+          )
+        )
+      } else {
+        alert(result.data.message || '좌석 상태 변경에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('좌석 상태 변경 중 오류 발생:', error)
+      alert('좌석 상태 변경 중 오류가 발생했습니다.')
+    }
+  }
+
   useEffect(() => {
     // select().then(data => {
     //   console.log('좌석 API 응답:', data) // ← 추가된 로그
@@ -39,8 +68,10 @@ const SeatStatusContainer = () => {
       topSeats={topSeats}
       middleSeats={middleSeats}
       bottomSeats={bottomSeats}
+      onChangeSeatStatus={handleChangeSeatStatus}
     />
   )
 }
+
 
 export default SeatStatusContainer

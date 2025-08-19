@@ -156,7 +156,7 @@ public class TossPaymentsController {
     
     // 사용자 요금제 결제 성공
     @GetMapping("/users/payment/ticket/success")
-    public ResponseEntity<Map<String, Object>> userTicketPaymentSuccess(
+    public RedirectView userTicketPaymentSuccess(
                                          @RequestParam("paymentKey") String paymentKey,
                                          @RequestParam("orderId") String orderId,
                                          @RequestParam("amount") int amount,
@@ -165,6 +165,9 @@ public class TossPaymentsController {
                                          ) throws Exception {
         log.info("💳 사용자 요금제 결제 성공: paymentKey={}, orderId={}, amount={}, userNo={}, ticketNo={}", paymentKey, orderId, amount, userNo, ticketNo);
         
+        InetAddress inetAddress = InetAddress.getLocalHost();
+        String ip = inetAddress.getHostAddress();
+
         // 사용자 요금제 결제 처리 로직
         UserTickets userTicket = new UserTickets();
         userTicket.setUNo(userNo);
@@ -172,17 +175,21 @@ public class TossPaymentsController {
         userTicket.setPayment("CARD");
         userTicket.setPayAt(new java.sql.Timestamp(System.currentTimeMillis()));
 
-        boolean success = userTicketService.insertUserTicketByAdmin(userTicket);
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", success);
-        result.put("message", "사용자 요금제 결제가 성공적으로 완료되었습니다.");
-        result.put("paymentKey", paymentKey);
-        result.put("orderId", orderId);
-        result.put("amount", amount);
-        result.put("userNo", userNo);
-        result.put("ticketNo", ticketNo);
+        // boolean success = userTicketService.insertUserTicketByAdmin(userTicket);
+        userTicketService.insertUserTicketByAdmin(userTicket);
+        // Map<String, Object> result = new HashMap<>();
+        // result.put("success", success);
+        // result.put("message", "사용자 요금제 결제가 성공적으로 완료되었습니다.");
+        // result.put("paymentKey", paymentKey);
+        // result.put("orderId", orderId);
+        // result.put("amount", amount);
+        // result.put("userNo", userNo);
+        // result.put("ticketNo", ticketNo);
         
-        return ResponseEntity.ok(result);
+        // return ResponseEntity.ok(result);
+
+
+        return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
     }
     
     // 사용자 요금제 결제 실패
@@ -350,6 +357,8 @@ public class TossPaymentsController {
         log.info("server ip : {}", InetAddress.getLocalHost().getHostAddress());
         InetAddress inetAddress = InetAddress.getLocalHost();
         String ip = inetAddress.getHostAddress();
+
+        
         log.info("#############################################################");
         
         
