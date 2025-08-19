@@ -1,5 +1,4 @@
-import axios from 'axios'
-axios.defaults.baseURL = "/api"
+import api from "./axios";
 
 // 좌석 현황 조회
-export const select = () => axios.get('/admin');
+export const select = () => api.get('/admin');

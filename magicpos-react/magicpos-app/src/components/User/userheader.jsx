@@ -47,14 +47,14 @@ function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               onClick={() => window.location.href = "/menu"}
-              style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold" }}
+              style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black"}}
             >
               먹거리 주문
             </button>
-            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold" }}>
+            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}>
               요금제 구매
             </button>
-            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold" }}>
+            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}>
               메세지
             </button>
           </div>
@@ -63,7 +63,7 @@ function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
           <div style={{ display: "flex", gap: "15px" }}>
             <div style={{ width: "100px", height: "60px", backgroundColor: "#1e2b38", padding: "5px 10px", borderRadius: "5px", textAlign: "center", fontSize: "16px" }}>
               <span style={{ fontSize: "13px" }}>자리번호</span><br />
-              <strong>{`no. ${usageInfo?.seat_id || "50"}`}</strong>
+              <strong>{`no. ${usageInfo?.seatId || "50"}`}</strong>
             </div>
             <div style={{ width: "100px", height: "60px", backgroundColor: "#1e2b38", padding: "5px 10px", borderRadius: "5px", textAlign: "center", fontSize: "16px" }}>
               <span style={{ fontSize: "13px" }}>사용시간</span><br />

@@ -147,6 +147,10 @@ public class SeatServiceImpl implements SeatService {
         }
     }
 
-
+    // 좌석 상태 조회
+    @Override
+    public int getSeatStatus(String seatId) throws Exception {
+        return seatMapper.getSeatStatus(seatId);
+    }
 
 }

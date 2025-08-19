@@ -1,9 +1,9 @@
-import axios from 'axios';
+import api from "./axios";
 import Swal from 'sweetalert2';
 
 // 카테고리 불러오기
 export function getAdminCategories() {
-  return axios.get('/admin/categories/json');
+  return api.get('/admin/categories/json');
 }
 
 // 상품 불러오기
@@ -13,12 +13,12 @@ export function getAdminProducts(keyword = '', category = '') {
   if (keyword) params.push(`keyword=${encodeURIComponent(keyword)}`);
   if (category) params.push(`category=${encodeURIComponent(category)}`);
   if (params.length > 0) url += '?' + params.join('&');
-  return axios.get(url);
+  return api.get(url);
 }
 
 // 장바구니 불러오기
 export function getAdminCart() {
-  return axios.get('/admin/orders/cart/json');
+  return api.get('/admin/orders/cart/json');
 }
 
 // 공통 에러 알림 함수
@@ -35,7 +35,7 @@ export function showErrorAlert(message) {
 
 // 상품 장바구니 추가
 export async function addAdminCartItem(pNo) {
-  const res = await axios.post('/admin/sellcounter/add', { pNo });
+  const res = await api.post('/admin/sellcounter/add', { pNo });
   if (res.data && res.data.success === false) {
     showErrorAlert(res.data.message);
   }
@@ -58,7 +58,7 @@ export async function updateAdminCartItem(action, pNo, cNo) {
     url = '/admin/sellcounter/delete';
     data = { cNo };
   }
-  const res = await axios.post(url, data);
+  const res = await api.post(url, data);
   if (res.data && res.data.success === false) {
     showErrorAlert(res.data.message);
   }
@@ -76,21 +76,21 @@ export function createAdminOrder(orderData) {
   orderData.quantityList.forEach(v => params.append('quantityList', v));
   orderData.pNameList.forEach(v => params.append('pNameList', v));
   orderData.stockList.forEach(v => params.append('stockList', v));
-  return axios.post('/admin/sellcounter/create', params);
+  return api.post('/admin/sellcounter/create', params);
 }
 
 // 임시 주문정보 저장
 export function saveAdminTempOrder(tempOrder) {
-  return axios.post('/admin/orders/temp', tempOrder);
+  return api.post('/admin/orders/temp', tempOrder);
 }
 
 // 결제 정보 생성
 export function getAdminPaymentInfo(params) {
-  return axios.post('/admin/sellcounter/payment-info', params);
+  return api.post('/admin/sellcounter/payment-info', params);
 }
 
 // 관리자 상품 결제 성공 처리 API
 export async function confirmAdminPayment(paymentData) {
   // paymentData: { paymentKey, orderId, amount }
-  return await axios.post('/admin/payment/product/success', paymentData);
+  return await api.post('/admin/payment/product/success', paymentData);
 }

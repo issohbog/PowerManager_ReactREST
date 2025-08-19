@@ -11,6 +11,24 @@
   background: #223040;
   color: #222;
 }
+.dashboard-loading{
+  position: absolute;
+  top: 100px;
+  left: 70px;
+  width: calc(100vw - 140px);
+  height: calc(100vh - 100px);
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 10px 20px 0px 20px;
+  background: #223040;
+  color: #222;
+}
+.dashboard-loading-text{
+  display: block;
+  margin-top: 12px;
+  font-size: 1.2rem;
+  color: #fff;
+}
 
 /* 전체 배경 및 텍스트 */
 .dashboard-bg {

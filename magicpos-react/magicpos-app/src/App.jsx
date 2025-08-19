@@ -9,11 +9,13 @@ import Logs from './pages/Admin/Logs';
 import TodayHistoryList from './pages/Admin/TodayHistoryList';
 import Sales from './pages/Admin/Sales';
 import UserList from './pages/Admin/UserList';
+import LoginPage from './pages/LoginPage';
 
 const App = () => {
   return (
   <BrowserRouter>
     <Routes>
+      <Route path="/" element={<LoginPage />} />
       <Route path="/menu" element={<Menu />} />
 
       {/* 관리자 페이지 */}
