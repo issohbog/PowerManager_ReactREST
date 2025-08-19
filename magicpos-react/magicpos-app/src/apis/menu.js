@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from "./axios";
 import Swal from 'sweetalert2';
 
 // 메뉴 전체 조회 (검색 포함)
@@ -10,17 +10,17 @@ export const getMenu = (keyword = '') => {
     params.keyword = keyword;
   }
   
-  return axios.get(url, { params });
+  return api.get(url, { params });
 };
 
 // 카테고리별 상품 조회
 export const getMenuByCategory = (categoryNo) => {
-  return axios.get(`/menu?selectedCategory=${categoryNo}`);
+  return api.get(`/menu?selectedCategory=${categoryNo}`);
 };
 
 // ✅ 장바구니 추가 - 경로와 데이터 형식 수정
 export const addToCart = (productNo) => {
-  return axios.post('/carts/add', {
+  return api.post('/carts/add', {
     pNo: productNo,  // ← p_no 필드명 맞춤
     quantity: 1      // ← 기본 수량 1
   });
@@ -28,7 +28,7 @@ export const addToCart = (productNo) => {
 
 // 장바구니 수량 증가 - 직접 Long 값 전송
 export const increaseCartItem = async (productNo) => {
-  const res = await axios.post('/carts/increase', productNo, {
+  const res = await api.post('/carts/increase', productNo, {
     headers: {
       'Content-Type': 'application/json'
     }
@@ -45,7 +45,7 @@ export const increaseCartItem = async (productNo) => {
 
 // 장바구니 수량 감소 - 직접 Long 값 전송
 export const decreaseCartItem = (productNo) => {
-  return axios.post('/carts/decrease', productNo, {
+  return api.post('/carts/decrease', productNo, {
     headers: {
       'Content-Type': 'application/json'
     }
@@ -54,7 +54,7 @@ export const decreaseCartItem = (productNo) => {
 
 // 장바구니 항목 삭제 - 직접 Long 값 전송
 export const deleteCartItem = (cartNo) => {
-  return axios.post('/carts/delete', cartNo, {
+  return api.post('/carts/delete', cartNo, {
     headers: {
       'Content-Type': 'application/json'
     }
@@ -63,14 +63,14 @@ export const deleteCartItem = (cartNo) => {
 
 // 주문 생성
 export const createOrder = (orderData) => {
-  return axios.post('/users/orders/create', orderData);
+  return api.post('/users/orders/create', orderData);
 };
 
 // ✅ 토스페이먼츠 관련 API 추가
 export const getPaymentInfo = (orderData) => {
-  return axios.post('/users/orders/payment-info', orderData);
+  return api.post('/users/orders/payment-info', orderData);
 };
 
 export const confirmPayment = (paymentData) => {
-  return axios.post('/users/orders/success', paymentData);
+  return api.post('/users/orders/success', paymentData);
 };

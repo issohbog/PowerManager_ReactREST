@@ -40,6 +40,21 @@ const UseDashboardContainer = () => {
     color: colorList[idx] || "#d1d5db",
   }));
 
+  if (loading) {
+    return (
+      <div className="dashboard-loading" style={{ textAlign: "center", padding: "40px" }}>
+        <img
+          src="/images/loading.png"
+          alt="로딩중"
+          style={{ width: "48px", height: "48px", marginBottom: "16px" }}
+        />
+        <div>
+          <span className="dashboard-loading-text">로딩중...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-content">
       <div className="dashboard-bg">

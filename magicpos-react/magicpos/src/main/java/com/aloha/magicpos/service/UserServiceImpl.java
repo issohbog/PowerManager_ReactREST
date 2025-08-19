@@ -203,10 +203,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean login(Users user, HttpServletRequest request) {
         // 💍 토큰 생성
-        String username = user.getUsername();
+        String no = user.getUsername();
         String password = user.getPassword();
         UsernamePasswordAuthenticationToken token 
-            = new UsernamePasswordAuthenticationToken(username, password);
+            = new UsernamePasswordAuthenticationToken(no, password);
 
         // 토큰을 이용하여 인증
         Authentication authentication = authenticationManager.authenticate(token);
@@ -244,12 +244,19 @@ public class UserServiceImpl implements UserService {
                     .anyMatch(role -> role.equals("ROLE_ADMIN"));
     }
 
+    // 권한 조회
+    @Override
+    public List<Auths> selectAuths(Long no) throws Exception {
+        return userMapper.selectAuths(no);
+    }
 
- 
-
-
-
-
-
+    // 아이디/비번 검증
+    @Override
+    public boolean isValid(String id, String rawPassword) throws Exception {
+        Users user = userMapper.select(id); // XML <select id="select"> 사용
+        if (user == null) return false;
+        // 절대 평문 비교 금지: passwordEncoder.matches 사용
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
     
 }

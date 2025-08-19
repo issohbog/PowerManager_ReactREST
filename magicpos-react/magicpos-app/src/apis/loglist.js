@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from "./axios";
 
 /**
  * 로그 리스트 조회 API
@@ -24,7 +24,7 @@ export const getLogList = (params = {}) => {
   
   console.log('🔍 정리된 파라미터:', cleanParams);
   
-  return axios.get('/admin/logs/logList', {
+  return api.get('/admin/logs/logList', {
     params: cleanParams
   });
 };

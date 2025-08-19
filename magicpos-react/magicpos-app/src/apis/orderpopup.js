@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from "./axios";
 import Swal from 'sweetalert2';
 
 /**
@@ -8,7 +8,7 @@ import Swal from 'sweetalert2';
 export const getOrderList = (status = 'all') => {
   console.log('📤 주문 리스트 API 호출:', status);
   
-  return axios.get(`/admin/orders/orderpopup`, {
+  return api.get(`/admin/orders/orderpopup`, {
     params: { status }
   });
 };
@@ -21,7 +21,7 @@ export const getOrderList = (status = 'all') => {
 export const updateOrderStatus = (orderNo, newStatus) => {
   console.log('📤 주문 상태 업데이트 API 호출:', { orderNo, newStatus });
   
-  return axios.post(`/admin/orders/status`, null, {
+  return api.post(`/admin/orders/status`, null, {
     params: {
       no: orderNo,
       orderStatus: newStatus
@@ -36,7 +36,7 @@ export const updateOrderStatus = (orderNo, newStatus) => {
 export const cancelOrder = (orderNo) => {
   console.log('📤 주문 취소 API 호출:', orderNo);
   
-  return axios.post(`/admin/orders/delete`, null, {
+  return api.post(`/admin/orders/delete`, null, {
     params: {
       orderNo: orderNo
     }
@@ -50,7 +50,7 @@ export const cancelOrder = (orderNo) => {
 export const getOrderDetails = (orderNo) => {
   console.log('📤 주문 상세 조회 API 호출:', orderNo);
   
-  return axios.get(`/admin/orders/${orderNo}/details`);
+  return api.get(`/admin/orders/${orderNo}/details`);
 };
 
 // 공통 에러 알림 함수
@@ -68,7 +68,7 @@ export const updateOrderQuantity = async (orderNo, orderDetailNo, productNo, act
 
   const endpoint = action === 'increase' ? 'increaseQuantity' : 'decreaseQuantity';
 
-  const res = await axios.post(`/admin/orders/${endpoint}`, null, {
+  const res = await api.post(`/admin/orders/${endpoint}`, null, {
     params: {
       oNo: orderDetailNo,
       pNo: productNo,
@@ -91,7 +91,7 @@ export const updateOrderQuantity = async (orderNo, orderDetailNo, productNo, act
 export const deleteOrderItem = (orderNo, orderDetailNo, productNo) => {
   console.log('📤 상품 삭제 API 호출:', { orderNo, orderDetailNo, productNo });
   
-  return axios.post('/admin/orders/delete/detail', null, {
+  return api.post('/admin/orders/delete/detail', null, {
     params: {
       oNo: orderDetailNo,
       pNo: productNo,
@@ -107,7 +107,7 @@ export const deleteOrderItem = (orderNo, orderDetailNo, productNo) => {
 export const deleteOrder = (orderNo) => {
   console.log('📤 전체 주문 삭제 API 호출:', orderNo);
   
-  return axios.post('/admin/orders/delete', null, {
+  return api.post('/admin/orders/delete', null, {
     params: {
       orderNo: orderNo
     }

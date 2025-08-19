@@ -11,11 +11,15 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aloha.magicpos.domain.CustomUser;
 import com.aloha.magicpos.domain.Orders;
 import com.aloha.magicpos.domain.OrdersDetails;
 import com.aloha.magicpos.domain.Users;
@@ -51,7 +55,8 @@ public class OrderController {
     
     // ✅ REST API로 변경된 주문 등록
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> orderData, HttpSession session) {
+    public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> orderData, 
+    @AuthenticationPrincipal CustomUser cu, HttpSession session) {
         try {
             log.info("🛒 주문 데이터 받음: {}", orderData);
             
@@ -91,22 +96,8 @@ public class OrderController {
                 .map(cart -> cart.get("p_name").toString())
                 .collect(Collectors.toList());
 
-            // ✅ 2. 세션에서 userNo 안전하게 변환
-            Object userNoObj = session.getAttribute("userNo");
-            Long userNo = null;
-            if (userNoObj instanceof Integer) {
-                userNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                userNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                userNo = Long.valueOf(userNoObj.toString());
-            }
-            
-            // ✅ 3. 세션에 없으면 임시 userNo로 설정
-            if (userNo == null) {
-                userNo = 1L;
-                session.setAttribute("userNo", userNo);
-            }
+            // ✅ 2. userNo 안전하게 변환
+            Long userNo = cu.getUser().getNo();
 
             // ✅ 4. 주문 전 재고 체크
             for (int i = 0; i < pNoList.size(); i++) {
