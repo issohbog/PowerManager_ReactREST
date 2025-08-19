@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from "./axios";
 
 /**
  * 당일내역 리스트 조회 API
@@ -7,7 +7,7 @@ import axios from 'axios';
  * @param {string} params.type - 내역 타입 (orderhistory, tickethistory)
  * @param {number} params.page - 페이지 번호 (기본값: 1)
  * @param {number} params.size - 페이지 크기 (기본값: 10)
- * @returns {Promise} axios response
+ * @returns {Promise} api response
  */
 export const getTodayList = (params = {}) => {
   console.log('📤 당일내역 API 호출:', params);
@@ -22,7 +22,7 @@ export const getTodayList = (params = {}) => {
   
   console.log('🔍 정리된 파라미터:', cleanParams);
   
-  return axios.get('/admin/history/today', {
+  return api.get('/admin/history/today', {
     params: cleanParams
   });
 };

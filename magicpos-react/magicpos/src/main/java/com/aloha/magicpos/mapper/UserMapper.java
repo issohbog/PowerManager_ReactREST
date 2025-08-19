@@ -61,4 +61,8 @@ public interface UserMapper {
 
     // 회원 조회
     public Users select(@Param("id") String id) throws Exception;
+
+    // 권한 조회
+    public List<Auths> selectAuths(@Param("no") Long no) throws Exception;
+
 }

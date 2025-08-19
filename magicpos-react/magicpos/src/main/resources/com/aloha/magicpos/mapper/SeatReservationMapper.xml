@@ -20,15 +20,19 @@
     </select>
 
     <!-- 사용자용 좌석 예약 내역 조회  -->
-    <select id="findCurrentReservationByUser">
-        <![CDATA[
-            SELECT sr.seat_id, sr.start_time, sr.end_time, u.username
-            FROM seats_reservations sr
-            JOIN users u ON sr.u_no = u.no
-            WHERE sr.u_no = #{userNo}
-            ORDER BY sr.end_time DESC, sr.start_time DESC
-            LIMIT 1
-        ]]>
+    <select id="findCurrentReservationByUser"
+            parameterType="long"
+            resultType="com.aloha.magicpos.domain.SeatsReservations">
+        SELECT
+            sr.seat_id    AS seatId,
+            sr.start_time AS startTime,
+            sr.end_time   AS endTime,
+            u.username    AS username
+        FROM seats_reservations sr
+        JOIN users u ON sr.u_no = u.no
+        WHERE sr.u_no = #{userNo}
+        ORDER BY sr.end_time DESC, sr.start_time DESC
+        LIMIT 1
     </select>
 
     <!-- 현재 이용중인 좌석 조회(관리자용) -->

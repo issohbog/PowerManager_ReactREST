@@ -45,4 +45,7 @@ public interface SeatService {
     // 사용회원 검색
     List<Map<String, Object>> searchActiveUsers(String keyword);
 
+    // 좌석 상태 조회
+    public int getSeatStatus(String seatId) throws Exception;
+
 }

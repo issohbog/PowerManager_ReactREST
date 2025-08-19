@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios";
 
 export async function getDashboard({ range } = {}) {
   // 기간 계산 (예시: day/week/month)
@@ -6,18 +6,18 @@ export async function getDashboard({ range } = {}) {
 
   // 여러 API를 병렬로 호출
   const [orderRes, ticketRes, topRes, worstRes] = await Promise.all([
-    axios.get("/admin/sales/orders", { params: { start, end } }),
-    axios.get("/admin/sales/tickets", { params: { start, end } }),
-    axios.get("/admin/sales/top-products", { params: { start, end } }),
-    axios.get("/admin/sales/worst-products", { params: { start, end } }),
+    api.get("/admin/sales/orders", { params: { start, end } }),
+    api.get("/admin/sales/tickets", { params: { start, end } }),
+    api.get("/admin/sales/top-products", { params: { start, end } }),
+    api.get("/admin/sales/worst-products", { params: { start, end } }),
   ]);
 
   // 지난 기간의 매출 데이터도 추가로 불러와서 diff 계산
   // 예시: 지난주, 지난달 등
   const prevRange = getPrevDateRange(range);
   const [prevOrderRes, prevTicketRes] = await Promise.all([
-    axios.get("/admin/sales/orders", { params: { start: prevRange.start, end: prevRange.end } }),
-    axios.get("/admin/sales/tickets", { params: { start: prevRange.start, end: prevRange.end } }),
+    api.get("/admin/sales/orders", { params: { start: prevRange.start, end: prevRange.end } }),
+    api.get("/admin/sales/tickets", { params: { start: prevRange.start, end: prevRange.end } }),
   ]);
   const prevTotal =
     (prevOrderRes.data.reduce((a, b) => a + (b.productSales || 0), 0) +

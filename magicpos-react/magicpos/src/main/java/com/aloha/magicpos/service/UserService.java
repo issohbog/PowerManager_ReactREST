@@ -69,4 +69,10 @@ public interface UserService {
     // 👮‍♀️ 관리자 확인
     public boolean isAdmin() throws Exception;
 
+    // 권한 조회
+    public List<Auths> selectAuths(Long no) throws Exception;
+
+    // 아이디/비번 검증
+    public boolean isValid(String usernameOrId, String rawPassword) throws Exception;
+
 }
