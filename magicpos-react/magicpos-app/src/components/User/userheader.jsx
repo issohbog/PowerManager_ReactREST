@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
+function UserHeader({ usageInfo, usedTime, remainTime, onLogout, onOpenTicketModal }) {
   // 분을 초로 변환해서 상태 관리
   const [usedSeconds, setUsedSeconds] = useState((usedTime || 0) * 60);
   const [remainSeconds, setRemainSeconds] = useState((remainTime || 0) * 60);
@@ -51,12 +51,16 @@ function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
             >
               먹거리 주문
             </button>
-            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}>
+
+            <button
+              style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}
+              onClick={onOpenTicketModal}
+            >
               요금제 구매
             </button>
             <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}>
               메세지
-            </button>
+            </button> 
           </div>
 
           {/* 오른쪽 정보박스 */}

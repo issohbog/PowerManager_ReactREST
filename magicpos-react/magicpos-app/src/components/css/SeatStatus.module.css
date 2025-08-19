@@ -83,7 +83,7 @@
     color: white;
   }
 
-  .time-left {
+  .timeLeft {
     position: absolute;
     top: 27px;
     right: 6px;
@@ -91,11 +91,11 @@
     font-size: 17px;
   }
 
-  .in-use-green .time-left {
+  .in-use-green .timeLeft {
     color: black;
   }
 
-  .in-use-red .time-left {
+  .in-use-red .timeLeft {
     color: white;
   }
 

@@ -1,9 +1,11 @@
 package com.aloha.magicpos.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.magicpos.domain.Seats;
 import com.aloha.magicpos.domain.Users;
@@ -22,11 +25,24 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
+@RestController
 @RequestMapping("/seats")
 public class SeatController {
 
     @Autowired
     private SeatService seatService;
+
+    // 현재 이용중인 좌석 / 전체 좌석 조회  (관리자화면 헤더 용)
+    @GetMapping("/count")
+    public ResponseEntity<Map<String, Object>> seatInfo() throws Exception {
+        
+        Map<String, Object> seatInfo = new HashMap<>();
+        seatInfo.put("success", true); // 성공 여부 추가
+        seatInfo.put("currentUsage", seatService.countUsingSeats());
+        seatInfo.put("totalSeats", seatService.countAllSeats());
+
+        return ResponseEntity.ok(seatInfo);
+    }
 
     // ✅ 전체 좌석 목록 조회
     @GetMapping
