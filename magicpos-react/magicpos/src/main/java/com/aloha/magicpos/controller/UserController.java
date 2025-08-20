@@ -154,6 +154,13 @@ public class UserController {
         return ResponseEntity.ok(response);  // JSON 응답으로 성공 여부와 메시지 전달
     }
     
+    // 아이디 중복 체크 
+    @GetMapping("/check-id")
+    public ResponseEntity<Map<String, Boolean>> IdCheck(@RequestParam("id") String id) {
+        boolean exists = userService.isIdExist(id);
+        return ResponseEntity.ok(Collections.singletonMap("exists", exists));          // key, value 가 1쌍인 map
+    }
+
 
     // 아이디 중복 체크 
     @GetMapping("/admin/check-id")

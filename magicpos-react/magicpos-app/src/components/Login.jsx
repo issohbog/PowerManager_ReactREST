@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./css/login.module.css";
 
-const Login = ({ onLogin, error }) => {
+const Login = ({ onLogin, error, onJoinClick }) => {
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -69,7 +69,22 @@ const Login = ({ onLogin, error }) => {
               </div>
             </form>
             <div className={styles.loginOption}>
-              <a href="/users/new" style={{ color: "#f0f0f0", textDecoration: "none" }}>회원가입</a>
+              {/* 회원가입: 페이지 이동 대신 모달 열기 */}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); onJoinClick && onJoinClick(); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#f0f0f0',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  font: 'inherit'
+                }}
+              >
+                회원가입
+              </button>
               <a href="/find-id" style={{ color: "#f0f0f0", textDecoration: "none" }}>아이디 찾기</a>
               <a href="/find-password" style={{ color: "#f0f0f0", textDecoration: "none" }}>비밀번호 찾기</a>
             </div>

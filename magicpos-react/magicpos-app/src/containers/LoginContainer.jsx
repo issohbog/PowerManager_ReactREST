@@ -1,10 +1,15 @@
 import React, { useContext, useState } from 'react'
 import Login from '../components/Login'
 import { LoginContext } from '../contexts/LoginContext'
+import JoinContainer from './JoinContainer'
 
 const LoginContainer = () => {
   const { login } = useContext(LoginContext)
   const [error, setError] = useState('')
+
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const openJoinModal = () => setShowJoinModal(true)
+  const closeJoinModal = () => setShowJoinModal(false)
 
 const handleLogin = async (form) => {
   try {
@@ -17,7 +22,12 @@ const handleLogin = async (form) => {
   }
 }
 
-  return <Login onLogin={handleLogin} error={error} />
+  return (
+    <>
+      <Login onLogin={handleLogin} error={error} onJoinClick={openJoinModal} />
+  {showJoinModal && <JoinContainer onClose={closeJoinModal} />}
+    </>
+  )
 }
 
 export default LoginContainer

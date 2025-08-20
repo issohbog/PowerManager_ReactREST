@@ -1,0 +1,172 @@
+/* userSignup.module.css */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.userSignupBody {
+  margin: 0;
+  background-color: #2C3E50;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #F4D03F;
+}
+
+.userSignupContainer {
+  width: 400px;
+  margin: auto;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.userSignupTitle {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #F4D03F;
+}
+
+.userSignupBox {
+  background-color: rgba(255,255,255,0.03);
+}
+
+.userSignupGroup {
+  margin-bottom: 30px;
+}
+
+.userSignupFormGroup {
+  /* margin-bottom: 16px; */
+}
+
+.userSignupFormGroup input {
+  width: 100%;
+  padding: 15px 12px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: inherit;
+  color: #ffffff;
+}
+
+.userSignupFormGroup input:focus {
+  outline: 2px solid #F4D03F;
+}
+
+#userSignupId, #userSignupName {
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.userSignupPasswordBox {
+  position: relative;
+}
+
+.userSignupPasswordBox input {
+  width: 100%;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.userSignupEyeBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+}
+
+.userSignupDivider {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 30px 0;
+}
+
+.userSignupErrorList {
+  color: #ff4d4d;
+  font-size: 13px;
+  list-style-type: disc;
+  margin-top: 10px;
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.userSignupSubmitBtn {
+  width: 100%;
+  padding: 12px;
+  background-color: #F4D03F;
+  color: #2C3E50;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.userSignupSubmitBtn:hover {
+  background-color: #e1bf32;
+}
+
+.userSignupGenderButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 3px;
+  border-right: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  padding: 2px 3px 2px 3px;
+  width: 100%;
+}
+
+.userSignupGenderBtn {
+  width: 50%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: inherit;
+  color: #ccc;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.userSignupGenderBtnActive,
+.userSignupGenderBtn:hover {
+  background-color: #F4D03F;
+  color: #2C3E50;
+  border-color: #F4D03F;
+}
+
+.userSignupGenderBtnSelected {
+  background-color: #F4D03F;
+  color: #2C3E50;
+  border: 1px solid #F4D03F;
+}
+
+#userSignupEmail {
+  border-bottom: none;
+}
+
+#userSignupPhone {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.tologin {
+  justify-content: center;
+  display: flex;
+  margin-top: 15px;
+}
+
+.errorBorder {
+  border: 2px solid red !important;
+}

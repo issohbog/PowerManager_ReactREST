@@ -134,13 +134,13 @@ public class TossPaymentsController {
             // result.put("orderId", orderId);
             // result.put("amount", amount);
             // return ResponseEntity.ok(result);
-            // return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
-            return new RedirectView("http://localhost:5173/admin/" + currentPage + "?payment=success");
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
+            // return new RedirectView("http://localhost:5173/admin/" + currentPage + "?payment=success");
 
         } catch (Exception e) {
             log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage(), e);
-            // return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
-            return new RedirectView("http://localhost:5173/admin/" + currentPage + "/payment=fail");
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
+            // return new RedirectView("http://localhost:5173/admin/" + currentPage + "/payment=fail");
 
         }
 
@@ -194,8 +194,8 @@ public class TossPaymentsController {
         // return ResponseEntity.ok(result);
 
 
-        // return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
-        return new RedirectView("http://localhost:5173/menu?ticketPayment=success");
+        return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
+        // return new RedirectView("http://localhost:5173/menu?ticketPayment=success");
     }
     
     // 사용자 요금제 결제 실패
