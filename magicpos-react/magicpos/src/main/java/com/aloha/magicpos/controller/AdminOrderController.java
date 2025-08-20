@@ -385,22 +385,5 @@ public class AdminOrderController {
         }
     }
 
-    @GetMapping("/cart/json")
-    public ResponseEntity<?> getCartList(HttpSession session) {
-        try {
-            Object userNoObj = session.getAttribute("userNo");
-            Long userNo = null;
-            if (userNoObj instanceof Integer) {
-                userNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                userNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                userNo = Long.valueOf(userNoObj.toString());
-            }
-            List<Map<String, Object>> cart = cartService.findCartWithProductByUser(userNo);
-            return ResponseEntity.ok(cart);
-        } catch (Exception e) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
-    }
+
 }

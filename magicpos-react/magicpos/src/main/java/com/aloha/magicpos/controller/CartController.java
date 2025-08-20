@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.aloha.magicpos.domain.Carts;
+import com.aloha.magicpos.domain.CustomUser;
 import com.aloha.magicpos.service.CartService;
 import com.aloha.magicpos.service.ProductService;
 
@@ -35,26 +37,13 @@ public class CartController {
     // 장바구니에 항목 추가
     @PostMapping("/add")
     @ResponseBody
-    public ResponseEntity<?> addToCartRest(@RequestBody Carts carts, HttpSession session) {
+    public ResponseEntity<?> addToCartRest(@RequestBody Carts carts, HttpSession session, @AuthenticationPrincipal CustomUser cu) {
         try {
             log.info("🧪 받은 carts 데이터: {}", carts);
             log.info("🧪 carts.getPNo(): {}", carts.getPNo());
             
-            // ✅ 세션에서 userNo 가져오기 (없으면 기본값 1 사용)
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = 1L; // 기본값 설정
-            
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            } else {
-                // 세션에 userNo가 없으면 기본 사용자로 설정
-                log.warn("⚠️ 세션에 userNo가 없습니다. 기본값 1 사용");
-                session.setAttribute("userNo", 1L);
-            }
+            // ✅ 2. userNo 안전하게 변환
+            Long uNo = cu.getUser().getNo();
             
             carts.setUNo(uNo);
             

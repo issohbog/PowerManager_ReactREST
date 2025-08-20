@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { LoginContext } from '../../contexts/LoginContext';
 
-function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
+function UserHeader({ usageInfo, usedTime, remainTime }) {
+  const { logout } = useContext(LoginContext)
   // 분을 초로 변환해서 상태 관리
   const [usedSeconds, setUsedSeconds] = useState((usedTime || 0) * 60);
   const [remainSeconds, setRemainSeconds] = useState((remainTime || 0) * 60);
@@ -77,7 +79,7 @@ function UserHeader({ usageInfo, usedTime, remainTime, onLogout }) {
             </div>
             <div style={{ width: "100px", height: "60px", backgroundColor: "#1e2b38", padding: "5px 10px", borderRadius: "5px", textAlign: "center", fontSize: "16px" }}>
               <button
-                onClick={onLogout}
+                onClick={() => logout()}
                 style={{ all: "unset", fontSize: "13px", cursor: "pointer" }}
               >
                 <span>사용종료</span><br />
