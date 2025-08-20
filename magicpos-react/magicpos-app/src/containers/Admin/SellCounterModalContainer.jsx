@@ -11,6 +11,7 @@ import {
   getAdminPaymentInfo,
   confirmAdminPayment
 } from '../../apis/sellcounter';
+import Swal from 'sweetalert2'
 
 const SellCounterModalContainer = ({ isVisible, onClose }) => {
   const [categories, setCategories] = useState([]);
@@ -98,10 +99,10 @@ const SellCounterModalContainer = ({ isVisible, onClose }) => {
           pNameList,
           stockList
         });
-        alert('✅ 주문이 완료되었습니다!');
+        Swal.fire('주문 완료', '주문이 완료되었습니다!', 'success');
         loadCart();
       } catch (err) {
-        alert('❌ 주문 실패');
+        Swal.fire('주문 실패', '주문 실패', 'error');
       }
       return;
     }
@@ -171,7 +172,7 @@ const SellCounterModalContainer = ({ isVisible, onClose }) => {
       confirmAdminPayment({ paymentKey, orderId, amount })
         .then(res => {
           if (res.data.success) {
-            alert('✅ 결제 성공! 주문이 완료되었습니다.');
+            Swal.fire('결제 성공', '주문이 완료되었습니다!', 'success');
             loadCart();
           } else {
             alert('❌ 주문 처리 실패: ' + res.data.message);
@@ -183,7 +184,7 @@ const SellCounterModalContainer = ({ isVisible, onClose }) => {
           window.history.replaceState({}, '', '/admin');
         });
     } else if (paymentResult === 'fail') {
-      alert('❌ 결제 실패! 다시 시도해주세요.');
+      Swal.fire('결제 실패', '결제 실패, 다시 시도해주세요.', 'error');
       window.history.replaceState({}, '', '/admin');
     }
   }, []);

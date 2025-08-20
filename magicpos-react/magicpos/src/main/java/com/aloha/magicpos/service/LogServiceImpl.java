@@ -1,32 +1,54 @@
 package com.aloha.magicpos.service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.aloha.magicpos.mapper.LogMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service("LogService")
+@RequiredArgsConstructor
 public class LogServiceImpl implements LogService{
-    @Autowired
-    private LogMapper logMapper;
+    
+    private final LogMapper logMapper;
+
+    private final SimpMessagingTemplate messagingTemplate;
 
     // 로그 삽입
     @Override
     public void insertLog(Long uNo, String seatId, String actionType, String description) {
         logMapper.insertLog(uNo, seatId, actionType, description);
+        sendAdminLog(uNo, seatId, actionType, description);
     }
 
     // 로그 삽입 seat_id : X
     @Override
     public void insertLogNoSeatId(Long uNo, String actionType, String description) {
         logMapper.insertLogNoSeatId(uNo, actionType, description);
+        sendAdminLog(uNo, null, actionType, description);
+    }
+
+    /** 관리자 브라우저가 구독하는 토픽(/topic/admin/logs)으로 전송 */
+    private void sendAdminLog(Long uNo, String seatId, String actionType, String description) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userNo", uNo);
+        if (seatId != null) payload.put("seatId", seatId);
+        payload.put("actionType", actionType);
+        payload.put("description", description);
+        payload.put("createdAt", Instant.now().toString());
+
+        // WebSocketConfig.enableSimpleBroker("/topic") 기준
+        messagingTemplate.convertAndSend("/topic/admin/logs", payload);
     }
     
 

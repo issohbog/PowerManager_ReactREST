@@ -82,22 +82,22 @@ const LoginContextProvider = ({ children }) => {
           rememberId,
         }
         const hook = await api.post('/auth/after-login', payload)
-        if (hook?.data?.success && hook?.data?.redirect) {
-          window.location.href = hook.data.redirect
-          return
-        }
+        Swal.fire('로그인 성공', '메인 화면으로 이동합니다.', 'success').then(() => {
+          // after-login hook 성공 시에는 window.location.href로 이동
+          if (hook?.data?.success && hook?.data?.redirect) {
+            window.location.href = hook.data.redirect
+            return
+          }
+          // 권한 분기 기본 라우팅
+          const r = extractRoles(body?.user ? body.user : body)
+          navigate(r.isAdmin ? '/admin' : '/menu')
+        })
       } catch (e) {
-        console.warn('after-login hook failed (ignored):', e)
+        Swal.fire('좌석 오류', '이미 사용 중이거나 고장난 좌석입니다. 다른 좌석을 입력해주세요.', 'error')
       }
-
-      // 권한 분기 기본 라우팅
-      const r = extractRoles(body?.user ? body.user : body)
-      navigate(r.isAdmin ? '/admin' : '/menu')
-
-      window.alert('로그인 성공: 메인 화면으로 이동합니다.')
     } catch (err) {
       console.error('❌ 로그인 실패:', err)
-      window.alert('로그인 실패: 아이디 또는 비밀번호를 확인하세요.')
+      Swal.fire('로그인 실패', '아이디 또는 비밀번호를 확인하세요.', 'error')
     }
   }
 
@@ -139,12 +139,18 @@ const LoginContextProvider = ({ children }) => {
 
   // 🌞 로그아웃
   const logout = async (force = false) => {
-    const doLogout = () => {
+    const doLogout = async () => {
+      try {
+        // 백엔드 로그아웃 API 호출
+        await api.post('/auth/logout')
+      } catch (e) {
+        console.warn('백엔드 로그아웃 실패(무시):', e)
+      }
       cleanupAuth()
       navigate('/')
       Swal.fire('로그아웃', '로그아웃 되었습니다.', 'success')
     }
-    if (force) { doLogout(); return }
+    if (force) { await doLogout(); return }
     const result = await Swal.fire({
       title: '로그아웃 하시겠습니까?',
       icon: 'warning',
@@ -152,7 +158,7 @@ const LoginContextProvider = ({ children }) => {
       confirmButtonText: '로그아웃',
       cancelButtonText: '취소'
     })
-    if (result.isConfirmed) doLogout()
+    if (result.isConfirmed) await doLogout()
   }
 
   // 마운트 시 자동로그인 시도 + 로딩 해제

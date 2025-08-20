@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import powerIcon from '/images/전원.png'
 import styles from './css/Header.module.css'
 import { fetchSeatInfo } from '../../../apis/seatStatus'
-const Header = () => {
+import { LoginContext } from '../../../contexts/LoginContext';
 
+const Header = () => {
+  const { logout } = useContext(LoginContext)
   const [usedSeat, setUsedSeat] = useState(0);
   const [totalSeat, setTotalSeat] = useState(0);
 
@@ -80,10 +82,9 @@ const Header = () => {
             fontSize: '16px'
           }}
         >
-          <form action="/logout" method="post">
             {/* CSRF 토큰은 리액트에선 보통 JWT나 쿠키 기반이므로 생략하거나 별도 처리 */}
             <button
-              type="submit"
+              onClick={() => logout()}
               style={{ all: 'unset', fontSize: '15px', cursor: 'pointer' }}
             >
               <span style={{ color: 'white' }}>사용종료</span>
@@ -94,7 +95,6 @@ const Header = () => {
                 alt="logout"
               />
             </button>
-          </form>
         </div>
       </div>
     </div>

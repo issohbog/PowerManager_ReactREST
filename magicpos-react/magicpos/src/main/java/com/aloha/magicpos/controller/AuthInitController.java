@@ -17,6 +17,7 @@ import com.aloha.magicpos.domain.Users;
 import com.aloha.magicpos.mapper.LogMapper;
 import com.aloha.magicpos.mapper.SeatMapper;
 import com.aloha.magicpos.mapper.UserTicketMapper;
+import com.aloha.magicpos.service.LogService;
 import com.aloha.magicpos.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthInitController {
 
     private final UserTicketMapper userTicketMapper;
-    private final LogMapper logMapper;
+    private final LogService logService;
     private final SeatMapper seatMapper;
     private final UserService userService; // 필요시
 
@@ -72,7 +73,7 @@ public class AuthInitController {
         if (isAdmin) {
             log.info("관리자 로그인 초기화 완료: userNo={}", userNo);
             // 로그인 로그 저장 (선택)
-            logMapper.insertLog(userNo, null, "로그인/로그아웃", username + "님이 로그인하셨습니다.");
+            logService.insertLog(userNo, null, "로그인/로그아웃", username + "님이 로그인하셨습니다.");
             return ResponseEntity.ok(Map.of("success", true, "redirect", "/admin"));
         }
 
@@ -86,7 +87,7 @@ public class AuthInitController {
         int remainingTime = (remain != null) ? remain.intValue() : 0;
 
         // 로그인 로그
-        logMapper.insertLog(userNo, null, "로그인/로그아웃", username + "님이 로그인하셨습니다.");
+        logService.insertLog(userNo, null, "로그인/로그아웃", username + "님이 로그인하셨습니다.");
 
         // seatId가 오면 좌석 점유/예약
         if (seatId != null && !seatId.isBlank()) {

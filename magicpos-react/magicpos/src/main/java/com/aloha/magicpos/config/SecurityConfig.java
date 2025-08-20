@@ -95,6 +95,7 @@ public class SecurityConfig {
                     "/userticket/insert"
                 ).hasAnyRole("USER","ADMIN")
                 // 그 외는 인증 필요
+                .requestMatchers("/ws").permitAll() // WebSocket 엔드포인트 허용
                 .anyRequest().authenticated()
             )
             // 유저 디테일 서비스
@@ -127,4 +128,3 @@ public class SecurityConfig {
         return source;
     }
 }
- 

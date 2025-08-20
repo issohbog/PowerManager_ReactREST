@@ -39,7 +39,7 @@ const SidebarRight = ({ onOrderPopupToggle }) => {
         <span>상품</span>
       </a>
 
-      <a href="/admin/history/today/all">
+      <a href="/admin/todayhistory">
         <img src="/images/product-clock.png" alt="판매현황" />
         <span>
           판매<br />현황
