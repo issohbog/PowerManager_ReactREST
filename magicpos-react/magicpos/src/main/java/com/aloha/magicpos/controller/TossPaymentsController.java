@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +37,7 @@ import com.aloha.magicpos.service.OrderService;
 import com.aloha.magicpos.service.ProductService;
 import com.aloha.magicpos.service.TicketService;
 import com.aloha.magicpos.service.UserService;
+import com.aloha.magicpos.domain.CustomUser;
 import com.aloha.magicpos.domain.Orders;
 import com.aloha.magicpos.domain.OrdersDetails;
 import com.aloha.magicpos.domain.Tickets;
@@ -237,8 +239,8 @@ public class TossPaymentsController {
             paymentInfo.put("orderId", orderId);
             paymentInfo.put("orderName", orderName);
             paymentInfo.put("customerName", orderData.get("customerName"));
-            paymentInfo.put("successUrl", "http://localhost:5173/menu?payment=success");
-            paymentInfo.put("failUrl", "http://localhost:5173/menu?payment=fail");
+            paymentInfo.put("successUrl", "http://192.168.30.6:5173/menu?payment=success");
+            paymentInfo.put("failUrl", "http://192.168.30.6:5173/menu?payment=fail");
             
             // 세션에 주문 정보 임시 저장
             session.setAttribute("tempOrder_" + orderId, orderData);
@@ -382,8 +384,8 @@ public class TossPaymentsController {
         result.put("orderName", orderName);
         result.put("amount", totalPrice);
         result.put("customerName", customerName); // 또는 로그인 유저 이름 등
-        result.put("successUrl", "http://localhost:5173/admin?payment=success");
-        result.put("failUrl", "http://localhost:5173/admin?payment=fail");
+        result.put("successUrl", "http://192.168.30.6:5173/admin?payment=success");
+        result.put("failUrl", "http://192.168.30.6:5173/admin?payment=fail");
 
         return result;
     }
@@ -392,7 +394,7 @@ public class TossPaymentsController {
     @PostMapping("/admin/payment/product/success")
     public ResponseEntity<Map<String, Object>> adminProductPaymentSuccess(
             @RequestBody Map<String, Object> paymentData,
-            HttpSession session) {
+            HttpSession session, @AuthenticationPrincipal CustomUser cu) {
 
         String paymentKey = (String) paymentData.get("paymentKey");
         String orderId = (String) paymentData.get("orderId");
@@ -413,16 +415,11 @@ public class TossPaymentsController {
             // ✅ 2. 주문 기본 정보
             String seatId = temp.get("seatId").toString();
 
-            Object userNoObj = session.getAttribute("userNo");
+            // ✅ 2. userNo 안전하게 변환
+            Long userNo = cu.getUser().getNo();
 
-            Long userNo = null;
-            if (userNoObj instanceof Integer) {
-                userNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                userNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                userNo = Long.valueOf(userNoObj.toString());
-            }
+            // 3.username 안전하게 변환
+            String username = cu.getUser().getUsername();
             String payment = (String) temp.get("payment");
             
             // ✅ 3. 주문 insert
@@ -461,8 +458,6 @@ public class TossPaymentsController {
             cartService.deleteAllByUserNo(userNo);
 
             // ✅ 5. 로그 남기기
-            Users user = (Users) session.getAttribute("usageInfo");
-            String username = (user != null) ? user.getUsername() : "알 수 없음";
             String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
             logService.insertLog(userNo, seatId, "상품 구매", desc);
 

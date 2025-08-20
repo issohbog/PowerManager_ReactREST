@@ -61,10 +61,10 @@ public class OrderController {
             log.info("🛒 주문 데이터 받음: {}", orderData);
             
             // ✅ 1. 요청 데이터 파싱
-            String seatId = orderData.get("seatId").toString();
-            String payment = orderData.get("payment").toString();
-            String message = orderData.get("message").toString();
-            Long totalPrice = Long.valueOf(orderData.get("totalPrice").toString());
+            String seatId = orderData.get("seatId") != null ? orderData.get("seatId").toString() : "";
+            String payment = orderData.get("payment") != null ? orderData.get("payment").toString() : "";
+            String message = orderData.get("message") != null ? orderData.get("message").toString() : "";
+            Long totalPrice = orderData.get("totalPrice") != null ? Long.valueOf(orderData.get("totalPrice").toString()) : 0L;
             
 
             // ✅ 현금 관련 데이터 파싱
@@ -96,8 +96,12 @@ public class OrderController {
                 .map(cart -> cart.get("p_name").toString())
                 .collect(Collectors.toList());
 
+                
             // ✅ 2. userNo 안전하게 변환
             Long userNo = cu.getUser().getNo();
+
+            // 3.username 안전하게 변환
+            String username = cu.getUser().getUsername();
 
             // ✅ 4. 주문 전 재고 체크
             for (int i = 0; i < pNoList.size(); i++) {
@@ -156,8 +160,6 @@ public class OrderController {
             cartService.deleteAllByUserNo(userNo);
 
             // ✅ 8. 로그 추가
-            Users user = (Users) session.getAttribute("usageInfo");
-            String username = (user != null) ? user.getUsername() : "알 수 없음";
             String description = username + "님이 " + order.getTotalPrice() + "원어치 상품을 주문하였습니다.";
             logService.insertLog(userNo, seatId, "상품 구매", description);
             
