@@ -69,7 +69,7 @@ public class SecurityConfig {
                 // 로그인/회원가입/토큰 재발급 등 공개 엔드포인트
                 .requestMatchers(
                     "/login", "/auth/login", "/auth/refresh", "/api/login",
-                    "/users/signup", "/users/new", "/users/admin/check-id"
+                    "/users/signup", "/users/new", "/users/admin/check-id", "/users/check-id"
                 ).permitAll()
                 // 공개 API가 더 있으면 여기에 추가
                 .requestMatchers(
@@ -115,7 +115,7 @@ public class SecurityConfig {
 
         CorsConfiguration cfg = new CorsConfiguration();
 
-        cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174"));
+        cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174", "http://192.168.30.36:5173", "http://192.168.30.36:5174"));
         cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(Arrays.asList("*"));
         cfg.setAllowCredentials(true);
