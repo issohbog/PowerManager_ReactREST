@@ -88,14 +88,20 @@ public class AdminController {
     }
 
     @PostMapping("/admin/seats/clear/{seatId}")
-    @ResponseBody
-    public String O(@PathVariable("seatId") String seatId) {
+    public ResponseEntity<Map<String, Object>> clearSeat(@PathVariable("seatId") String seatId) {
+        Map<String, Object> result = new HashMap<>();
         try {
-            boolean result = seatService.clearSeat(seatId);
-            return result ? "success" : "fail";
+            boolean success = seatService.clearSeat(seatId);
+            result.put("success", success);
+            result.put("message", success ? "좌석이 정상적으로 초기화되었습니다." : "좌석 초기화에 실패했습니다.");
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return "error";
-        }   
+            log.error("좌석 초기화 중 오류 발생", e);
+            result.put("success", false);
+            result.put("message", "좌석 초기화 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(result);
+        }
+        
     }
 
     // 카테고리 불러오기
