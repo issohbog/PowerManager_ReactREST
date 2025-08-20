@@ -46,7 +46,7 @@ public class UserTicketController {
     private UserService userService;
     
     // 이용권 목록 조회 - 관리자 이용권 결제용     [✔ REST API 구현 완료] 
-    @GetMapping("/admin/tickets")
+    @GetMapping("/tickets")
     public ResponseEntity<Map<String, Object>> ticketlist(Model model) throws Exception {
         Map<String, Object> result = new HashMap<>();
         List<Tickets> tickets = ticketService.findAll();
@@ -184,7 +184,7 @@ public class UserTicketController {
         log.info("customerName : {}", customerName);
 
         result.put("successUrl", "http://" + ip + ":8080/users/payment/ticket/success?userNo=" + userNo + "&ticketNo=" + ticketNo);
-        result.put("failUrl", "http://"+ ip + ":8080/users/payment/ticket/fail");
+        result.put("failUrl", "http://" + ip + ":8080/users/payment/ticket/fail");
 
         return ResponseEntity.ok(result);
     }

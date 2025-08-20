@@ -72,6 +72,11 @@ public class SecurityConfig {
                     "/users/signup", "/users/new", "/users/admin/check-id"
                 ).permitAll()
                 // 공개 API가 더 있으면 여기에 추가
+                .requestMatchers(
+                    "/admin/payment/ticket/success",            // 관리자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
+                    "/users/payment/ticket/success",                        // 사용자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
+                    "/upload/**"                                            // 업로드된 이미지 상품 수정시 나오도록 접근 허용
+                ).permitAll()
                 // 관리자 전용
                 .requestMatchers(
                     "/admin/**",
@@ -109,10 +114,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration cfg = new CorsConfiguration();
+
         cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174"));
         cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(Arrays.asList("*"));
         cfg.setAllowCredentials(true);
+
 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -120,3 +127,4 @@ public class SecurityConfig {
         return source;
     }
 }
+ 
