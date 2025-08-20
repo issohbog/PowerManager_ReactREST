@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { LoginContext } from '../../contexts/LoginContext';
 
 
-function UserHeader({ usageInfo, usedTime, remainTime }) {
+function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
   const { logout } = useContext(LoginContext)
 
   // 분을 초로 변환해서 상태 관리
