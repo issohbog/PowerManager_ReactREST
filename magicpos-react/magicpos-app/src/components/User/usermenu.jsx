@@ -86,7 +86,7 @@ function UserMenu({
 
     // 3. 최종 주문 데이터 구성
     let finalOrderData = {
-      seatId: usageInfo.seat_id,
+      seatId: usageInfo.seatId,
       cartList,
       totalPrice,
       payment: orderData.payment,
@@ -202,7 +202,7 @@ function UserMenu({
       {/* 사이드 패널 */}
       <div className="side-panel">
         <div className="seat-info">
-          <div>좌석번호 <strong>{usageInfo.seat_id || "50"}</strong></div>
+          <div>좌석번호 <strong>{usageInfo.seatId || "50"}</strong></div>
           <button id="openModalBtn" onClick={onOpenOrderModal}>주문내역보기</button>
         </div>
         

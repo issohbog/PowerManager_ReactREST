@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,12 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.magicpos.domain.Carts;
 import com.aloha.magicpos.domain.Categories;
+import com.aloha.magicpos.domain.CustomUser;
 import com.aloha.magicpos.domain.Orders;
 import com.aloha.magicpos.domain.OrdersDetails;
 import com.aloha.magicpos.domain.Seats;
 import com.aloha.magicpos.domain.Users;
 import com.aloha.magicpos.service.CartService;
 import com.aloha.magicpos.service.CategoryService;
+import com.aloha.magicpos.service.LogService;
 import com.aloha.magicpos.service.OrderService;
 import com.aloha.magicpos.service.ProductService;
 import com.aloha.magicpos.service.SeatReservationService;
@@ -65,6 +68,8 @@ public class AdminController {
     @Autowired
     private SeatReservationService seatReservationService;
 
+    @Autowired
+    private LogService logService;
 
     @GetMapping("/admin")
     public ResponseEntity<Map<String, Object>> findAllSeat() throws Exception {
@@ -119,7 +124,7 @@ public class AdminController {
         @RequestParam(value = "payment", required = false) String payment,
         @RequestParam(value = "stockList", required = false) List<String> stockList,
         @RequestParam(value = "totalPrice", required = false) String totalPrice,
-        HttpSession session
+        HttpSession session, @AuthenticationPrincipal CustomUser cu
     ) throws Exception {
 
         log.info("🔥🔥🔥 insertOrder 진입됨");
@@ -153,20 +158,11 @@ public class AdminController {
         log.info("payment = {}", payment);
         log.info("stockList = {}", stockList);
 
-        // ✅ 세션 유저 설정 (안전하게 변환)
-        Object userNoObj = session.getAttribute("userNo");
-        Long userNo = null;
-        if (userNoObj instanceof Integer) {
-            userNo = ((Integer) userNoObj).longValue();
-        } else if (userNoObj instanceof Long) {
-            userNo = (Long) userNoObj;
-        } else if (userNoObj != null) {
-            userNo = Long.valueOf(userNoObj.toString());
-        }
-        if (userNo == null) {
-            userNo = 1L; // 테스트용 기본값
-            session.setAttribute("userNo", userNo);
-        }
+        // ✅ 2. userNo 안전하게 변환
+        Long userNo = cu.getUser().getNo();
+
+        // 3.username 안전하게 변환
+        String username = cu.getUser().getUsername();
 
         // ✅ 재고 확인
         for (int i = 0; i < pNoList.size(); i++) {
@@ -210,6 +206,10 @@ public class AdminController {
             orderService.insertOrderDetail(oNo, detail);
             productService.decreaseStock(Long.parseLong(pNoList.get(i)), quantityList.get(i));
         }
+
+        // ✅ 5. 로그 남기기
+        String desc = username + "님이 " + totalPrice + "원어치 상품을 결제했습니다.";
+        logService.insertLog(userNo, seatId, "상품 구매", desc);
 
         // ✅ 장바구니 비우기
         cartService.deleteAllByUserNo(userNo);

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.magicpos.domain.Carts;
+import com.aloha.magicpos.domain.CustomUser;
 import com.aloha.magicpos.domain.Orders;
 import com.aloha.magicpos.service.CartService;
 import com.aloha.magicpos.service.OrderService;
@@ -42,17 +44,9 @@ public class AdminOrderpopup {
 
     // ✅ 장바구니에 항목 추가
     @PostMapping("/admin/sellcounter/add")
-    public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Carts carts, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Carts carts, HttpSession session, @AuthenticationPrincipal CustomUser cu) {
         try {
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = null;
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            }
+            Long uNo = cu.getUser().getNo();
             carts.setUNo(uNo);
             if (carts.getQuantity() == null) {
                 carts.setQuantity(1L);
@@ -112,18 +106,11 @@ public class AdminOrderpopup {
 
     // ✅ 장바구니 수량 증가
     @PostMapping("/admin/sellcounter/increase")
-    public ResponseEntity<Map<String, Object>> increaseQuantity(@RequestBody Map<String, Long> body, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> increaseQuantity(@RequestBody Map<String, Long> body, 
+    HttpSession session, @AuthenticationPrincipal CustomUser cu) {
         try {
             Long pNo = body.get("pNo");
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = null;
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            }
+            Long uNo = cu.getUser().getNo();
 
             // 현재 장바구니 수량 조회
             Long cartQty = cartService.getQuantity(uNo, pNo);
@@ -158,18 +145,11 @@ public class AdminOrderpopup {
 
     // ✅ 장바구니 수량 감소
     @PostMapping("/admin/sellcounter/decrease")
-    public ResponseEntity<Map<String, Object>> decreaseQuantity(@RequestBody Map<String, Long> body, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> decreaseQuantity(@RequestBody Map<String, Long> body, 
+    HttpSession session, @AuthenticationPrincipal CustomUser cu) {
         try {
             Long pNo = body.get("pNo");
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = null;
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            }
+            Long uNo = cu.getUser().getNo();
 
             cartService.decreaseQuantity(uNo, pNo);
 
@@ -186,4 +166,12 @@ public class AdminOrderpopup {
             ));
         }
     }
+
+    @GetMapping("/admin/orders/cart/json")
+    public ResponseEntity<?> getCartList(HttpSession session, @AuthenticationPrincipal CustomUser cu) {
+        Long uNo = cu.getUser().getNo();
+        List<Map<String, Object>> cart = cartService.findCartWithProductByUser(uNo);
+        return ResponseEntity.ok(cart);
+    }
 }
+
