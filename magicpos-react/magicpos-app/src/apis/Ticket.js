@@ -1,7 +1,7 @@
 import api from "./axios";
 
 // 이용권 목록 조회 (관리자, 사용자)
-export const fetchTickets = () => api.get('/usertickets/admin/tickets');
+export const fetchTickets = () => api.get('/usertickets/tickets');
 
 // 이용권 등록 전 회원 검색 (관리자)
 export const searchUsersForTicket = (keyword) => api.get('/usertickets/admin/usersearch', { params: { keyword } });
