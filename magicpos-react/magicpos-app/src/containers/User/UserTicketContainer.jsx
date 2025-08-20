@@ -12,6 +12,7 @@ const UserTicketContainer = ({ open, onClose, usageInfo }) => {
       const loadTickets = async () => {
         const response = await fetchTickets();      // 티켓 목록 가져오는 API 호출
         const data = response.data || {};
+        console.log("티켓 조회 : ", data);
         setTicketList(data.tickets || []);
       };
 
@@ -33,14 +34,14 @@ const UserTicketContainer = ({ open, onClose, usageInfo }) => {
       return;
     };
 
-    if (!usageInfo?.user_no) {
+    if (!usageInfo?.userNo) {
       alert('사용자 정보를 불러올 수 없습니다.');
       return;
     }
 
     // 1. 결제 정보 벡엔드에서 받아오기 
     const res = await fetchPaymentInfo({
-      userNo: usageInfo.user_no,
+      userNo: usageInfo.userNo,
       ticketNo: selectedTicket.no,
     })
     console.log("ticketNo : ", selectedTicket.no);

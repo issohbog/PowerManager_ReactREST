@@ -10,5 +10,5 @@ export const select = () => api.get('/admin');
 // 좌석 상태 변경 (청소중 -> 이용가능)
 export const clearSeat = (seatId) => api.post(`/admin/seats/clear/${seatId}`);
 
-export const select = () => api.get('/admin');
+
 
