@@ -6,6 +6,10 @@ import SidebarRight from './SidebarRight'
 import OrderPopupContainer from '../../../containers/Admin/OrderPopupContainer'
 import AdminTicketContainer from '../../../containers/Admin/AdminTicketContainer' // 👮‍♀️🎫 관리자 요금제 구매 모달 컨테이너
 import TicketSuccessModal from '../modal/TicketSuccessModal'
+import { Client } from '@stomp/stompjs';
+import Swal from 'sweetalert2';
+
+
 
 const AdminLayout = () => {
   // ✅ OrderPopup 상태 관리
@@ -43,6 +47,26 @@ const AdminLayout = () => {
     }
     
   }, []);
+
+  useEffect(() => {
+    const client = new Client({
+      brokerURL: 'ws://localhost:8080/ws',
+      connectHeaders: {},
+      onConnect: () => {
+        client.subscribe('/topic/admin/logs', message => {
+          const payload = JSON.parse(message.body);
+          Swal.fire('관리자 알림', payload.description, 'info');
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance(payload.description));
+        });
+      },
+      debug: str => console.log(str),
+      reconnectDelay: 5000,
+    });
+    client.activate();
+    return () => client.deactivate();
+  }, []);
+
+
 
   return (
     <>

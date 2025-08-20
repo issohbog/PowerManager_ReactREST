@@ -134,13 +134,13 @@ public class TossPaymentsController {
             // result.put("orderId", orderId);
             // result.put("amount", amount);
             // return ResponseEntity.ok(result);
-            // return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
-            return new RedirectView("http://localhost:5173/admin/" + currentPage + "?payment=success");
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
+            // return new RedirectView("http://localhost:5173/admin/" + currentPage + "?payment=success");
 
         } catch (Exception e) {
             log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage(), e);
-            // return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
-            return new RedirectView("http://localhost:5173/admin/" + currentPage + "/payment=fail");
+            return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
+            // return new RedirectView("http://localhost:5173/admin/" + currentPage + "/payment=fail");
 
         }
 
@@ -194,8 +194,8 @@ public class TossPaymentsController {
         // return ResponseEntity.ok(result);
 
 
-        // return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
-        return new RedirectView("http://localhost:5173/menu?ticketPayment=success");
+        return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
+        // return new RedirectView("http://localhost:5173/menu?ticketPayment=success");
     }
     
     // 사용자 요금제 결제 실패
@@ -226,6 +226,9 @@ public class TossPaymentsController {
             
             // ✅ cartList에서 상품명 추출
             String orderName = "PC방 주문"; // 기본값
+
+            InetAddress inetAddress = InetAddress.getLocalHost();
+            String ip = inetAddress.getHostAddress();
             
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> cartList = (List<Map<String, Object>>) orderData.get("cartList");
@@ -243,9 +246,9 @@ public class TossPaymentsController {
             paymentInfo.put("orderId", orderId);
             paymentInfo.put("orderName", orderName);
             paymentInfo.put("customerName", orderData.get("customerName"));
-            paymentInfo.put("successUrl", "http://192.168.30.6:5173/menu?payment=success");
-            paymentInfo.put("failUrl", "http://192.168.30.6:5173/menu?payment=fail");
-            
+            paymentInfo.put("successUrl",  "http://" + ip + ":5173/menu?payment=success");
+            paymentInfo.put("failUrl", "http://" + ip + ":5173/menu?payment=fail");
+
             // 세션에 주문 정보 임시 저장
             session.setAttribute("tempOrder_" + orderId, orderData);
             
@@ -388,8 +391,8 @@ public class TossPaymentsController {
         result.put("orderName", orderName);
         result.put("amount", totalPrice);
         result.put("customerName", customerName); // 또는 로그인 유저 이름 등
-        result.put("successUrl", "http://192.168.30.6:5173/admin?payment=success");
-        result.put("failUrl", "http://192.168.30.6:5173/admin?payment=fail");
+        result.put("successUrl",  "http://" + ip + ":5173/admin?payment=success");
+        result.put("failUrl", "http://" + ip + ":5173/admin?payment=fail");
 
         return result;
     }
