@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/admin_today_list.css';
+import styles from '../css/TodayList.module.css';
 import Pagination from './Pagination';
 
 const TodayList = ({
@@ -35,15 +35,15 @@ const TodayList = ({
 
 
   return (
-    <div className="today-container">
-      <div className="content">
+    <div className={styles.todayContainer}>
+      <div className={styles.content}>
         {/* ✅ 검색 필터 영역 */}
-        <div className="top-controls">
-          <form onSubmit={onSearch} className="search-form">
+        <div className={styles.topControls}>
+          <form onSubmit={onSearch} className={styles.searchForm}>
             <select 
               value={filters.type}
               onChange={(e) => onFilterChange('type', e.target.value)}
-              className="admin_category"
+              className={styles.adminCategory}
               id="typeSelect"
             >
               <option value="">전체</option>
@@ -51,14 +51,14 @@ const TodayList = ({
               <option value="tickethistory">이용권</option>
             </select>
             
-            <div className="search-box">
+            <div className={styles.searchBox}>
               <input 
                 type="text" 
                 value={filters.keyword}
                 onChange={(e) => onFilterChange('keyword', e.target.value)}
                 placeholder="내역명/이름/아이디" 
               />
-              <button type="submit" className="search-icon">
+              <button type="submit" className={styles.searchIcon}>
                 <img src="/images/search.png" alt="검색버튼" />
               </button>
             </div>
@@ -66,12 +66,12 @@ const TodayList = ({
         </div>
 
         {/* ✅ 당일내역 테이블 영역 */}
-        <div id="todayTableArea">
+        <div id={styles.todayTableArea}>
           {loading ? (
-            <div className="loading">로딩 중...</div>
+            <div className={styles.loading}>로딩 중...</div>
           ) : (
             <>
-              <table className="today-table">
+              <table className={styles.todayTable}>
                 <thead>
                   <tr>
                     <th>No.</th>
@@ -100,7 +100,7 @@ const TodayList = ({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="8" className="no-data">
+                      <td colSpan="8" className={styles.noData}>
                         당일 내역이 없습니다.
                       </td>
                     </tr>

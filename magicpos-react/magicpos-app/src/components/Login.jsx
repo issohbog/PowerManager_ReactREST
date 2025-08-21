@@ -1,12 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./css/login.module.css";
 
-const Login = ({ onLogin, error, onJoinClick }) => {
+const Login = ({ onLogin, error, onJoinClick, onOpenSeatModal, seatId, setSeatId }) => {
   const [form, setForm] = useState({
     username: "",
     password: "",
     seatId: "",
   });
+
+  // 부모 seatId -> 내부 form 동기화
+  useEffect(() => {
+    if (seatId !== undefined) {
+      setForm(prev => ({ ...prev, seatId: seatId || "" }));
+    }
+  }, [seatId]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -14,7 +21,8 @@ const Login = ({ onLogin, error, onJoinClick }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onLogin) onLogin(form);
+    const payload = { ...form, seatId: seatId ?? form.seatId };
+    if (onLogin) onLogin(payload);
   };
 
   return (
@@ -54,7 +62,7 @@ const Login = ({ onLogin, error, onJoinClick }) => {
                 value={form.password}
                 onChange={handleChange}
               />
-              <button type="submit">로그인</button>
+              <button type="submit" className={styles.loginFormLogin}>로그인</button>
               <div className={styles.inputSeatId}>
                 <label htmlFor="seatId">좌석번호</label>
                 <input
@@ -63,9 +71,23 @@ const Login = ({ onLogin, error, onJoinClick }) => {
                   name="seatId"
                   className={styles.seatId}
                   placeholder="예: S1"
-                  value={form.seatId}
-                  onChange={handleChange}
+                  value={seatId ?? form.seatId}
+                  onChange={e => {
+                    const v = e.target.value;
+                    setSeatId(v);               // 부모 seatId 갱신
+                    setForm(p => ({ ...p, seatId: v })); // 내부 form도 맞춰줌
+                  }}
                 />
+                {/* ✅ 사용가능 좌석 조회하기 버튼 추가 */}
+                <button
+                  type="button"
+                  className={styles.seatCheckBtn}
+                  onClick={(e) => {
+                    e.preventDefault(); onOpenSeatModal && onOpenSeatModal();
+                  }}
+                >
+                  사용가능 좌석 조회하기
+                </button>
               </div>
             </form>
             <div className={styles.loginOption}>

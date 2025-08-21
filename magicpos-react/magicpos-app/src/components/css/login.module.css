@@ -77,7 +77,7 @@ html, body {
   opacity: 1;         /* 흐릿함 제거 */
 }
 
-.loginForm button {
+.loginForm .loginFormLogin {
   padding: 10px 20px;
   background-color: #D5D8DC;
   color: #ffffff;
@@ -185,9 +185,26 @@ html, body {
   font-size: 14px;
 }
 
+.inputSeatId .seatCheckBtn {
+  margin-left: 10px;
+  padding: 6px 12px;
+  color: #2C3E50;
+  font-weight: bold;
+  border: 1px solid #2C3E50;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.inputSeatId .seatCheckBtn:hover {
+  background-color: #2C3E50;
+  color: #F4D03F;
+}
 .errorMsg {
   color: #ff4d4f;
   font-size: 16px;
   font-weight: bold;
   margin: 10px;
 }
+

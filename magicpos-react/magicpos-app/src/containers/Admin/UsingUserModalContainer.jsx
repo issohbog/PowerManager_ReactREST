@@ -1,12 +1,16 @@
 // UsingUserModalContainer.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import UsingUserModal from '../../components/Admin/modal/UsingUserModal';
+import { LoginContext } from '../../contexts/LoginContext'; // ✅ context import
 
 const UsingUserModalContainer = ({ isVisible, onClose, onUserSelect }) => {
   const [userList, setUserList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const abortRef = useRef(null); // ⬅️ 최신 요청만 유효하게
+  const abortRef = useRef(null);
+
+  const { isLogin } = useContext(LoginContext); // 필요시 roles도 꺼낼 수 있음
+  const token = localStorage.getItem('jwt'); // 또는 context에서 userInfo.token
 
   // ✅ 안전한 fetch 함수
   const fetchUserList = async (searchKeyword = '') => {
@@ -19,7 +23,14 @@ const UsingUserModalContainer = ({ isVisible, onClose, onUserSelect }) => {
     try {
       // 캐시 무력화 쿼리 추가 + no-store
       const url = `/api/admin/users/search?keyword=${encodeURIComponent(searchKeyword)}&_=${Date.now()}`;
-      const res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      const res = await fetch(url, {
+        cache: 'no-store',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       console.log('🔗 요청 URL:', url.toString());
       const raw = await res.text();                    // ⬅️ 먼저 text로
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} | body: ${raw}`);

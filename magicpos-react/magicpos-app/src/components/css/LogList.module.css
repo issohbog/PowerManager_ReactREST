@@ -1,0 +1,801 @@
+/* 모달 서서히 기능 */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* 모달 상태용 클래스 */
+
+.modalFadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.modalFadeOut {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+/* ----------------------모달 클래스 정의 끝 ---------------------- */
+
+
+/* 전체  */
+.content {
+  position: absolute;
+  top: 100px;
+  left: 70px;
+  width: calc(100vw - 140px);
+  height: calc(100vh - 100px);
+  box-sizing: border-box;
+  padding: 30px;
+}
+
+/* 셀렉트박스 + 검색창  */
+.topControls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+select, input[type="text"], button {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.adminProductCategory {
+  border-color: #D5D8DC;
+}
+
+.searchBox {
+  display: inline-block;
+  align-items: center;
+  position: relative;
+}
+
+.searchBox input[type="text"] {
+  width: 220px;
+  border: 1px solid #D5D8DC;
+  box-sizing: border-box;
+}
+
+.adminCategory {
+  padding-right: 20px;
+}
+.searchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: inherit;
+}
+
+.searchIcon img {
+  width: 18px;
+  height: 18px;
+}
+
+.table {
+  border-collapse: collapse;
+  background-color: #fff;
+  width: calc(100vw - 200px);
+  margin-top: 10px;
+}
+
+.thead {
+  background-color: #5D6D7E;
+  color: white;
+}
+
+.th, .td {
+  padding: 5px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.tableBodyRowHover {
+  background-color: #D5D8DC;
+  cursor: pointer;
+}
+
+.actionButton {
+  background-color: #ffffff;
+  border: 1px solid #B0B3B8;
+  color: #333333;
+  padding: 4px 10px;
+  cursor: pointer;
+  width: 100px;
+}
+
+.actionButtonHover {
+  background-color: #5D6D7E;
+  color: #ffffff;
+}
+
+/* product-table 너비 조정 */
+.productTable {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.productTableTh,
+.productTableTd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* 각 열 너비 지정 (순서는 열 번호 기준) */
+.productTableTh1,
+.productTableTd1 { width: 40px; }
+.productTableTh2,
+.productTableTd2 { width: 60px; }
+.productTableTh3,
+.productTableTd3 { width: 100px; }
+.productTableTh4,
+.productTableTd4 { width: 150px; }
+.productTableTh5,
+.productTableTd5 { width: 250px; }
+.productTableTh6,
+.productTableTd6 { width: 100px; }
+.productTableTh7,
+.productTableTd7 { width: 100px; }
+.productTableTh8,
+.productTableTd8 { width: 80px; }
+.productTableTh9,
+.productTableTd9 { width: 100px; }
+
+/* product-table 너비 조정 끝*/
+
+.productTableTd8InputNumber {
+  width: 50px;
+  height: 30px;
+}
+
+/* ✅ 기본적으로 input 숨기고 span만 보여줌 */
+.stockCellInput {
+  display: none;
+  width: 60px;
+  height: 34px;
+  padding: 4px;
+  font-size: 14px;
+}
+
+/* ✅ 보여지는 숫자 스타일 */
+.stockCellDisplay {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+/* ✅ input 활성화 시 스피너(증감버튼) 크게 */
+.stockCellInputSpinButton,
+.stockCellInputOuterSpinButton {
+  -webkit-appearance: auto;
+  appearance: auto;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.stockCellInputFocus {
+  outline: 2px solid #4dabf7;
+  border-radius: 4px;
+}
+
+/* 모달 */
+
+/* 전체 모달 배경 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* 상품 분류 모달  */
+.categoryModalContent {
+  background: #f8f9fa;
+  width: 400px;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.categoryModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  background-color: #5D6D7E;
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
+  padding: 10px;
+  color: #ddd;
+}
+
+.categoryModalHeaderH2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: normal;
+}
+
+.categoryModalBody {
+  margin: 15px 15px;
+}
+
+.categoryCloseBtn {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.categoryTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.categoryTableTh,
+.categoryTableTd {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+.categoryTableInputText {
+  height: 25px;
+  border: 1px solid #C8C9CE;
+}
+
+.categoryInputGroup {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.categoryInputGroupLabel {
+  flex-shrink: 0;
+}
+
+.categoryInputGroupInput {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #D5D8DC;
+}
+.categoryInputButton {
+  display: flex;
+  gap: 10px;
+}
+
+.categoryInputGroupButton {
+  border: 1px solid #D5D8DC;
+  background: #5D6D7E;
+  color: #FFFFFF;
+}
+
+.categoryButtonGroup {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cancelBtn {
+  background: #c4c4c4;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+}
+
+.saveBtn {
+  background: #f9cc3b;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+}
+/* 상품 분류 모달 끝 */
+
+
+/* 상품 등록 모달 시작 */
+.productModalContentMedium {
+  background: #fff;
+  width: 800px;
+  border-radius: 10px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(0,0,0,0.25);
+}
+
+.productModalHeader {
+  background: #5D6D7E;
+  padding: 16px 20px;
+  font-size: 20px;
+  font-weight: normal;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.productModalHeaderSpan {
+  color: #fff;
+}
+
+/* ✅ 모달 본문 */
+.productModalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 20px;
+  align-items: center;
+}
+
+.productContainer {
+  display: flex;
+  justify-content: space-between;
+  background-color: #ECEFF1;
+  width: 100%;
+}
+
+.productImageBox {
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+}
+.imagePlaceholder {
+  width: 200px;
+  height: 200px;
+  background-color: #e9ecef;
+  border: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  border-radius: 8px;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.imagePlaceholderImg {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.imageBtn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  background: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+/* ✅ 왼쪽 영역 */
+.productLeft {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  padding: 25px;
+}
+
+/* ✅ 오른쪽 영역 */
+.productRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 25px;
+}
+
+.formRow {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.formRowLabel {
+  font-weight: normal;
+  font-size: 14px;
+  width: 60px;
+}
+
+.formRowInputText,
+.formRowTextarea {
+  padding: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.formRowTextarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.formSelect {
+  width: 190px;
+  padding: 9px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* ✅ 노출설정 체크박스 */
+.checkboxGroup {
+  display: flex;
+  gap: 16px;
+}
+
+.checkboxGroupLabel {
+  font-size: 14px;
+  width: 100px;
+}
+
+/* ✅ 모달 하단 버튼 */
+.productModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.btnCancel, .btnSave {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btnCancel {
+  background: #dee2e6;
+  color: #212529;
+}
+
+.btnSave {
+  background: #51cf66;
+  color: white;
+}
+/* 상품 등록 모달 끝 */
+
+
+/* 상품 수정 모달 시작 */
+
+/* 상품 수정 모달 끝 */
+
+
+/* 모달 내용 상자 */
+.modalContentLarge {
+  width: 850px;
+  height: 402px;
+  background: #fff;
+  width: 700px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* 헤더 */
+.modalHeader {
+  background-color: #505c6d;
+  color: white;
+  padding: 10px 15px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+/* 닫기 버튼 */
+.modalHeaderCloseBtn {
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* 폼 구조 */
+.modalBody {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 0px 15px;
+}
+
+.modalBodyFormRow {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.modalBodyLabel {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.modalBodyInputText,
+.modalBodyInputDate,
+.modalBodyInputEmail,
+.modalBodyInputNumber,
+.modalBodyTextarea {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+}
+
+/* 아이디 input + 중복체크 */
+
+/* 아이디 input + 중복확인 버튼 정렬용 */
+.inlineField {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 189px;
+}
+
+/* input은 너비를 꽉 차게 */
+.inlineFieldInput {
+  flex: 1;
+  width: 125px;
+  height: 30px;
+}
+
+/* 버튼은 크기 고정 + 줄바꿈 방지 */
+.inlineFieldButton {
+  flex-shrink: 0;
+  padding: 3px 4px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  height: 100%;
+  background-color: #ddd;
+  color: #333;
+  border: none;
+  border-radius: 2px;
+}
+
+.formMessage {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.formMessageError {
+  color: red;
+}
+
+.formMessageSuccess {
+  color: green;
+}
+
+.idRow {
+  position: relative;
+}
+
+.idCheckMessage {
+  position: absolute;
+  top: 26px;
+  left: 91px;
+}
+
+.textareaMemo {
+  width: 67%;
+  height: 100px;
+  resize: none;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 16px;
+}
+
+.radioGroupLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.usedMin, .remainMin {
+  width: 30%;
+}
+
+.modalBodyFormRowLabel {
+  width: 80px;
+}
+
+/* 모달 분할 */
+
+.withDivider {
+  position: relative;
+  display: flex;
+}
+
+/* 양쪽 컬럼 */
+.leftColumn,
+.rightColumn {
+  flex: 1;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ✅ 가운데 절대 위치한 세로선 */
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background-color: #D5D8DC;
+  transform: translateX(-50%);
+}
+
+.modalFooter {
+  text-align: right;
+  margin-top: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-top: 1px solid #ddd;
+  margin-right: 10px;
+}
+
+.modalFooterButton {
+  padding: 6px 14px;
+  margin-left: 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalFooterButtonSubmit {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.modalFooterButtonTypeButton {
+  background-color: #ddd;
+  color: #333;
+}
+
+/* 전체 모달 button */
+.btnCancel {
+  background-color: #ddd;
+  color: #333;
+}
+
+.btnSave {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.btnEdit {
+  background-color: #f0c040;
+  color: #333;
+}
+
+.btnDelete {
+  background-color: #ccc;
+  color: #333;
+}
+
+.btnReset {
+  background-color: #f0c040;
+  color: #333;
+}
+
+/* 모달끝  */
+
+.categoryEditWrapper {
+  /* display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 7px;
+  align-items: center; */
+}
+
+.categoryTableInputText {
+  height: 30px;
+}
+
+.categoryEditWrapperButton {
+  padding: 5px 10px;
+  background: #c4c4c4;
+  border: none;
+}
+
+.deleteCategoryBtn {
+  border: none;
+  background: none;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.paginationUl {
+  display: inline-flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #f1f1f1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.paginationLi {
+  margin: 0;
+}
+
+.paginationLiA {
+  background-color: white;
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+  border-right: 1px solid #ddd;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.paginationLiLastChildA {
+  border-right: none;
+}
+
+.paginationLiAHover {
+  background-color: #5D6D7E;
+  color: #fff;
+}
+
+.paginationLiActiveA {
+  background-color: #5D6D7E;
+  color: #fff;
+  font-weight: bold;
+}
+
+

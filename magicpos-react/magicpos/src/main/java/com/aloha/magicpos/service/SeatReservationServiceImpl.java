@@ -62,16 +62,16 @@ public class SeatReservationServiceImpl implements SeatReservationService {
             LocalDateTime now = LocalDateTime.now();
 
 
-            long usedMinutes = Duration.between(start, now).toMinutes();
-            long remainMinutes = Duration.between(now, end).toMinutes();
+            long usedSeconds = Duration.between(start, now).getSeconds();
+            long remainSeconds = Duration.between(now, end).getSeconds();
 
             String username = reservation.getUsername();
 
             info.put("seat_id", seatId);
             info.put("start_time", start); 
             info.put("end_time", end);
-            info.put("used_time", usedMinutes);
-            info.put("remain_time", remainMinutes);
+            info.put("used_time", usedSeconds);
+            info.put("remain_time", remainSeconds);
             info.put("user_no", userNo);
             info.put("username", username);
         } else {
