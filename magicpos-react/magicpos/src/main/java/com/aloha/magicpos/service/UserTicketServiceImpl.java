@@ -82,9 +82,11 @@ public class UserTicketServiceImpl implements UserTicketService {
             // endTime이 현재보다 나중이다 (아직 사용 중)
             // 기존 end_time 에 ticket 시간만큼 추가
             seatReservationMapper.extendEndTime(userTicket.getUNo(), ticketMinutes);
+            log.info("endtime이 현재보다 나중 (아직 사용중)", reservation);
         } else {
             // endTime이 현재보다 같거나 이전이다 (만료됨)
             seatReservationMapper.extendTimeFromNow(userTicket.getUNo(), ticketMinutes);
+            log.info("endtime이 현재보다 같거나 이전 (만료됨)", reservation);
         }
         log.info("############ (\"############ 시간 추가 : {}", reservation);
 

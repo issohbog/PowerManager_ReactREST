@@ -76,6 +76,7 @@
             UPDATE seats_reservations
             SET end_time = DATE_ADD(NOW(), INTERVAL #{minutes} MINUTE)
             WHERE u_no = #{userNo}
+            AND start_time = end_time
             ORDER BY start_time DESC
             LIMIT 1
         ]]>

@@ -68,6 +68,7 @@ public interface SeatMapper {
 
     // 사용회원 검색
     List<Map<String, Object>> searchInUseUsersByKeyword(String keyword);
+    
     // 사용회원 전체 조회
     List<Map<String, Object>> findInUseUsers();
 }

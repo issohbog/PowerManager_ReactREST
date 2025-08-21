@@ -77,7 +77,7 @@ const ProductList = forwardRef((props, ref) => {
         <button className={styles.btnDelete} onClick={handleDeleteClick}>상품삭제</button>
       </div>
 
-      <table>
+      <table className={styles.productTable}>
         <thead>
           <tr>
             <th><input type="checkbox" /></th>

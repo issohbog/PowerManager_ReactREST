@@ -13,3 +13,6 @@ export const login = (username, password, seatId) => {
 
 // 회원 정보
 export const info = () => api.get(`/users/info`)
+
+
+
