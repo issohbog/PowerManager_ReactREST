@@ -49,6 +49,7 @@ const AdminLayout = () => {
   }, []);
 
   useEffect(() => {
+    // ws - topic : /topic/admin/logs
     const client = new Client({
       brokerURL: 'ws://localhost:8080/ws',
       connectHeaders: {},
@@ -63,7 +64,10 @@ const AdminLayout = () => {
       reconnectDelay: 5000,
     });
     client.activate();
-    return () => client.deactivate();
+
+    return () => {
+      client.deactivate();
+    }
   }, []);
 
 

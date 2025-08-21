@@ -1,4 +1,4 @@
--- Active: 1750388007092@@127.0.0.1@3306@magicpos
+-- Active: 1750388003489@@127.0.0.1@3306@magicpos
 USE magicpos;
 
 

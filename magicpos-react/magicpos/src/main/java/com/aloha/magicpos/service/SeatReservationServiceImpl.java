@@ -8,19 +8,30 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.aloha.magicpos.domain.SeatsReservations;
+import com.aloha.magicpos.domain.event.SeatReservedEvent;
+import com.aloha.magicpos.exception.SeatUnavailableException;
 import com.aloha.magicpos.mapper.SeatReservationMapper;
+import com.aloha.magicpos.mapper.SeatMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class SeatReservationServiceImpl implements SeatReservationService {
 
-    @Autowired
-    SeatReservationMapper seatReservationMapper;
+    private final SeatReservationMapper seatReservationMapper;
 
-    @Autowired  
-    UserTicketService userTicketService;
+    private final UserTicketService userTicketService;
+
+    private final SeatMapper seatMapper;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public Long getTotalUsedTime(Long userNo) {
@@ -112,6 +123,36 @@ public class SeatReservationServiceImpl implements SeatReservationService {
 
     return list;
 
+    }
+
+    /**
+     * 좌석 예약 
+     */
+    @Override
+    @Transactional
+    public void reserve(Long userNo, String seatId, int remainingTime, String username) throws Exception {
+            
+            // 사용자가 입력한 좌석 ID가 유효한지 확인
+            int seatStatus = seatMapper.getSeatStatus(seatId);
+            if (seatStatus == 1 || seatStatus == 2) {
+                throw new SeatUnavailableException("이미 사용 중이거나 고장난 좌석입니다.");
+            }
+
+            LocalDateTime startTime = LocalDateTime.now();
+            LocalDateTime endTime = startTime.plusMinutes(remainingTime);
+
+            seatMapper.insertSeatReservation(userNo, seatId, startTime, endTime);
+            seatMapper.updateSeatStatusToInUse(seatId);
+
+            // // ✅ 좌석 예약 로그 (좌석ID 포함) → 관리자 로그 스트림(/topic/admin/logs)
+            // logService.insertLog(
+            //     userNo,
+            //     seatId,
+            //     "좌석예약",
+            //     username + "님이 " + seatId + " 사용을 시작했습니다. (잔여 " + remainingTime + "분)"
+            // );
+
+            applicationEventPublisher.publishEvent(new SeatReservedEvent(userNo, seatId, remainingTime, username));
     }
 
 

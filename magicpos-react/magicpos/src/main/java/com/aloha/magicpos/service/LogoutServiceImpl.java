@@ -5,11 +5,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aloha.magicpos.domain.SeatsReservations;
 import com.aloha.magicpos.domain.UserTickets;
+import com.aloha.magicpos.domain.event.SeatLogoutEvent;
 import com.aloha.magicpos.mapper.SeatMapper;
 import com.aloha.magicpos.mapper.SeatReservationMapper;
 import com.aloha.magicpos.mapper.UserTicketMapper;
@@ -26,12 +28,18 @@ public class LogoutServiceImpl implements LogoutService {
     @Autowired
     private SeatMapper seatMapper;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     @Transactional
     public void handleLogoutProcess(Long userNo) {
         // 1. 사용자 좌석 예약 정보 조회
         SeatsReservations reservation = seatReservationMapper.findCurrentReservationByUser(userNo);
         if(reservation != null){
+            String seatId = reservation.getSeatId();
+            String username = reservation.getUsername();
+            
             LocalDateTime start = reservation.getStartTime().toLocalDateTime();
             LocalDateTime now = LocalDateTime.now();
             long usedMinutes = Duration.between(start, now).toMinutes();            // 차감 할 사용자 이용시간
@@ -57,6 +65,9 @@ public class LogoutServiceImpl implements LogoutService {
             }
             // 4. 좌석 상태 청소중으로 변경
             seatMapper.releaseSeatStatus(userNo);
+            
+            // 5. 로그아웃 이벤트 발행 (WebSocket 브로드캐스트용)
+            eventPublisher.publishEvent(new SeatLogoutEvent(userNo, seatId, username));
         }
 
     }

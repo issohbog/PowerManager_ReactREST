@@ -90,7 +90,7 @@ const UserList = forwardRef((props, ref) => {
         <button className={styles.btnEdit} onClick={handleEditClick}>회원수정</button>
         <button className={styles.btnDelete} onClick={handleDeleteClick}>회원삭제</button>
       </div>
-      <table>
+      <table className={styles.userTable}>
         <thead>
           <tr>
             <th><input type="checkbox" /></th>

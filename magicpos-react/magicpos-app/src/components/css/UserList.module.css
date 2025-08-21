@@ -98,20 +98,20 @@ select, input[type="text"], button {
 }
 
 
-table {
+.userTable {
     border-collapse: collapse;
     background-color: #fff;
     width: calc(100vw - 200px);
     margin-top: 10px;
 }
 
-thead {
+.userTable thead {
     background-color: #5D6D7E;
     color: white;
 }
 
 
-th, td {
+.userTable th, .userTable td {
     padding: 5px;
     text-align: center;
     border: 1px solid #ddd;
@@ -119,7 +119,7 @@ th, td {
     font-weight: normal;
 }
 
-table tbody tr:hover {
+.userTable tbody tr:hover {
   background-color: #D5D8DC;
   cursor: pointer;
 }

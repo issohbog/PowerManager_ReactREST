@@ -100,20 +100,21 @@ select, input[type="text"], button {
 }
 
 
-table {
+.productTable {
     border-collapse: collapse;
     background-color: #fff;
     width: calc(100vw - 200px);
     margin-top: 10px;
 }
 
-thead {
+.productTable thead {
     background-color: #5D6D7E;
     color: white;
 }
 
 
-th, td {
+.productTable th,
+.productTable td {
     padding: 5px;
     text-align: center;
     border: 1px solid #ddd;

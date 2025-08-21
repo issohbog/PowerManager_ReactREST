@@ -5,7 +5,7 @@ const api = axios.create({ baseURL: "/api" });
 
 api.interceptors.request.use((config) => {
   // 로그인/회원가입/토큰발급류는 토큰 미첨부
-  const skipAuth = ["/login", "/auth/login", "/users", "/users/new"].some(p =>
+  const skipAuth = ["/login", "/auth/login", "/users", "/users/new", "/users/check-id", "/users/admin/check-id"].some(p =>
     config.url?.endsWith(p)
   );
   if (!skipAuth) {
