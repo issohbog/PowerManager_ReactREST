@@ -1,5 +1,7 @@
 package com.aloha.magicpos.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -140,11 +142,36 @@ public class SeatServiceImpl implements SeatService {
 
     @Override
     public List<Map<String, Object>> searchActiveUsers(String keyword) {
+        List<Map<String, Object>> rawList;
         if (keyword == null || keyword.trim().isEmpty()) {
-            return seatMapper.findInUseUsers();
+            rawList = seatMapper.findInUseUsers();
         } else {
-            return seatMapper.searchInUseUsersByKeyword("%" + keyword.trim() + "%");
+            rawList = seatMapper.searchInUseUsersByKeyword("%" + keyword.trim() + "%");
         }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Map<String, Object> user : rawList) {
+            Object endTimeObj = user.get("end_time");
+            long remainSeconds = 0;
+            if (endTimeObj != null) {
+                LocalDateTime endTime;
+                if (endTimeObj instanceof java.sql.Timestamp) {
+                    endTime = ((java.sql.Timestamp) endTimeObj).toLocalDateTime();
+                } else if (endTimeObj instanceof LocalDateTime) {
+                    endTime = (LocalDateTime) endTimeObj;
+                } else {
+                    // 문자열로 넘어올 경우 파싱
+                    endTime = LocalDateTime.parse(endTimeObj.toString().replace(" ", "T"));
+                }
+                remainSeconds = Duration.between(now, endTime).getSeconds();
+                if (remainSeconds < 0) remainSeconds = 0;
+            }
+            user.put("remain_seconds", remainSeconds);
+            result.add(user);
+        }
+        return result;
     }
 
     // 좌석 상태 조회

@@ -75,7 +75,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/admin/payment/ticket/success",            // 관리자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
                     "/users/payment/ticket/success",                        // 사용자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
-                    "/upload/**"                                            // 업로드된 이미지 상품 수정시 나오도록 접근 허용
+                    "/upload/**", "/admin"                                            // 업로드된 이미지 상품 수정시 나오도록 접근 허용
                 ).permitAll()
                 // 관리자 전용
                 .requestMatchers(
@@ -85,7 +85,8 @@ public class SecurityConfig {
                     "/categories/admin/**",
                     "/usertickets/admin/**",
                     "/logs/**",
-                    "/seats/**"
+                    "/seats/**",
+                    "/api/admin/users/**"
                 ).hasRole("ADMIN")
                 // 회원/관리자 공용
                 .requestMatchers(

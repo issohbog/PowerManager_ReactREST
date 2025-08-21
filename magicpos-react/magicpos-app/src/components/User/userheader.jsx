@@ -6,13 +6,13 @@ function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
   const { logout } = useContext(LoginContext)
 
   // 분을 초로 변환해서 상태 관리
-  const [usedSeconds, setUsedSeconds] = useState((usedTime || 0) * 60);
-  const [remainSeconds, setRemainSeconds] = useState((remainTime || 0) * 60);
+  const [usedSeconds, setUsedSeconds] = useState(usedTime || 0);
+  const [remainSeconds, setRemainSeconds] = useState(remainTime || 0);
 
   // props가 변경될 때 state 업데이트 (분 → 초 변환)
   useEffect(() => {
-    setUsedSeconds((usedTime || 0) * 60);
-    setRemainSeconds((remainTime || 0) * 60);
+    setUsedSeconds(usedTime || 0);
+    setRemainSeconds(remainTime || 0);
   }, [usedTime, remainTime]);
 
   // 타이머 로직 - 1초마다 실행
@@ -41,8 +41,7 @@ function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
       <div style={{ width: "80%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "10px 0", gap: "10px" }}>
         {/* 상단 ID 영역 */}
         <div style={{ display: "flex", justifyContent: "flex-end", padding: "0 20px", fontSize: "15px" }}>
-          ID <span>{usageInfo?.username || "user123"}</span> |
-          <a href="/user/info" style={{ color: "#ffffff", textDecoration: "underline", marginLeft: "5px" }}>회원정보수정</a>
+          로그인 ID |&nbsp;<span>{usageInfo?.username || "user123"}</span> 
         </div>
 
         {/* 하단 버튼 + 정보 영역 */}

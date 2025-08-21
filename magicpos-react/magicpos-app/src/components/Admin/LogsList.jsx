@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/admin_log_list.css';
+import styles from '../css/LogList.module.css';
 import Pagination from './Pagination';
 
 const LogsList = ({
@@ -35,15 +35,15 @@ const LogsList = ({
 
 
   return (
-    <div className="logs-container">
-      <div className="content">
+    <div className={styles.logsContainer}>
+      <div className={styles.content}>
         {/* ✅ 검색 필터 영역 */}
-        <div className="top-controls">
-          <form onSubmit={onSearch} className="search-form">
+        <div className={styles.topControls}>
+          <form onSubmit={onSearch} className={styles.searchForm}>
             <select 
               value={filters.type}
               onChange={(e) => onFilterChange('type', e.target.value)}
-              className="admin_category"
+              className={styles.adminCategory}
             >
               <option value="">전체</option>
               <option value="loginhistory">로그인/로그아웃</option>
@@ -52,14 +52,14 @@ const LogsList = ({
               <option value="orderhistory">상품 구매</option>
             </select>
             
-            <div className="search-box">
+            <div className={styles.searchBox}>
               <input 
                 type="text" 
                 value={filters.keyword}
                 onChange={(e) => onFilterChange('keyword', e.target.value)}
                 placeholder="이름/아이디/좌석번호" 
               />
-              <button type="submit" className="search-icon">
+              <button type="submit" className={styles.searchIcon}>
                 <img src="/images/search.png" alt="검색버튼" />
               </button>
             </div>
@@ -79,12 +79,12 @@ const LogsList = ({
         </div>
 
         {/* ✅ 로그 테이블 영역 */}
-        <div id="logTableArea">
+        <div id={styles.logTableArea}>
           {loading ? (
-            <div className="loading">로딩 중...</div>
+            <div className={styles.loading}>로딩 중...</div>
           ) : (
             <>
-              <table className="logs-table">
+              <table className={styles.logsTable}>
                 <thead>
                   <tr>
                     <th>No.</th>
@@ -113,7 +113,7 @@ const LogsList = ({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="8" className="no-data">
+                      <td colSpan="8" className={styles.noData}>
                         검색 결과가 없습니다.
                       </td>
                     </tr>

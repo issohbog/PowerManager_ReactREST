@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../css/admin_usinguser.css';
 
 const UsingUserModal = ({
@@ -11,23 +11,41 @@ const UsingUserModal = ({
   onSearch,
   onKeyPress,
 }) => {
-
-  // 모달이 보이지 않으면 렌더링하지 않음
   if (!isVisible) return null;
 
-  // 모달 외부 클릭 시 닫기
+  // 사용자별 남은시간 상태 관리
+  const [remainSecondsList, setRemainSecondsList] = useState([]);
+
+  // userList가 변경될 때마다 남은시간 초기화
+  useEffect(() => {
+    setRemainSecondsList(userList.map(u => u.remain_seconds || 0));
+  }, [userList]);
+
+  // 1초마다 남은시간 감소
+  useEffect(() => {
+    if (!isVisible || loading) return;
+    const timer = setInterval(() => {
+      setRemainSecondsList(prev =>
+        prev.map(sec => Math.max(0, sec - 1))
+      );
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isVisible, loading, userList.length]);
+
+  // 초를 시:분:초 형태로 변환
+  const formatTime = (totalSeconds) => {
+    if (totalSeconds <= 0) return "만료됨";
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleModalClick = (e) => {
     if (e.target.classList.contains('usingmodal')) {
       onClose();
     }
   };
-
-  function formatTime(minutes) {
-    if (minutes == null) return '없음';
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return h > 0 ? `${h}시간 ${m}분` : `${m}분`;
-  }
 
   return (
     <div className="usingmodal" onClick={handleModalClick}>
@@ -71,9 +89,9 @@ const UsingUserModal = ({
                         {(user.username || '이름없음')} ({user.userId || '아이디없음'})
                       </td>
                       <td style={{
-                        color: user.remain_time <= 10 ? "#e74c3c" : "#000000"
+                        color: remainSecondsList[index] <= 10 ? "#e74c3c" : "#000000"
                       }}>
-                        {formatTime(user.remain_time)}
+                        {formatTime(remainSecondsList[index])}
                       </td>
                     </tr>
                   ))
@@ -91,7 +109,7 @@ const UsingUserModal = ({
 
         {/* 총 회원 수 표시 */}
         {!loading && userList.length > 0 && (
-          <div className="user-count">
+          <div className="user-count" style={{ color: 'white' }}>
             총 {userList.length}명의 사용중인 회원
           </div>
         )}
