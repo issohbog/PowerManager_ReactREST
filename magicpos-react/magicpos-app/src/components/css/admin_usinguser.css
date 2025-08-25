@@ -20,22 +20,30 @@
 }
 .usinglistth{
   background-color: black;
+  color: white;
 }
 .user-list-container{
   width: 100%;
 }
 
 .user-table {
+  background-color: white;
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
 }
 
-.user-table th,
-.user-table td {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+.user-table th, td {
+  padding: 5px;
   text-align: center;
+  border: 0.5px solid #ddd;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.user-table tbody tr:hover {
+  background-color: #D5D8DC;
+  cursor: pointer;
 }
 
 /* 닫기 버튼(X) */

@@ -31,6 +31,7 @@ function UserMenuContainer() {
   const [selectedCategory, setSelectedCategory] = useState(1);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isOrderCompleteModalOpen, setIsOrderCompleteModalOpen] = useState(false);
+  const [flippedCards, setFlippedCards] = useState({});
 
   // 메뉴 데이터 fetch
   useEffect(() => {
@@ -97,6 +98,7 @@ function UserMenuContainer() {
         cartList: response.data.cartList || [],
         totalPrice: response.data.totalPrice || 0
       }));
+      setFlippedCards({});
     } catch (error) {
       console.error('장바구니 추가 실패:', error);
       console.error('에러 응답:', error.response?.data);
@@ -265,6 +267,8 @@ function UserMenuContainer() {
         onCartDecrease={handleCartDecrease}
         onCartDelete={handleCartDelete}
         onOpenOrderModal={handleOpenOrderModal}
+        setFlippedCards={setFlippedCards}
+        flippedCards={flippedCards}
       />
       
       <OrderModal

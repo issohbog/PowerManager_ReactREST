@@ -95,19 +95,26 @@ select, input[type="text"], button {
   height: 18px;
 }
 
-.table {
+.logsTable {
   border-collapse: collapse;
   background-color: #fff;
   width: calc(100vw - 200px);
   margin-top: 10px;
 }
 
-.thead {
+.logsTable table {
+  border-collapse: collapse;
+  background-color: #fff;
+  width: calc(100vw - 200px);
+  margin-top: 10px;
+}
+
+.logsTable thead {
   background-color: #5D6D7E;
   color: white;
 }
 
-.th, .td {
+.logsTable th, .logsTable td {
   padding: 5px;
   text-align: center;
   border: 1px solid #ddd;
