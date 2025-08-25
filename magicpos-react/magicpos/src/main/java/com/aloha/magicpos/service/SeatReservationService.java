@@ -23,4 +23,7 @@ public interface SeatReservationService {
     // 좌석 예약
     public void reserve(Long userNo, String seatId, int remainingTime, String username) throws Exception;
 
+    // 특정 좌석의 당일 이용 내역 조회 (좌석 현황 마우스 우클릭 시 당일 내역 조회 용)
+    public List<Map<String, Object>> findTodayReservationsBySeatId(String seatId) throws Exception;
+
 }

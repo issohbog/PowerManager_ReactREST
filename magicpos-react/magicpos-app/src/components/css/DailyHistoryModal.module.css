@@ -1,0 +1,280 @@
+/* DailyHistoryModal.module.css */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0.9) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.content {
+  padding: 24px;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.summary span {
+  font-size: 14px;
+  color: #555;
+}
+
+.summary strong {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.date {
+  color: #888 !important;
+  font-size: 13px !important;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.historyTable thead {
+  background-color: #f5f5f5;
+}
+
+.historyTable th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.historyTable th:first-child {
+  width: 60px;
+  text-align: center;
+}
+
+.historyTable th:nth-child(2) {
+  width: 120px;
+}
+
+.historyTable th:nth-child(3) {
+  width: 120px;
+}
+
+.historyTable th:nth-child(4),
+.historyTable th:nth-child(5) {
+  width: 160px;
+}
+
+.historyRow {
+  transition: background-color 0.2s ease;
+}
+
+.historyRow:hover {
+  background-color: #f8f9fa;
+}
+
+.historyTable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #333;
+}
+
+.orderNumber {
+  text-align: center !important;
+  font-weight: 600;
+  color: #666;
+}
+
+.username {
+  font-weight: 600;
+  color: #2196F3;
+}
+
+.userId {
+  color: #666;
+  font-family: 'Courier New', monospace;
+}
+
+.startTime,
+.endTime {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #555;
+}
+
+.startTime {
+  color: #4CAF50;
+}
+
+.endTime {
+  color: #FF9800;
+}
+
+.noData {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+}
+
+.noDataIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.noData p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.confirmButton {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 80px;
+}
+
+.confirmButton:hover {
+  background-color: #1976D2;
+}
+
+.confirmButton:active {
+  background-color: #1565C0;
+}
+
+/* 스크롤바 스타일링 */
+.modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .header h2 {
+    font-size: 18px;
+  }
+  
+  .historyTable th,
+  .historyTable td {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .summary {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}

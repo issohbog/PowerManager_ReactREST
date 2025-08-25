@@ -38,12 +38,21 @@ const AdminLayout = () => {
 
   // URL 파라미터 변경 감지(payment를 url에서 발견하면 success/fail 에 맞게 모달 등장)
   useEffect(() => {
-    const param = new URLSearchParams(window.location.search);
-    if (param.get('payment') === 'success') {
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.get('payment') === 'success') {
       setShowTicketSuccessModal(true);
+      // URL에서 payment 파라미터 제거
+      params.delete('payment');
+      const rest = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (rest ? '?' + rest : ''));
     }
-    if (param.get('payment') === 'fail') {
+    if (params.get('payment') === 'fail') {
       setShowTicketSuccessModal(false);
+      // URL에서 payment 파라미터 제거
+      params.delete('payment');
+      const rest = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (rest ? '?' + rest : ''));
     }
     
   }, []);

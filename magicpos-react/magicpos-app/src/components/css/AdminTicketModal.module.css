@@ -11,6 +11,38 @@
   align-items: center;
 }
 
+/* 테이블 css 시작 */
+
+.adminTicketTable {
+    border-collapse: collapse;
+    background-color: #fff;
+    width: calc(100vw - 200px);
+    margin-top: 10px;
+}
+
+.adminTicketTable thead {
+    background-color: #5D6D7E;
+    color: white;
+}
+
+
+.adminTicketTable th, .adminTicketTable td {
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.adminTicketTable tbody tr:hover {
+  background-color: #D5D8DC;
+  cursor: pointer;
+}
+
+
+/* 테이블 css 끝 */
+
+
 .modalContent {
   background: #fff;
   width: 80%;
@@ -226,3 +258,5 @@
   margin-top: 1rem;
   width: 67%;
 }
+
+

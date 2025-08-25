@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.magicpos.domain.Seats;
 import com.aloha.magicpos.domain.Users;
+import com.aloha.magicpos.service.SeatReservationService;
 import com.aloha.magicpos.service.SeatService;
 
 import jakarta.servlet.http.HttpSession;
@@ -31,6 +33,9 @@ public class SeatController {
 
     @Autowired
     private SeatService seatService;
+
+    @Autowired
+    private SeatReservationService seatReservationService;
 
     // 현재 이용중인 좌석 / 전체 좌석 조회  (관리자화면 헤더 용)
     @GetMapping("/count")
@@ -89,6 +94,26 @@ public class SeatController {
     public Map<String, Object> reservedSeats() {
         List<String> reservedSeats = seatService.findReservedSeatIds();
         return Map.of("reservedSeats", reservedSeats);
+    }
+
+    // 특정 좌석의 당일 이용 내역 조회 ( 좌석현황 마우스 우클릭 시 당일 내역 조회용)
+    @GetMapping("/{seatId}/today-history")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getTodayHistory(@PathVariable("seatId") String seatId) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            List<Map<String, Object>> history = seatReservationService.findTodayReservationsBySeatId(seatId);
+            result.put("success", true);
+            result.put("seatId", seatId);
+            result.put("history", history);
+            result.put("totalCount", history.size());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("좌석 당일 내역 조회 중 오류 발생: ", e);
+            result.put("success", false);
+            result.put("message", "당일 내역을 조회할 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
     }
 
 }

@@ -41,4 +41,7 @@ public interface SeatReservationMapper {
     // 서버 시작 전 비정상 완료된 좌석 userNo 추출 
     List<Long> findLoggedInUserNosFromSeatStatus();
 
+    // 특정 좌석의 당일 이용 내역 조회 (좌석 현황 마우스 우클릭 시 당일 내역 조회 용)
+    List<Map<String, Object>> findTodayReservationsBySeatId(@Param("seatId") String seatId);
+
 } 
