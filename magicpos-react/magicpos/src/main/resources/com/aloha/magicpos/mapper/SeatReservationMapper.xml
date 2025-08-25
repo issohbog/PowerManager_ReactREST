@@ -94,6 +94,25 @@
         AND seat_id IN (SELECT seat_id FROM seats WHERE seat_status = 1);
     </select>
 
+    <!-- 특정 좌석의 당일 이용 내역 조회 (좌석 현황 마우스 우클릭 시 당일 내역 조회 용)-->
+    <select id="findTodayReservationsBySeatId" resultType="map">
+        <![CDATA[
+            SELECT 
+                sr.no,
+                sr.seat_id,
+                sr.u_no,
+                sr.start_time,
+                sr.end_time,
+                u.username,
+                u.id as user_id
+            FROM seats_reservations sr
+            JOIN users u ON sr.u_no = u.no
+            WHERE sr.seat_id = #{seatId}
+            AND DATE(sr.start_time) = CURDATE()
+            ORDER BY sr.start_time DESC
+        ]]>
+    </select>
+
 
 
 

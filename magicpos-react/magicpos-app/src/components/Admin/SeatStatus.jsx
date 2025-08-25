@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react'
 import styles from '../css/SeatStatus.module.css' // ✅ CSS 모듈 import
 import SeatContextMenu from './SeatContextMenu'
 import UserInfoModal from './modal/UserInfoModal'
-import { getUserInfo, getSeatUsageInfo } from '../../apis/seatStatus'
+import DailyHistoryModal from './modal/DailyHistoryModal'
+import { getUserInfo, getSeatUsageInfo, getSeatTodayHistory  } from '../../apis/seatStatus'
 
 const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) => {
     console.log('topSeats:', topSeats) // ✅ 좌석 상태 확인용 로그
@@ -22,6 +23,13 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
   const [userInfoModal, setUserInfoModal] = useState({
     visible: false,
     userInfo: null
+  });
+
+  // 당일 내역 모달 상태
+  const [dailyHistoryModal, setDailyHistoryModal] = useState({
+    visible: false,
+    seatId: '',
+    historyData: null
   });
 
   // 우클릭 이벤트 핸들러
@@ -53,9 +61,38 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
   }, [contextMenu.visible])
 
   // 메뉴 항목 클릭 핸들러들
-  const handleDailyHistory = (seat) => {
+  const handleDailyHistory = async (seat) => {
     console.log('당일 이용 내역 조회:', seat)
-    // TODO: 당일 내역 조회 API 호출
+    
+    // 방어 코드: seat 객체 및 seatId 검증
+    if (!seat || !seat.seatId) {
+      console.error('좌석 정보가 올바르지 않습니다:', seat)
+      alert('좌석 정보를 찾을 수 없습니다.')
+      closeContextMenu()
+      return
+    }
+    
+    try {
+      const response = await getSeatTodayHistory(seat.seatId)
+      const historyData = response.data
+      
+      console.log('당일 이용 내역:', historyData)
+      
+      if (historyData.success) {
+        // 당일 내역 모달 표시
+        setDailyHistoryModal({
+          visible: true,
+          seatId: seat.seatId,
+          historyData: historyData
+        })
+      } else {
+        alert('당일 이용 내역을 조회할 수 없습니다.')
+      }
+    } catch (error) {
+      console.error('당일 이용 내역 조회 중 오류 발생:', error)
+      alert('당일 이용 내역을 조회하는데 문제가 발생했습니다.')
+    }
+    
     closeContextMenu()
   }
 
@@ -195,6 +232,14 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
         visible={userInfoModal.visible}
         userInfo={userInfoModal.userInfo}
         onClose={() => setUserInfoModal({ visible: false, userInfo: null })}
+      />
+      
+      {/* 당일 내역 모달 */}
+      <DailyHistoryModal
+        visible={dailyHistoryModal.visible}
+        seatId={dailyHistoryModal.seatId}
+        historyData={dailyHistoryModal.historyData}
+        onClose={() => setDailyHistoryModal({ visible: false, seatId: '', historyData: null })}
       />
     </div>
   )

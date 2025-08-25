@@ -14,3 +14,6 @@ export const getUserInfo = (userNo) => api.get(`/users/admin/${userNo}/info`)
 
 // 좌석 사용 정보 조회
 export const getSeatUsageInfo = (seatId) => api.get(`/seats/${seatId}/usage`)
+
+// 좌석 당일 이용 내역 조회
+export const getSeatTodayHistory = (seatId) => api.get(`/seats/${seatId}/today-history`)

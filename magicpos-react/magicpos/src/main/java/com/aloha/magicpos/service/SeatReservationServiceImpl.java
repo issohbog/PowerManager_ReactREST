@@ -155,5 +155,14 @@ public class SeatReservationServiceImpl implements SeatReservationService {
             applicationEventPublisher.publishEvent(new SeatReservedEvent(userNo, seatId, remainingTime, username));
     }
 
+    /**
+     * 특정 좌석의 당일 이용 내역 조회
+     * (좌석 현황 마우스 우클릭 시 당일 내역 조회 용)
+     */
+    @Override
+    public List<Map<String, Object>> findTodayReservationsBySeatId(String seatId) throws Exception {
+        return seatReservationMapper.findTodayReservationsBySeatId(seatId);
+    }
+
 
 }   
