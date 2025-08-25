@@ -18,9 +18,11 @@ function UserMenu({
   onCartIncrease,
   onCartDecrease,
   onCartDelete,
-  onOpenOrderModal
+  onOpenOrderModal,
+  setFlippedCards,
+  flippedCards
 }) {
-  const [flippedCards, setFlippedCards] = useState({});
+  
   const [searchKeyword, setSearchKeyword] = useState('');
   const [orderData, setOrderData] = useState({
     payment: '',
@@ -113,6 +115,8 @@ function UserMenu({
     // 주문 요청
     try {
       await onOrder(finalOrderData);  
+      // 주문 성공 후 카드 뒤집힘 초기화
+      setFlippedCards({});
     } catch (error) {
       console.error("주문 처리 실패:", error);
       alert("주문 중 오류가 발생했습니다.");
