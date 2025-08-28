@@ -1,4 +1,4 @@
--- Active: 1750388007092@@127.0.0.1@3306@magicpos
+-- Active: 1750388003489@@127.0.0.1@3306@magicpos
 USE magicpos;
 
 
@@ -165,7 +165,6 @@ CREATE TABLE logs (
   FOREIGN KEY (seat_id) REFERENCES seats(seat_id)
     ON DELETE SET NULL ON UPDATE CASCADE
 );
-
 
 
 DROP TABLE IF EXISTS `seat_sections`;
