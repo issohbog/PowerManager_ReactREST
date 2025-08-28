@@ -162,14 +162,14 @@ const SeatStatus = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }
 
-  const SeatTimeLeft = ({ initialMinutes, timerKey }) => {
+  const SeatTimeLeft = ({ initialSeconds, timerKey }) => {
 
-    const [remaining, setRemaining] = useState(initialMinutes * 60);
+    const [remaining, setRemaining] = useState(initialSeconds);
 
-    // key 가 바뀌거나 initialMinutes 가 바뀌면 타이머 리셋 
+    // key 가 바뀌거나 initialSeconds 가 바뀌면 타이머 리셋 
     useEffect(() => {
-      setRemaining(initialMinutes * 60);
-    }, [initialMinutes, timerKey]);
+      setRemaining(initialSeconds);
+    }, [initialSeconds, timerKey]);
 
     useEffect(() => {
       if (remaining <= 0 ) return; 
@@ -239,7 +239,7 @@ const SeatStatus = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
               {seat.username && <div className={styles.memberName}>{seat.username}</div>}
 
               {seat.className?.includes('in-use') && seat.remainTime != null && (
-                <SeatTimeLeft initialMinutes={seat.remainTime} timerKey={seat._timerKey} />
+                <SeatTimeLeft initialSeconds={seat.remainTime} timerKey={seat._timerKey} />
               )}
 
               {seat.className === 'cleaning' && (
