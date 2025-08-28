@@ -96,28 +96,23 @@
     /* transform-origin: top; */
 }
 
-/* 호버 시 끝이 말아지는 효과 */
+/* 호버 시 책갈피처럼 위로 올라오고, height 커짐 */
 .header-nav a:hover {
-    /* transform: perspective(1000px) rotateX(15deg); */
-    /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); */
-    background-color: #F7DC6F;
-    z-index: 10;
+    top: -8px;
     position: relative;
-    color: #2c3e50;
-    /* font-weight: 600; */
+    box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+    z-index: 10;
+    transition: 
+        background-color 0.5s,
+        color 0.5s,
+        top 0.5s,
+        box-shadow 0.5s;
 }
 
-/* 활성 상태 (클릭 시) */
+/* 클릭 시 색 진해짐 */
 .header-nav a:active {
-    /* transform: perspective(1000px) rotateX(25deg); */
-    transition: all 0.1s ease;
-    background-color: #FFD600;
-}
-
-/* 현재 페이지 표시 (선택적) */
-.header-nav a.active {
-    background-color: #E74C3C;
-    color: white;
-    transform: perspective(1000px) rotateX(-8deg);
-    box-shadow: 0 8px 15px rgba(231, 76, 60, 0.4);
+    background-color: rgba(244, 208, 63, 0.9);;
+    color: black;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.18);
+    transition: background-color 0.1s, color 0.1s, box-shadow 0.1s;
 }

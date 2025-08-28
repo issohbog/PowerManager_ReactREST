@@ -77,7 +77,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/admin/payment/ticket/success",
                     "/users/payment/ticket/success",
-                    "/upload/**", "/admin"
+                    "/upload/**", "/admin", "/seats/count",
+                    "/seats/**"
                 ).permitAll()
                 // ✅ CORS preflight
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()

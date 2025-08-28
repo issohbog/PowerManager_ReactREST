@@ -7,7 +7,7 @@
     /* display: flex;
     flex-direction: row;
     gap: 30px; */
-    background-color: #0e1b28;
+    background-color: #1a1a1a;
     width: calc(100vw - 800px);
     height: calc(100vh - 250px);
   }
@@ -177,3 +177,26 @@
     font-size: 16px;
     padding: 0px
   }
+
+  /* 스크롤 디자인 */
+  .seatScrollArea {
+    overflow: auto;
+    scrollbar-width: thin;           /* Firefox */
+    scrollbar-color: #888 #222;      /* Firefox */
+    background: #1a1a1a;
+    border-radius: 8px;
+}
+
+/* Chrome, Edge, Safari */
+.seatScrollArea::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.seatScrollArea::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 8px;
+}
+.seatScrollArea::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 8px;
+}
