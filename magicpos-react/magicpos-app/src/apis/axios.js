@@ -33,7 +33,7 @@ api.interceptors.request.use((config) => {
         console.warn('⚠️ JWT 토큰 디코딩 실패:', e.message);
       }
     } else {
-      console.warn('❌ JWT 토큰이 없습니다');
+      // console.warn('❌ JWT 토큰이 없습니다');
     }
   }
   

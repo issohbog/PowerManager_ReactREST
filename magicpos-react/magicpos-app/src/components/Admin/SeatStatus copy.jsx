@@ -1,10 +1,15 @@
 // components/admin/SeatStatus.jsx
 import React, { useEffect, useState } from 'react'
-import styles from '../../css/SelectSeat.module.css' // ✅ CSS 모듈 import
-import SeatContextMenu from '../../../components/Admin/SeatContextMenu'
-import { getUserInfo, getSeatUsageInfo} from '../../../apis/seatStatus'
+import styles from '../css/SeatStatus.module.css' // ✅ CSS 모듈 import
+import SeatContextMenu from './SeatContextMenu'
+import UserInfoModal from './modal/UserInfoModal'
+import DailyHistoryModal from './modal/DailyHistoryModal'
+import ChatModal from '../ChatModal'
+import { getUserInfo, getSeatUsageInfo, getSeatTodayHistory  } from '../../apis/seatStatus'
+import { AdminChat } from '../Chat';
+import { useChat } from "../../contexts/ChatContext";
 
-const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeatStatus, onClose, setSeatId }) => {
+const SeatStatus = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeatStatus, onClose, setSeatId }) => {
     console.log('allSeats (위치 기반):', allSeats) // ✅ 좌석 상태 확인용 로그
     console.log('분단별 데이터:', { topSeats: topSeats?.length, middleSeats: middleSeats?.length, bottomSeats: bottomSeats?.length }) // 하위 호환성 확인
 
@@ -16,6 +21,23 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     seat: null
   });
 
+  // 회원 정보 모달 상태
+  const [userInfoModal, setUserInfoModal] = useState({
+    visible: false,
+    userInfo: null
+  });
+
+  // 당일 내역 모달 상태
+  const [dailyHistoryModal, setDailyHistoryModal] = useState({
+    visible: false,
+    seatId: '',
+    historyData: null
+  });
+
+  // 채팅 모달 상태 추가
+  const [isAdminChatOpen, setAdminChatOpen] = useState(false);
+  const { chatSeat, setChatSeat } = useChat(); // context에서 가져오기
+  const { setAdminChannels } = useChat();
 
   // 우클릭 이벤트 핸들러
   const handleContextMenu = (e, seat) => {
@@ -44,6 +66,42 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [contextMenu.visible])
+
+  // 메뉴 항목 클릭 핸들러들
+  const handleDailyHistory = async (seat) => {
+    console.log('당일 이용 내역 조회:', seat)
+    
+    // 방어 코드: seat 객체 및 seatId 검증
+    if (!seat || !seat.seatId) {
+      console.error('좌석 정보가 올바르지 않습니다:', seat)
+      alert('좌석 정보를 찾을 수 없습니다.')
+      closeContextMenu()
+      return
+    }
+    
+    try {
+      const response = await getSeatTodayHistory(seat.seatId)
+      const historyData = response.data
+      
+      console.log('당일 이용 내역:', historyData)
+      
+      if (historyData.success) {
+        // 당일 내역 모달 표시
+        setDailyHistoryModal({
+          visible: true,
+          seatId: seat.seatId,
+          historyData: historyData
+        })
+      } else {
+        alert('당일 이용 내역을 조회할 수 없습니다.')
+      }
+    } catch (error) {
+      console.error('당일 이용 내역 조회 중 오류 발생:', error)
+      alert('당일 이용 내역을 조회하는데 문제가 발생했습니다.')
+    }
+    
+    closeContextMenu()
+  }
 
   const handleUserInfo = async (seat) => {
     console.log('회원 정보 조회:', seat)
@@ -75,7 +133,11 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
       
       console.log('회원 정보 조회 결과:', userInfoData)
       
-
+      // 3. 회원 정보 모달을 표시합니다
+      setUserInfoModal({
+        visible: true,
+        userInfo: userInfoData
+      })
       
     } catch (error) {
       console.error('회원 정보 조회 중 오류 발생:', error)
@@ -85,7 +147,13 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     closeContextMenu()
   }
 
-
+  // handleSendMessage 함수에서 setChatSeat, setAdminChatOpen 사용
+  const handleSendMessage = (seat) => {
+    setAdminChannels([seat.seatId]); // 해당 좌석만 구독
+    setChatSeat(seat);
+    setAdminChatOpen(true);
+    closeContextMenu();
+  }
 
   function formatRemainTime(seconds) {
     const hrs = Math.floor(seconds / 3600);
@@ -135,12 +203,13 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     const maxY = Math.max(...seatsWithPosition.map(s => s.positionY)) + 100 + 50;
     
     return (
-      <div className={styles.seatScrollArea} style={{ 
+      <div style={{ 
         width: '100%',
         height: '100%', // 화면 전체 높이 사용
         overflow: 'auto', // 가로세로 스크롤 생성 (넘칠 경우에만)
         backgroundColor: '#1a1a1a',
         borderRadius: '8px',
+        border: '1px solid #333'
       }}>
         <div style={{
           position: 'relative',
@@ -166,6 +235,7 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
                 {seat.seatName || seat.seatId}
                 {seat.className === 'broken' ? ' (고장)' : ''}
               </div>
+              
               <button 
                 className={styles.selectSeatButton}
                 onClick={() => {
@@ -175,7 +245,7 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
                 좌석 선택
               </button>
 
-              {seat.username && <div className={styles.memberName}>{seat.username}</div>}
+              {seat.username && <div className={styles.memberName}>사용중</div>}
 
               {seat.className?.includes('in-use') && seat.remainTime != null && (
                 <SeatTimeLeft initialMinutes={seat.remainTime} timerKey={seat._timerKey} />
@@ -197,13 +267,19 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
     );
   }
 
+  useEffect(() => {
+    // topSeats, middleSeats, bottomSeats에서 seatId만 추출
+    const allSeatIds = [
+      ...topSeats.map(s => s.seatId),
+      ...middleSeats.map(s => s.seatId),
+      ...bottomSeats.map(s => s.seatId)
+    ];
+    setAdminChannels(allSeatIds);
+  }, [topSeats, middleSeats, bottomSeats, setAdminChannels]);
+
   return (
     <div className={styles.seatDashboard}>
-      <div className={styles.selectseatheader}>
-        <div className={styles.title}>좌석 선택</div>
-        <button className={styles.closeButton} onClick={onClose}>X</button>
-      </div>
-      {/* 좌석 배치 영역 */}
+      {/* 위치 기반 레이아웃 */}
       {renderPositionBasedSeats(allSeats)}
       
       {/* 컨텍스트 메뉴 */}
@@ -213,10 +289,34 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
         y={contextMenu.y}
         seat={contextMenu.seat}
         onClose={closeContextMenu}
+        onDailyHistory={handleDailyHistory}
         onUserInfo={handleUserInfo}
+        onSendMessage={handleSendMessage}
       />
+      
+      {/* 회원 정보 모달 */}
+      <UserInfoModal
+        visible={userInfoModal.visible}
+        userInfo={userInfoModal.userInfo}
+        onClose={() => setUserInfoModal({ visible: false, userInfo: null })}
+      />
+      
+      {/* 당일 내역 모달 */}
+      <DailyHistoryModal
+        visible={dailyHistoryModal.visible}
+        seatId={dailyHistoryModal.seatId}
+        historyData={dailyHistoryModal.historyData}
+        onClose={() => setDailyHistoryModal({ visible: false, seatId: '', historyData: null })}
+      />
+      <ChatModal
+        open={isAdminChatOpen}
+        onClose={() => setAdminChatOpen(false)}
+        title={`좌석 ${chatSeat?.seatId ?? ""} - 메시지`}
+      >
+        <AdminChat title="메시지" />
+      </ChatModal>
     </div>
   )
 }
 
-export default SelectSeat
+export default SeatStatus
