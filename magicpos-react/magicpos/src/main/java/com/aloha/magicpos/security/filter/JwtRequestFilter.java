@@ -41,13 +41,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                   HttpServletResponse response, 
                                   FilterChain filterChain)
       throws ServletException, IOException {
+    // 요청 정보 로깅
+    String requestURI = request.getRequestURI();
+    String method = request.getMethod();
+    log.info("=== JWT 필터 시작 ===");
+    log.info("요청: {} {}", method, requestURI);
+    
     // 1. JWT 추출
     String authorization = request.getHeader( SecurityConstants.TOKEN_HEADER ); // Authorization
-    log.info("authorization : " + authorization);
+    log.info("Authorization 헤더: {}", authorization != null ? "존재함" : "없음");
 
     // 💍 "Bearer {jwt}" 체크
     // 헤더가 없거나 올바르지 않으면 다음 필터로 진행
     if( authorization == null || authorization.length() == 0 || !authorization.startsWith( SecurityConstants.TOKEN_PREFIX ) ) {
+        log.warn("JWT 토큰이 없거나 형식이 잘못됨: {}", authorization);
         filterChain.doFilter(request, response);
         return;
     }

@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -113,6 +115,90 @@ public class SeatController {
             result.put("success", false);
             result.put("message", "당일 내역을 조회할 수 없습니다.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+        }
+    }
+
+    // ========== 좌석 생성/삭제 API ==========
+    
+    /**
+     * 새 좌석 생성
+     * POST /seats/add
+     */
+    @PostMapping("/add")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createSeat(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String seatId = request.get("seatId");
+            String seatName = request.get("seatName");
+            
+            if (seatId == null || seatId.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "좌석 ID는 필수입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 기본값 설정
+            if (seatName == null || seatName.trim().isEmpty()) {
+                seatName = seatId; // 좌석명이 없으면 ID를 사용
+            }
+            
+            boolean created = seatService.createSeat(seatId, seatName);
+            
+            if (created) {
+                response.put("success", true);
+                response.put("message", "좌석이 생성되었습니다.");
+                response.put("seatId", seatId);
+                response.put("seatName", seatName);
+                
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "좌석 생성에 실패했습니다.");
+                
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("좌석 생성 실패", e);
+            response.put("success", false);
+            response.put("message", "좌석 생성에 실패했습니다: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    /**
+     * 좌석 삭제
+     * DELETE /seats/remove/{seatId}
+     */
+    @DeleteMapping("/remove/{seatId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteSeat(@PathVariable("seatId") String seatId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            boolean deleted = seatService.deleteSeat(seatId);
+            
+            if (deleted) {
+                response.put("success", true);
+                response.put("message", "좌석이 삭제되었습니다.");
+                
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "좌석 삭제에 실패했습니다.");
+                
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("좌석 삭제 실패", e);
+            response.put("success", false);
+            response.put("message", "좌석 삭제에 실패했습니다: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

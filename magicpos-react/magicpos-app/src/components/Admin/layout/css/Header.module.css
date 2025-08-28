@@ -91,27 +91,27 @@
     line-height: 60px;
     font-size: 20px;
     margin-right: 2px;
-    transition: all 0.3s ease;
-    transform: perspective(1000px) rotateX(0deg);
-    transform-origin: top;
+    /* transition: all 0.3s ease; */
+    /* transform: perspective(1000px) rotateX(0deg); */
+    /* transform-origin: top; */
 }
 
 /* 호버 시 끝이 말아지는 효과 */
 .header-nav a:hover {
-    transform: perspective(1000px) rotateX(15deg);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    /* transform: perspective(1000px) rotateX(15deg); */
+    /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); */
     background-color: #F7DC6F;
     z-index: 10;
     position: relative;
     color: #2c3e50;
-    font-weight: 600;
+    /* font-weight: 600; */
 }
 
 /* 활성 상태 (클릭 시) */
 .header-nav a:active {
-    transform: perspective(1000px) rotateX(25deg);
+    /* transform: perspective(1000px) rotateX(25deg); */
     transition: all 0.1s ease;
-    background-color: #F1C40F;
+    background-color: #FFD600;
 }
 
 /* 현재 페이지 표시 (선택적) */

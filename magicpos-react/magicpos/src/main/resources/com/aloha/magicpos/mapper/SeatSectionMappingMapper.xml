@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.SeatSectionMappingMapper">
+
+    <!-- 전체 매핑 조회 (분단 정보 포함) -->
+    <select id="selectAllMappingsWithDetails" resultType="SeatSectionMappings">
+        SELECT 
+            m.no,
+            m.section_no,
+            m.seat_id,
+            m.position_x,
+            m.position_y,
+            s.section_name,
+            s.section_order,
+            st.seat_name,
+            st.seat_status
+        FROM seat_section_mappings m
+        LEFT JOIN seat_sections s ON m.section_no = s.no
+        LEFT JOIN seats st ON m.seat_id = st.seat_id
+        WHERE s.is_active = TRUE
+        ORDER BY s.section_order ASC, m.position_y ASC, m.position_x ASC
+    </select>
+
+    <!-- 특정 분단의 좌석 매핑 조회 -->
+    <select id="selectMappingsBySection" parameterType="Long" resultType="SeatSectionMappings">
+        SELECT 
+            m.no,
+            m.section_no,
+            m.seat_id,
+            m.position_x,
+            m.position_y,
+            s.section_name,
+            s.section_order,
+            st.seat_name,
+            st.seat_status
+        FROM seat_section_mappings m
+        LEFT JOIN seat_sections s ON m.section_no = s.no
+        LEFT JOIN seats st ON m.seat_id = st.seat_id
+        WHERE m.section_no = #{sectionNo}
+        AND s.is_active = TRUE
+        ORDER BY m.position_y ASC, m.position_x ASC
+    </select>
+
+    <!-- 특정 좌석의 매핑 조회 -->
+    <select id="selectMappingBySeatId" parameterType="String" resultType="SeatSectionMappings">
+        SELECT 
+            m.no,
+            m.section_no,
+            m.seat_id,
+            m.position_x,
+            m.position_y,
+            s.section_name,
+            s.section_order,
+            st.seat_name,
+            st.seat_status
+        FROM seat_section_mappings m
+        LEFT JOIN seat_sections s ON m.section_no = s.no
+        LEFT JOIN seats st ON m.seat_id = st.seat_id
+        WHERE m.seat_id = #{seatId}
+        AND s.is_active = TRUE
+    </select>
+
+    <!-- 좌석 매핑 생성 -->
+    <insert id="insertMapping" parameterType="SeatSectionMappings" useGeneratedKeys="true" keyProperty="no">
+        INSERT INTO seat_section_mappings (
+            section_no,
+            seat_id,
+            position_x,
+            position_y
+        ) VALUES (
+            #{sectionNo},
+            #{seatId},
+            #{positionX},
+            #{positionY}
+        )
+    </insert>
+
+    <!-- 좌석 위치 업데이트 -->
+    <update id="updateSeatPosition">
+        UPDATE seat_section_mappings
+        SET 
+            position_x = #{positionX},
+            position_y = #{positionY}
+        WHERE seat_id = #{seatId}
+    </update>
+
+    <!-- 좌석 분단 변경 -->
+    <update id="updateSeatSection">
+        UPDATE seat_section_mappings
+        SET section_no = #{sectionNo}
+        WHERE seat_id = #{seatId}
+    </update>
+
+    <!-- 좌석 매핑 삭제 -->
+    <delete id="deleteMapping" parameterType="String">
+        DELETE FROM seat_section_mappings
+        WHERE seat_id = #{seatId}
+    </delete>
+
+    <!-- 분단별 좌석 삭제 (분단 삭제 시) -->
+    <delete id="deleteMappingsBySection" parameterType="Long">
+        DELETE FROM seat_section_mappings
+        WHERE section_no = #{sectionNo}
+    </delete>
+
+    <!-- 특정 위치에 좌석이 있는지 확인 -->
+    <select id="countSeatsAtPosition" resultType="int">
+        SELECT COUNT(*)
+        FROM seat_section_mappings
+        WHERE section_no = #{sectionNo}
+        AND position_x = #{positionX}
+        AND position_y = #{positionY}
+    </select>
+
+    <!-- 분단 내 좌석 개수 조회 -->
+    <select id="countSeatsBySection" parameterType="Long" resultType="int">
+        SELECT COUNT(*)
+        FROM seat_section_mappings m
+        LEFT JOIN seat_sections s ON m.section_no = s.no
+        WHERE m.section_no = #{sectionNo}
+        AND s.is_active = TRUE
+    </select>
+
+    <!-- 매핑되지 않은 좌석 목록 조회 -->
+    <select id="selectUnmappedSeats" resultType="String">
+        SELECT s.seat_id
+        FROM seats s
+        LEFT JOIN seat_section_mappings m ON s.seat_id = m.seat_id
+        WHERE m.seat_id IS NULL
+        ORDER BY CAST(SUBSTRING(s.seat_id, 5) AS UNSIGNED)
+    </select>
+
+    <!-- 좌석 배치 일괄 삭제 -->
+    <delete id="deleteAllMappings">
+        DELETE FROM seat_section_mappings
+    </delete>
+
+    <!-- 좌석 배치 일괄 저장 -->
+    <insert id="insertMappings" parameterType="java.util.List">
+        INSERT INTO seat_section_mappings (
+            section_no,
+            seat_id,
+            position_x,
+            position_y
+        ) VALUES
+        <foreach collection="mappings" item="mapping" separator=",">
+            (
+                #{mapping.sectionNo},
+                #{mapping.seatId},
+                #{mapping.positionX},
+                #{mapping.positionY}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

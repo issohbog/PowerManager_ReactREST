@@ -9,6 +9,7 @@ import Logs from './pages/Admin/Logs';
 import TodayHistoryList from './pages/Admin/TodayHistoryList';
 import Sales from './pages/Admin/Sales';
 import UserList from './pages/Admin/UserList';
+import SeatManagement from './pages/Admin/SeatManagement';
 import LoginPage from './pages/LoginPage';
 import LoginContextProvider from './contexts/LoginContext';
 
@@ -29,6 +30,7 @@ const App = () => {
             <Route path="sales" element={<Sales />} />
             <Route path="logs" element={<Logs />} />
             <Route path="todayhistory" element={<TodayHistoryList />} />
+            <Route path="seat-management" element={<SeatManagement />} />
         </Route>
 
         

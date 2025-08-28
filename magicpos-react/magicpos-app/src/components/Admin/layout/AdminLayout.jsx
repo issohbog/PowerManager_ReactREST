@@ -65,8 +65,14 @@ const AdminLayout = () => {
       onConnect: () => {
         client.subscribe('/topic/admin/logs', message => {
           const payload = JSON.parse(message.body);
-          Swal.fire('관리자 알림', payload.description, 'info');
           window.speechSynthesis.speak(new SpeechSynthesisUtterance(payload.description));
+
+          // 로그아웃 메시지면 알림 띄우지 않음
+          if (payload.description && payload.description.includes('님이 로그아웃하셨습니다.')) {
+            return;
+          }
+
+          Swal.fire('관리자 알림', payload.description, 'info');
         });
       },
       debug: str => console.log(str),

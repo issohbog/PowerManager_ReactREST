@@ -149,6 +149,8 @@ FOREIGN KEY (u_no) REFERENCES users(no)
 ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+
+
 DROP TABLE IF EXISTS `logs`;
 CREATE TABLE logs (
   no BIGINT NOT NULL AUTO_INCREMENT COMMENT '로그 번호',
@@ -162,4 +164,36 @@ CREATE TABLE logs (
     ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (seat_id) REFERENCES seats(seat_id)
     ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+DROP TABLE IF EXISTS `seat_sections`;
+CREATE TABLE seat_sections (
+  no BIGINT NOT NULL AUTO_INCREMENT COMMENT '분단 고유번호(기본키)',
+  section_name VARCHAR(50) NOT NULL COMMENT '분단 이름(예: TOP, MIDDLE, BOTTOM)',
+  section_order INT NULL COMMENT '분단 순서(화면 표시 순서)',
+  min_x INT NOT NULL DEFAULT 0 COMMENT '분단 최소 X 좌표',
+  min_y INT NOT NULL DEFAULT 0 COMMENT '분단 최소 Y 좌표',
+  max_x INT NOT NULL DEFAULT 0 COMMENT '분단 최대 X 좌표',
+  max_y INT NOT NULL DEFAULT 0 COMMENT '분단 최대 Y 좌표',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE COMMENT '분단 활성화 여부',
+  PRIMARY KEY (no),
+  UNIQUE KEY UK_section_name (section_name),
+  UNIQUE KEY UK_section_order (section_order)
+);
+
+DROP TABLE IF EXISTS `seat_section_mappings`;
+CREATE TABLE seat_section_mappings (
+  no BIGINT NOT NULL AUTO_INCREMENT COMMENT '매핑 고유번호(기본키)',
+  section_no BIGINT NOT NULL COMMENT '분단 번호',
+  seat_id VARCHAR(50) NOT NULL COMMENT '좌석 ID',
+  position_x INT NOT NULL DEFAULT 0 COMMENT '좌석 X 좌표',
+  position_y INT NOT NULL DEFAULT 0 COMMENT '좌석 Y 좌표',
+  PRIMARY KEY (no),
+  UNIQUE KEY UK_seat_section (seat_id),
+  UNIQUE KEY UK_position_in_section (section_no, position_x, position_y),
+  FOREIGN KEY (section_no) REFERENCES seat_sections(no)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (seat_id) REFERENCES seats(seat_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );

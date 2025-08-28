@@ -147,3 +147,41 @@
     font-size: 16px;
     padding: 0px
   }
+
+  /* ==================== 위치 기반 레이아웃 스타일 ==================== */
+  .positionBasedLayout {
+    padding: 20px;
+    overflow: auto;
+    height: calc(100vh - 140px);
+  }
+
+  .positionBasedLayout h3 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+
+  .positionBasedContainer {
+    position: relative;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    overflow: auto;
+  }
+
+  /* 위치 기반 좌석 스타일은 기존 .seat 스타일을 재사용 */
+  .positionBasedContainer .seat {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 2px solid;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .positionBasedContainer .seat:hover {
+    transform: scale(1.05);
+  }
