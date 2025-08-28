@@ -1,0 +1,155 @@
+.container {
+  min-height: 630px;
+  display: grid;
+  place-items: center;
+  background-color: #e2e8f0; /* bg-slate-200 */
+  padding: 10px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  width: 360px;
+  border-radius: 1rem;
+  background-color: #0f172a; /* bg-slate-900 */
+  color: #0f172a;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: #1e293b; /* bg-slate-800 */
+  color: white;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.headerTitle {
+  display: inline-block;
+  width: 30%;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.messageList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  background-color: rgba(15,23,42,0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* 스크롤바 스타일 추가 */
+.messageList::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+.messageList::-webkit-scrollbar-thumb {
+  background: #64748b; /* 회색 계열 */
+  border-radius: 4px;
+}
+
+.messageList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messageList:hover::-webkit-scrollbar-thumb {
+  background: #334155; /* hover 시 더 진하게 */
+}
+
+/* Firefox용 */
+.messageList {
+  scrollbar-width: thin;
+  scrollbar-color: #64748b transparent;
+}
+
+.bubble {
+  max-width: 70%;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.bubbleCustomer {
+  background-color: #f1f5f9; /* bg-slate-100 */
+}
+
+.bubbleCounter {
+  background-color: #fde047; /* bg-yellow-300 */
+}
+
+.inputBar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #1e293b; /* bg-slate-800 */
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+.input {
+  flex: 1;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  padding: 0 0.75rem;
+  outline: none;
+  border: none;
+}
+
+.sendButton {
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 0.75rem;
+  background-color: #fbbf24; /* bg-amber-400 */
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.alignRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  margin-bottom: 6px;
+}
+
+.alignLeft {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-end;
+  margin-bottom: 6px;
+}
+
+.timeLeft {
+  font-size: 0.75em;
+  color: #888;
+  margin-right: 8px;
+  align-self: flex-end;
+}
+
+.timeRight {
+  font-size: 0.75em;
+  color: #888;
+  margin-left: 8px;
+  align-self: flex-end;
+}

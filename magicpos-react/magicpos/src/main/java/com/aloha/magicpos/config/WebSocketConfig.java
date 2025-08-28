@@ -18,8 +18,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                // 개발 단계: 로컬/사설IP 허용
-                .setAllowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*", "http://192.168.*:*",
-                                          "https://localhost:*", "https://127.0.0.1:*", "https://192.168.*:*");
+                .setAllowedOriginPatterns("*"); 
     }
 }

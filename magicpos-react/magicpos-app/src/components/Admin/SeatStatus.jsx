@@ -4,7 +4,10 @@ import styles from '../css/SeatStatus.module.css' // ✅ CSS 모듈 import
 import SeatContextMenu from './SeatContextMenu'
 import UserInfoModal from './modal/UserInfoModal'
 import DailyHistoryModal from './modal/DailyHistoryModal'
+import ChatModal from '../ChatModal'
 import { getUserInfo, getSeatUsageInfo, getSeatTodayHistory  } from '../../apis/seatStatus'
+import { AdminChat } from '../Chat';
+import { useChat } from "../../contexts/ChatContext";
 
 const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) => {
     console.log('topSeats:', topSeats) // ✅ 좌석 상태 확인용 로그
@@ -31,6 +34,11 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
     seatId: '',
     historyData: null
   });
+
+  // 채팅 모달 상태 추가
+  const [isAdminChatOpen, setAdminChatOpen] = useState(false);
+  const { chatSeat, setChatSeat } = useChat(); // context에서 가져오기
+  const { setAdminChannels } = useChat();
 
   // 우클릭 이벤트 핸들러
   const handleContextMenu = (e, seat) => {
@@ -140,10 +148,12 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
     closeContextMenu()
   }
 
+  // handleSendMessage 함수에서 setChatSeat, setAdminChatOpen 사용
   const handleSendMessage = (seat) => {
-    console.log('메시지 보내기:', seat)
-    // TODO: 메시지 보내기 모달 오픈
-    closeContextMenu()
+    setAdminChannels([seat.seatId]); // 해당 좌석만 구독
+    setChatSeat(seat);
+    setAdminChatOpen(true);
+    closeContextMenu();
   }
 
   function formatRemainTime(seconds) {
@@ -206,6 +216,16 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
       </div>
     ))
 
+  useEffect(() => {
+    // topSeats, middleSeats, bottomSeats에서 seatId만 추출
+    const allSeatIds = [
+      ...topSeats.map(s => s.seatId),
+      ...middleSeats.map(s => s.seatId),
+      ...bottomSeats.map(s => s.seatId)
+    ];
+    setAdminChannels(allSeatIds);
+  }, [topSeats, middleSeats, bottomSeats, setAdminChannels]);
+
   return (
     <div className={styles.seatDashboard}>
       <div className={styles.rowContainer}>
@@ -241,6 +261,13 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
         historyData={dailyHistoryModal.historyData}
         onClose={() => setDailyHistoryModal({ visible: false, seatId: '', historyData: null })}
       />
+      <ChatModal
+        open={isAdminChatOpen}
+        onClose={() => setAdminChatOpen(false)}
+        title={`좌석 ${chatSeat?.seatId ?? ""} - 메시지`}
+      >
+        <AdminChat title="메시지" />
+      </ChatModal>
     </div>
   )
 }

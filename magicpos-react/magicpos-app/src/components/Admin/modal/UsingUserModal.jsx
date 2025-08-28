@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../../css/admin_usinguser.css';
+import styles from '../../css/Usinguser.module.css';
 
 const UsingUserModal = ({
   isVisible,
@@ -48,13 +48,13 @@ const UsingUserModal = ({
   };
 
   return (
-    <div className="usingmodal" onClick={handleModalClick}>
-      <div className="usingmodal-content">
+    <div className={styles.usingmodal} onClick={handleModalClick}>
+      <div className={styles.usingmodalContent}>
         {/* 닫기 버튼 */}
-        <span className="usingclose" onClick={onClose}>&times;</span>
+        <span className={styles.usingclose} onClick={onClose}>&times;</span>
 
         {/* 🔍 검색창 */}
-        <div className="using-search-box">
+        <div className={styles.usingSearchBox}>
           <input
             type="text"
             placeholder="이름/전화번호/아이디"
@@ -68,15 +68,15 @@ const UsingUserModal = ({
         </div>
 
         {/* 사용자 목록 출력 영역 */}
-        <div className="user-list-container">
+        <div className={styles.userListContainer}>
           {loading ? (
-            <div className="loading-message">
+            <div className={styles.loadingMessage}>
               사용자 목록을 불러오는 중...
             </div>
           ) : (
-            <table className="user-table">
+            <table className={styles.userTable}>
               <thead>
-                <tr className="usinglistth">
+                <tr className={styles.usinglistth}>
                   <th>이름(아이디)</th>
                   <th>남은시간</th>
                 </tr>
@@ -84,7 +84,7 @@ const UsingUserModal = ({
               <tbody>
                 {userList.length > 0 ? (
                   userList.map((user, index) => (
-                    <tr key={user.userNo || index} className="user-row">
+                    <tr key={user.userNo || index} className={styles.userRow}>
                       <td>
                         {(user.username || '이름없음')} ({user.userId || '아이디없음'})
                       </td>
@@ -109,7 +109,7 @@ const UsingUserModal = ({
 
         {/* 총 회원 수 표시 */}
         {!loading && userList.length > 0 && (
-          <div className="user-count" style={{ color: 'white' }}>
+          <div className={styles.userCount}>
             총 {userList.length}명의 사용중인 회원
           </div>
         )}
