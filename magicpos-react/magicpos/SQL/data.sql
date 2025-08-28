@@ -368,3 +368,11 @@ INSERT INTO seats_reservations (u_no, seat_id, start_time, end_time) VALUES
 -- WHERE s.seat_status = 1 
 -- AND sr.end_time > NOW()
 -- ORDER BY sr.start_time DESC;
+
+INSERT INTO chat_macros (text_message) VALUES
+('안녕하세요! 무엇을 도와드릴까요?'),
+('주문이 완료되었습니다. 감사합니다!'),
+('화장실은 문 밖에 있습니다.'),
+('와이파이 비밀번호 : 123456789a'),
+('시간 추가 해드렸습니다.'),
+('더 필요하신 사항이 있으신가요?');

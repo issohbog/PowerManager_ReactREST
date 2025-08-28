@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.ChatMapper">
+
+  <select id="findMacros" resultType="map">
+    SELECT no, text_message
+    FROM chat_macros
+    ORDER BY no ASC
+  </select>
+
+  <insert id="insertMacro" useGeneratedKeys="true" keyProperty="no">
+    INSERT INTO chat_macros (text_message)
+    VALUES (#{text_message})
+  </insert>
+
+
+  <delete id="deleteMacro">
+    DELETE FROM chat_macros WHERE no = #{no}
+  </delete>
+
+</mapper>

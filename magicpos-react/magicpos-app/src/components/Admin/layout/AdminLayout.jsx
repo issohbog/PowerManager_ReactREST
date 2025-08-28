@@ -8,10 +8,16 @@ import AdminTicketContainer from '../../../containers/Admin/AdminTicketContainer
 import TicketSuccessModal from '../modal/TicketSuccessModal'
 import { Client } from '@stomp/stompjs';
 import Swal from 'sweetalert2';
+import { useChat } from "../../../contexts/ChatContext";
 
 
 
 const AdminLayout = () => {
+  const { setSelfRole } = useChat();
+  useEffect(() => {
+    setSelfRole("counter");
+  }, [setSelfRole]);
+
   // ✅ OrderPopup 상태 관리
   const [showOrderPopup, setShowOrderPopup] = useState(false)
 

@@ -75,6 +75,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
+    String path = request.getServletPath();
+    if (path.startsWith("/ws") || path.startsWith("/topic") || path.startsWith("/app")) {
+        filterChain.doFilter(request, response);
+        return;
+    }
+
     // 4. 다음 필터로 진행
     filterChain.doFilter(request, response);
   }

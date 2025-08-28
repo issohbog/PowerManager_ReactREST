@@ -18,6 +18,9 @@ TRUNCATE TABLE `categories`;
 TRUNCATE TABLE `tickets`;
 TRUNCATE TABLE `seats`;
 TRUNCATE TABLE `users`;
+TRUNCATE TABLE `chat_macros`;
 
 -- 외래키 제약 다시 활성화
 SET FOREIGN_KEY_CHECKS = 1;
+
+

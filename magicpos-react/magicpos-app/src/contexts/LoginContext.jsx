@@ -63,7 +63,11 @@ const LoginContextProvider = ({ children }) => {
       const res = await auth.login(username, password, seatId)
       const headers = res?.headers || {}
       const body = res?.data || {}
-
+      const r = extractRoles(body?.user ? body.user : body)
+      if (!seatId && r.isUser && !r.isAdmin) {
+        Swal.fire('좌석 오류', '좌석번호를 입력해주세요.', 'error');
+        return;
+      }
       // 토큰: 본문 token → 헤더 Authorization 우선순위
       let token = body?.token
       if (!token && headers?.authorization) {
@@ -89,7 +93,6 @@ const LoginContextProvider = ({ children }) => {
             return
           }
           // 권한 분기 기본 라우팅
-          const r = extractRoles(body?.user ? body.user : body)
           navigate(r.isAdmin ? '/admin' : '/menu')
         })
       } catch (e) {

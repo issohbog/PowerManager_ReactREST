@@ -264,40 +264,20 @@ public class TossPaymentsController {
     @PostMapping("/users/orders/success")
     public ResponseEntity<Map<String, Object>> confirmPayment(
             @RequestBody Map<String, Object> paymentData,
+            @AuthenticationPrincipal CustomUser cu,
             HttpSession session) {
-        
+
         Map<String, Object> result = new HashMap<>();
-        
         try {
             String paymentKey = (String) paymentData.get("paymentKey");
             String orderId = (String) paymentData.get("orderId");
-            Integer amount = (Integer) paymentData.get("amount");
-            
-            log.info("💳 사용자 상품 결제 성공 확인: paymentKey={}, orderId={}, amount={}", paymentKey, orderId, amount);
+            Integer amount = Integer.valueOf(paymentData.get("amount").toString());
 
-            // 세션에서 임시 주문 정보 꺼냄
-            Map<String, Object> temp = (Map<String, Object>) session.getAttribute("tempOrder_" + orderId);
-            if (temp == null) {
-                result.put("success", false);
-                result.put("message", "주문 정보가 유실되었습니다.");
-                return ResponseEntity.badRequest().body(result);
-            }
+            Long userNo = cu.getUser().getNo();
+            String username = cu.getUser().getUsername();
+            String seatId = (String) paymentData.get("seatId");
+            String payment = (String) paymentData.get("payment");
 
-            // 기존 주문 처리 로직 그대로 사용
-            String seatId = temp.get("seatId").toString();
-            Object userNoObj = session.getAttribute("userNo");
-            Long userNo = null;
-            if (userNoObj instanceof Integer) {
-                userNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                userNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                userNo = Long.valueOf(userNoObj.toString());
-            }
-            
-            String payment = (String) temp.get("payment");
-            
-            // 주문 생성
             Orders order = new Orders();
             order.setUNo(userNo);
             order.setSeatId(seatId);
@@ -309,36 +289,47 @@ public class TossPaymentsController {
             orderService.insertOrder(order);
             Long oNo = order.getNo();
 
-            // 상세정보 처리
-            List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
-            List<Integer> pNos = pNoObjs.stream()
-                .map(obj -> Integer.parseInt(obj.toString()))
-                .collect(Collectors.toList());
+            // cartList 기반 주문 상세 생성
+            List<Map<String, Object>> cartList = (List<Map<String, Object>>) paymentData.get("cartList");
+            if (cartList != null && !cartList.isEmpty()) {
+                for (Map<String, Object> item : cartList) {
+                    Long pNo = Long.valueOf(item.get("p_no").toString());
+                    Long quantity = Long.valueOf(item.get("quantity").toString());
 
-            List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
-            List<Integer> quantities = quantityObjs.stream()
-                .map(obj -> Integer.parseInt(obj.toString()))
-                .collect(Collectors.toList());
+                    OrdersDetails detail = new OrdersDetails();
+                    detail.setONo(oNo);
+                    detail.setPNo(pNo);
+                    detail.setQuantity(quantity);
+                    orderService.insertOrderDetail(oNo, detail);
+                    productService.decreaseStock(pNo, quantity);
+                }
+            } else {
+                // 기존 방식도 예외적으로 지원
+                List<Object> pNoObjs = (List<Object>) paymentData.get("pNoList");
+                List<Integer> pNos = pNoObjs != null ? pNoObjs.stream()
+                    .map(obj -> Integer.parseInt(obj.toString()))
+                    .collect(Collectors.toList()) : List.of();
 
-            for (int i = 0; i < pNos.size(); i++) {
-                OrdersDetails detail = new OrdersDetails();
-                detail.setONo(oNo);
-                detail.setPNo(Long.valueOf(pNos.get(i)));
-                detail.setQuantity(Long.valueOf(quantities.get(i)));
-                orderService.insertOrderDetail(oNo, detail);
-                productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+                List<Object> quantityObjs = (List<Object>) paymentData.get("quantityList");
+                List<Integer> quantities = quantityObjs != null ? quantityObjs.stream()
+                    .map(obj -> Integer.parseInt(obj.toString()))
+                    .collect(Collectors.toList()) : List.of();
+
+                for (int i = 0; i < pNos.size(); i++) {
+                    OrdersDetails detail = new OrdersDetails();
+                    detail.setONo(oNo);
+                    detail.setPNo(Long.valueOf(pNos.get(i)));
+                    detail.setQuantity(Long.valueOf(quantities.get(i)));
+                    orderService.insertOrderDetail(oNo, detail);
+                    productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+                }
             }
 
-            // 장바구니 비우기
             cartService.deleteAllByUserNo(userNo);
 
-            // 로그 남기기
-            Users user = (Users) session.getAttribute("usageInfo");
-            String username = (user != null) ? user.getUsername() : "알 수 없음";
-            String desc = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
-            logService.insertLog(userNo, seatId, "상품 구매", desc);
+            String description = username + "님이 " + amount + "원어치 상품을 결제했습니다.";
+            logService.insertLog(userNo, seatId, "상품 구매", description);
 
-            // 세션 정리
             session.removeAttribute("tempOrder_" + orderId);
 
             result.put("success", true);
@@ -346,11 +337,11 @@ public class TossPaymentsController {
             result.put("paymentKey", paymentKey);
             result.put("orderId", orderId);
             result.put("amount", amount);
-            
+
             return ResponseEntity.ok(result);
-            
+
         } catch (Exception e) {
-            log.error("결제 확인 실패: {}", e.getMessage());
+            log.error("결제 확인 실패: {}", e.getMessage(), e);
             result.put("success", false);
             result.put("message", "결제 처리 중 오류가 발생했습니다.");
             return ResponseEntity.status(500).body(result);
@@ -441,24 +432,40 @@ public class TossPaymentsController {
             orderService.insertOrder(order);
             Long oNo = order.getNo();
 
-            // ✅ 4. 상세정보 insert + 재고 감소
-            List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
-            List<Integer> pNos = pNoObjs.stream()
-                    .map(obj -> Integer.parseInt(obj.toString()))
-                    .collect(Collectors.toList());
+            // 주문 상세 생성 부분을 아래처럼 수정하세요
+            List<Map<String, Object>> cartList = (List<Map<String, Object>>) paymentData.get("cartList");
+            if (cartList != null && !cartList.isEmpty()) {
+                for (Map<String, Object> item : cartList) {
+                    Long pNo = Long.valueOf(item.get("p_no").toString());
+                    Long quantity = Long.valueOf(item.get("quantity").toString());
 
-            List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
-            List<Integer> quantities = quantityObjs.stream()
-                    .map(obj -> Integer.parseInt(obj.toString()))
-                    .collect(Collectors.toList());
+                    OrdersDetails detail = new OrdersDetails();
+                    detail.setONo(oNo);
+                    detail.setPNo(pNo);
+                    detail.setQuantity(quantity);
+                    orderService.insertOrderDetail(oNo, detail);
+                    productService.decreaseStock(pNo, quantity);
+                }
+            } else {
+                // 기존 pNoList, quantityList 방식도 지원
+                List<Object> pNoObjs = (List<Object>) temp.get("pNoList");
+                List<Integer> pNos = pNoObjs.stream()
+                        .map(obj -> Integer.parseInt(obj.toString()))
+                        .collect(Collectors.toList());
 
-            for (int i = 0; i < pNos.size(); i++) {
-                OrdersDetails detail = new OrdersDetails();
-                detail.setONo(oNo);
-                detail.setPNo(Long.valueOf(pNos.get(i)));
-                detail.setQuantity(Long.valueOf(quantities.get(i)));
-                orderService.insertOrderDetail(oNo, detail);
-                productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+                List<Object> quantityObjs = (List<Object>) temp.get("quantityList");
+                List<Integer> quantities = quantityObjs.stream()
+                        .map(obj -> Integer.parseInt(obj.toString()))
+                        .collect(Collectors.toList());
+
+                for (int i = 0; i < pNos.size(); i++) {
+                    OrdersDetails detail = new OrdersDetails();
+                    detail.setONo(oNo);
+                    detail.setPNo(Long.valueOf(pNos.get(i)));
+                    detail.setQuantity(Long.valueOf(quantities.get(i)));
+                    orderService.insertOrderDetail(oNo, detail);
+                    productService.decreaseStock(Long.valueOf(pNos.get(i)), Long.valueOf(quantities.get(i)));
+                }
             }
 
             // 장바구니 비우기
