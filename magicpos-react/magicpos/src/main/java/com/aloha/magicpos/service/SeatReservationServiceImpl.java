@@ -110,12 +110,12 @@ public class SeatReservationServiceImpl implements SeatReservationService {
 
         if (endTime != null) {
             LocalDateTime end = endTime.toLocalDateTime();
-            long remainMinutes = Duration.between(now, end).toMinutes();
-            
-            // 음수 방지
-            if (remainMinutes < 0) remainMinutes = 0;
+            long remainSeconds = Duration.between(now, end).getSeconds();
 
-            map.put("remain_time", remainMinutes);  // key는 프론트에서 쓸 이름으로, 
+            // 음수 방지
+            if (remainSeconds < 0) remainSeconds = 0;
+
+            map.put("remain_time", remainSeconds);  // key는 프론트에서 쓸 이름으로, 
         } else {
             map.put("remain_time", "00:00");
         }
