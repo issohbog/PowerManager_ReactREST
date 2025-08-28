@@ -38,16 +38,35 @@ function UserMenuContainer() {
     loadMenuData();
   }, []);
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const isSuccess = params.get("payment") === "success";
+    const params = new URLSearchParams(window.location.search);
+    const isSuccess = params.get("payment") === "success";
+    const paymentKey = params.get("paymentKey");
+    const orderId = params.get("orderId");
+    const amount = params.get("amount");
+    const pendingOrder = JSON.parse(localStorage.getItem('pendingOrder'));
 
-  if (isSuccess) {
-    setIsOrderCompleteModalOpen(true);  // ✅ 주문 완료 모달 열기
 
-    // ✅ URL 정리 (뒤로가기 시 또 안뜨게)
-    window.history.replaceState({}, '', '/menu');
-  }
-}, []);
+    // 결제 성공 파라미터가 모두 있을 때만 confirmPayment 호출
+    if (isSuccess && paymentKey && orderId && amount && pendingOrder) {
+      console.log("confirmPayment 데이터:", {
+        paymentKey,
+        orderId,
+        amount,
+        ...pendingOrder
+      });
+      confirmPayment({
+        paymentKey,
+        orderId,
+        amount,
+        ...pendingOrder
+      }).then(res => {
+        // 주문 완료 모달 등 처리
+        setIsOrderCompleteModalOpen(true);
+      });
+      localStorage.removeItem('pendingOrder');
+      window.history.replaceState({}, '', '/menu');
+    }
+  }, []);
   
   // 메뉴 데이터 로드 함수
   const loadMenuData = async (keyword) => {
@@ -162,28 +181,28 @@ function UserMenuContainer() {
     try {
       console.log('📝 주문 데이터:', finalOrderData);
       
-      const response = await createOrder(finalOrderData);
-      const orderNo = response.data.orderNo;
-      
-    if (finalOrderData.payment === '카드' || finalOrderData.payment === '카카오페이') {
-      // ✅ 백엔드에 결제 정보 요청
-      const paymentInfoRes = await getPaymentInfo({
-        orderNo: orderNo,
-        seatId: finalOrderData.seatId,
-        totalPrice: finalOrderData.totalPrice,
-        customerName: menuData.usageInfo?.username || '비회원',
-        payment: finalOrderData.payment,
-        cartList: finalOrderData.cartList
-      });
+      // 결제창 오픈 전에
+      localStorage.setItem('pendingOrder', JSON.stringify(finalOrderData));
 
-      // Toss 창 열기
-      await handleTossPaymentWindow(paymentInfoRes.data, finalOrderData);
-
-    } else {
-      console.log('✅ 현금 주문 성공!');
-      await loadMenuData();
-      handleOrderComplete();
-    }
+      if (finalOrderData.payment === '카드' || finalOrderData.payment === '카카오페이') {
+        // ✅ 백엔드에 결제 정보 요청
+        const paymentInfoRes = await getPaymentInfo({
+          seatId: finalOrderData.seatId,
+          totalPrice: finalOrderData.totalPrice,
+          customerName: menuData.usageInfo?.username || '비회원',
+          payment: finalOrderData.payment,
+          cartList: finalOrderData.cartList
+        });
+        
+        // Toss 창 열기
+        await handleTossPaymentWindow(paymentInfoRes.data, finalOrderData);
+        
+      } else {
+        const response = await createOrder(finalOrderData);
+        console.log('✅ 현금 주문 성공!');
+        await loadMenuData();
+        handleOrderComplete();
+      }
       
     } catch (error) {
       console.error('❌ 주문 실패:', error);

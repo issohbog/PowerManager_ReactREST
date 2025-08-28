@@ -1,4 +1,4 @@
--- Active: 1750388003489@@127.0.0.1@3306@magicpos
+-- Active: 1750388007092@@127.0.0.1@3306@magicpos
 USE magicpos;
 
 
@@ -167,6 +167,7 @@ CREATE TABLE logs (
 );
 
 
+
 DROP TABLE IF EXISTS `seat_sections`;
 CREATE TABLE seat_sections (
   no BIGINT NOT NULL AUTO_INCREMENT COMMENT '분단 고유번호(기본키)',
@@ -197,3 +198,12 @@ CREATE TABLE seat_section_mappings (
   FOREIGN KEY (seat_id) REFERENCES seats(seat_id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+DROP TABLE IF EXISTS `chat_macros`;
+CREATE TABLE chat_macros (
+  no INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  text_message VARCHAR(255) NOT NULL,
+  PRIMARY KEY (no),
+  UNIQUE KEY uq_text_message (text_message) -- 같은 문구 중복 방지(옵션)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

@@ -62,6 +62,8 @@ public class SecurityConfig {
             // 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // 정적 리소스(누구나 접근 가능)
+                // ✅ WebSocket & SockJS 경로 최우선 허용
+                .requestMatchers("/ws/**", "/app/**", "/topic/**").permitAll()
                 .requestMatchers(
                     "/css/**", "/js/**", "/images/**", "/favicon.ico",
                     "/static/**", "/public/**", "/assets/**"
@@ -73,10 +75,12 @@ public class SecurityConfig {
                 ).permitAll()
                 // 공개 API가 더 있으면 여기에 추가
                 .requestMatchers(
-                    "/admin/payment/ticket/success",            // 관리자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
-                    "/users/payment/ticket/success",                        // 사용자 요금제 결제 성공 url ip:8080으로 들어올때 접근 허용
-                    "/upload/**", "/admin"                                  // 업로드된 이미지 상품 수정시 나오도록 접근 허용
+                    "/admin/payment/ticket/success",
+                    "/users/payment/ticket/success",
+                    "/upload/**", "/admin"
                 ).permitAll()
+                // ✅ CORS preflight
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                 // 관리자 전용
                 .requestMatchers(
                     "/admin/**",
@@ -88,7 +92,9 @@ public class SecurityConfig {
                     "/seats/**",
                     "/api/admin/users/**", 
                     "/seat-sections/**",
-                    "/seat-mappings/**"
+                    "/seat-mappings/**",
+                    "/api/chat/macros/**",
+                    "/chat/macros/**"
                 ).hasRole("ADMIN")
                 // 회원/관리자 공용
                 .requestMatchers(
@@ -98,7 +104,6 @@ public class SecurityConfig {
                     "/userticket/insert"
                 ).hasAnyRole("USER","ADMIN")
                 // 그 외는 인증 필요
-                .requestMatchers("/ws").permitAll() // WebSocket 엔드포인트 허용
                 .anyRequest().authenticated()
             )
             // 유저 디테일 서비스

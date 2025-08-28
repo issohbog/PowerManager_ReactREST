@@ -1,0 +1,99 @@
+.usingmodal {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 왼쪽 사이드에 고정된 패널 스타일 */
+.usingmodalContent {
+  position: fixed;
+  top: 100px;           /* 원하는 여백만큼 위에서 띄우기 (예: 100px) */
+  left: 70px;           /* 왼쪽 고정 */
+  background-color: #2C3E50;
+  padding: 20px;
+  width: 400px;
+  height: calc(100vh - 100px); /* 전체 높이에서 top 만큼 빼기 */
+  overflow-y: auto;     /* 스크롤 가능하도록 */
+}
+.usinglistth{
+  background-color: black;
+  color: white;
+}
+.userListContainer {
+  width: 100%;
+}
+
+.userTable {
+  background-color: white;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.userTable th, td {
+  padding: 5px;
+  text-align: center;
+  border: 0.5px solid #ddd;
+  font-size: 14px;
+  font-weight: normal;
+}
+
+.userTable tbody tr:hover {
+  background-color: #D5D8DC;
+  cursor: pointer;
+}
+
+/* 닫기 버튼(X) */
+.usingclose {
+  color: #ccc;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* 검색창 스타일 */
+.usingSearchBox {
+  position: relative;
+  width: 80%;
+}
+
+.usingSearchBox input[type="text"] {
+  width: 80%;
+  font-size: 14px;
+  border: none;
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.usingSearchBox button {
+  position: absolute;
+  left: calc(73%); /* input의 80% 너비 + 간격 */
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usingSearchBox button img {
+  width: 16px;
+  height: 16px;
+}
+.userCount{
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+

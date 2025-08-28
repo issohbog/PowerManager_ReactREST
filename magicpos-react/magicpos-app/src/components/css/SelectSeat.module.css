@@ -9,7 +9,7 @@
     gap: 30px; */
     background-color: #0e1b28;
     width: calc(100vw - 800px);
-    height: calc(100vh - 280px);
+    height: calc(100vh - 250px);
   }
   .selectseatheader{
     display: flex;
@@ -49,12 +49,12 @@
     width: 75%;
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
   }
   /* ✅ 6개씩 한 줄 */
   .seatRow.row-6 {
     display: grid;
-    grid-template-columns: repeat(6, 160px);
+    grid-template-columns: repeat(6, 130px);
     gap: 10px;
     justify-content: start;
   }
@@ -62,7 +62,7 @@
   /* ✅ 5개씩 한 줄 */
   .seatRow.row-5 {
     display: grid;
-    grid-template-columns: repeat(5, 160px);
+    grid-template-columns: repeat(5, 130px);
     gap: 10px;
     justify-content: start;
   }
@@ -78,7 +78,8 @@
   .seat {
     position: relative;
     box-sizing: border-box;
-    height: 100px;
+    height: 90px;
+    width: 130px;
     border-radius: 3px;
     padding: 4px;
     font-size: 17px;
@@ -91,6 +92,8 @@
     display: flex;
     justify-content: flex-start;
     gap: 3px;
+    font-weight: bold;
+    font-size: 14px;
   }
 
   .memberName {
@@ -99,6 +102,7 @@
     right: 6px;
     font-weight: bold;
     color: #333;
+    font-size: 13px;
   }
 
   .in-use-green .memberName {
@@ -114,7 +118,7 @@
     top: 27px;
     right: 6px;
     color: #666;
-    font-size: 17px;
+    font-size: 13px;
   }
 
   .in-use-green .timeLeft {

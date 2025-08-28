@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
 import { LoginContext } from '../../contexts/LoginContext';
+import ChatModal from '../ChatModal';
+import { UserChat } from '../Chat';
+import { useChat } from "../../contexts/ChatContext"; 
 
 
 function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
   const { logout } = useContext(LoginContext)
+  const { setChannel } = useChat();
+
+  // 채팅 모달 상태
+  const [isUserChatOpen, setUserChatOpen] = useState(false);
 
   // 분을 초로 변환해서 상태 관리
   const [usedSeconds, setUsedSeconds] = useState(usedTime || 0);
@@ -36,7 +43,14 @@ function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if (usageInfo?.seatId) {
+      setChannel(usageInfo.seatId); // seatId를 context에 저장
+    }
+  }, [usageInfo?.seatId, setChannel]);
+
   return (
+    <>
     <div style={{ width: "100%", height: "100px", backgroundColor: "#2b3e50", color: "white", display: "flex" }}>
       <div style={{ width: "80%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "10px 0", gap: "10px" }}>
         {/* 상단 ID 영역 */}
@@ -61,7 +75,8 @@ function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
             >
               요금제 구매
             </button>
-            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}>
+            <button style={{ width: "120px", height: "50px", fontSize: "18px", borderRadius: "5px", backgroundColor: "#f1c40f", border: "none", fontWeight: "bold", color: "black" }}
+            onClick={() => setUserChatOpen(true)}>
               메세지
             </button> 
           </div>
@@ -95,6 +110,14 @@ function UserHeader({ usageInfo, usedTime, remainTime, onOpenTicketModal }) {
         </div>
       </div>
     </div>
+      <ChatModal
+        open={isUserChatOpen}
+        onClose={() => setUserChatOpen(false)}
+        title="카운터와 메시지"
+      >
+        <UserChat title="메시지" />
+      </ChatModal>
+      </>
   );
 }
 

@@ -8,17 +8,27 @@ export default defineConfig({
     host: '0.0.0.0',
     // 프록시 설정
     proxy: {
-      '/api' : {
-        target: 'http://localhost:8080',  // (port) 서버 주소
-        changeOrigin: true,               // 요청헤더의 Host 도 변경
-        secure: false,                    // https 지원 여부
-        rewrite: (path) => path.replace(/^\/api/, '') 
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '/upload': { // 이미지 업로드/서빙용
+      '/upload': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false
+      },
+      '/ws': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true // ✅ WebSocket 프록시 추가
       }
     }
-  }
+  },
+  define: {
+    global: 'window',
+  },
+  // Add this line
+  host: true,
 })

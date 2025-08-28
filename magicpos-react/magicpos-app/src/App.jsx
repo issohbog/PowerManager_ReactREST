@@ -12,30 +12,35 @@ import UserList from './pages/Admin/UserList';
 import SeatManagement from './pages/Admin/SeatManagement';
 import LoginPage from './pages/LoginPage';
 import LoginContextProvider from './contexts/LoginContext';
+import { ChatContextProvider } from './contexts/ChatContext';
+import ChatNotification from './components/ChatNotification';
 
 const App = () => {
   return (
   <BrowserRouter>
     <LoginContextProvider>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/menu" element={<Menu />} />
+      <ChatContextProvider>
+        <ChatNotification /> {/* 알림 컴포넌트 추가 */}
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/menu" element={<Menu />} />
 
-        {/* 관리자 페이지 */}
-        <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="seat-status" />} />   {/* /admin → /admin/seat-status */}
-            <Route path="seat-status" element={<SeatStatus />} />
-            <Route path="product-list" element={<ProductList />} />
-            <Route path="user-list" element={<UserList />} />
-            <Route path="sales" element={<Sales />} />
-            <Route path="logs" element={<Logs />} />
-            <Route path="todayhistory" element={<TodayHistoryList />} />
-            <Route path="seat-management" element={<SeatManagement />} />
-        </Route>
 
-        
+          {/* 관리자 페이지 */}
+          <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="seat-status" />} />   {/* /admin → /admin/seat-status */}
+              <Route path="seat-status" element={<SeatStatus />} />
+              <Route path="product-list" element={<ProductList />} />
+              <Route path="user-list" element={<UserList />} />
+              <Route path="sales" element={<Sales />} />
+              <Route path="logs" element={<Logs />} />
+              <Route path="todayhistory" element={<TodayHistoryList />} />
+              <Route path="seat-management" element={<SeatManagement />} />
+          </Route>
 
-      </Routes>
+
+        </Routes>
+      </ChatContextProvider>
     </LoginContextProvider>
   </BrowserRouter>
   )
