@@ -74,9 +74,16 @@ public class AdminController {
     @GetMapping("/admin")
     public ResponseEntity<Map<String, Object>> findAllSeat() throws Exception {
         
-        Map<String, List<Seats>> seatMap = seatService.getSeatSections();
+        // 전체 좌석 조회 (위치 정보 포함)
+        List<Seats> allSeats = seatService.findAllSeatWithUsage();
 
         Map<String, Object> result = new HashMap<>();
+        
+        // 새로운 방식: 전체 좌석 배열 (위치 기반 렌더링용)
+        result.put("seats", allSeats);
+        
+        // 하위 호환성: 기존 분단별 방식 (다른 코드에서 사용할 수 있도록 유지)
+        Map<String, List<Seats>> seatMap = seatService.getSeatSections();
         result.put("topSeats", seatMap.get("topSeats"));
         result.put("middleSeats", seatMap.get("middleSeats"));
         result.put("bottomSeats", seatMap.get("bottomSeats"));
@@ -84,6 +91,45 @@ public class AdminController {
         List<Map<String, Object>> currentUsage = seatReservationService.findCurrentSeatUsage();
         result.put("currentUsage", currentUsage);
 
+        return ResponseEntity.ok(result);
+    }
+
+    // 좌석 상태 업데이트 (좌석 관리용)
+    @PostMapping("/admin/seats/{seatId}/status")
+    public ResponseEntity<Map<String, Object>> updateSeatStatus(
+            @PathVariable("seatId") String seatId, 
+            @RequestBody Map<String, String> request) throws Exception {
+        
+        String newStatus = request.get("status");
+        log.info("좌석 상태 업데이트 요청: seatId={}, newStatus={}", seatId, newStatus);
+        
+        // 상태 값 변환 (프론트엔드 → DB)
+        String dbStatus;
+        switch (newStatus) {
+            case "BROKEN":
+                dbStatus = "2"; // 고장
+                break;
+            case "AVAILABLE":
+                dbStatus = "0"; // 이용가능
+                break;
+            default:
+                dbStatus = newStatus; // 기타 값은 그대로 전달
+        }
+        
+        log.info("변환된 DB 상태 값: {} → {}", newStatus, dbStatus);
+        boolean success = seatService.updateStatus(seatId, dbStatus);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", success);
+        
+        if (success) {
+            result.put("message", "좌석 상태가 성공적으로 업데이트되었습니다.");
+            log.info("좌석 상태 업데이트 성공: {} → {}", seatId, dbStatus);
+        } else {
+            result.put("message", "좌석 상태 업데이트에 실패했습니다.");
+            log.error("좌석 상태 업데이트 실패: {} → {}", seatId, dbStatus);
+        }
+        
         return ResponseEntity.ok(result);
     }
 
@@ -259,6 +305,51 @@ public class AdminController {
     public String saveAdminTempOrder(@RequestBody Map<String, Object> tempOrder, HttpSession session) {
         session.setAttribute("tempOrder", tempOrder);
         return "ok";
+    }
+
+    // 그룹 번호 범위 업데이트 API
+    @PostMapping("/admin/groups/update-ranges")
+    public ResponseEntity<Map<String, Object>> updateGroupRanges(@RequestBody List<Map<String, Object>> groupRanges) {
+        try {
+            log.info("그룹 범위 업데이트 요청: {}", groupRanges);
+            
+            boolean success = seatService.updateGroupRanges(groupRanges);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", success);
+            result.put("message", success ? "그룹 범위가 성공적으로 업데이트되었습니다." : "그룹 범위 업데이트에 실패했습니다.");
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("그룹 범위 업데이트 중 오류 발생", e);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", false);
+            result.put("message", "서버 오류: " + e.getMessage());
+            return ResponseEntity.status(500).body(result);
+        }
+    }
+
+    // 그룹별 실제 좌석 범위 조회 API
+    @GetMapping("/admin/groups/ranges")
+    public ResponseEntity<Map<String, Object>> getGroupRanges() {
+        try {
+            log.info("그룹 범위 조회 요청");
+            
+            List<Map<String, Object>> groupRanges = seatService.getGroupRanges();
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("data", groupRanges);
+            result.put("message", "그룹 범위 조회 성공");
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("그룹 범위 조회 중 오류 발생", e);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", false);
+            result.put("message", "서버 오류: " + e.getMessage());
+            return ResponseEntity.status(500).body(result);
+        }
     }
 }
 

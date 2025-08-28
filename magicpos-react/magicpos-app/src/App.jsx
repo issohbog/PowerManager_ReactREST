@@ -9,6 +9,7 @@ import Logs from './pages/Admin/Logs';
 import TodayHistoryList from './pages/Admin/TodayHistoryList';
 import Sales from './pages/Admin/Sales';
 import UserList from './pages/Admin/UserList';
+import SeatManagement from './pages/Admin/SeatManagement';
 import LoginPage from './pages/LoginPage';
 import LoginContextProvider from './contexts/LoginContext';
 import { ChatContextProvider } from './contexts/ChatContext';
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/" element={<LoginPage />} />
           <Route path="/menu" element={<Menu />} />
 
+
           {/* 관리자 페이지 */}
           <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="seat-status" />} />   {/* /admin → /admin/seat-status */}
@@ -33,7 +35,9 @@ const App = () => {
               <Route path="sales" element={<Sales />} />
               <Route path="logs" element={<Logs />} />
               <Route path="todayhistory" element={<TodayHistoryList />} />
+              <Route path="seat-management" element={<SeatManagement />} />
           </Route>
+
 
         </Routes>
       </ChatContextProvider>

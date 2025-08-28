@@ -90,7 +90,9 @@ public class SecurityConfig {
                     "/usertickets/admin/**",
                     "/logs/**",
                     "/seats/**",
-                    "/api/admin/users/**",
+                    "/api/admin/users/**", 
+                    "/seat-sections/**",
+                    "/seat-mappings/**",
                     "/api/chat/macros/**",
                     "/chat/macros/**"
                 ).hasRole("ADMIN")

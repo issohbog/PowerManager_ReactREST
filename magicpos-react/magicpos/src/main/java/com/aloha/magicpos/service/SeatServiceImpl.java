@@ -180,4 +180,95 @@ public class SeatServiceImpl implements SeatService {
         return seatMapper.getSeatStatus(seatId);
     }
 
+    // ========== 좌석 생성/삭제 ==========
+    
+    @Override
+    public boolean createSeat(String seatId, String seatName) throws Exception {
+        log.info("좌석 생성 - ID: {}, Name: {}", seatId, seatName);
+        
+        // 중복 체크
+        Seats existingSeat = seatMapper.findById(seatId);
+        if (existingSeat != null) {
+            throw new Exception("이미 존재하는 좌석 ID입니다: " + seatId);
+        }
+        
+        int result = seatMapper.createSeat(seatId, seatName);
+        return result > 0;
+    }
+    
+    @Override
+    public boolean deleteSeat(String seatId) throws Exception {
+        log.info("좌석 삭제 - ID: {}", seatId);
+        
+        // 좌석 존재 확인
+        Seats seat = seatMapper.findById(seatId);
+        if (seat == null) {
+            throw new Exception("존재하지 않는 좌석 ID입니다: " + seatId);
+        }
+        
+        // 사용중인 좌석인지 확인
+        int status = seatMapper.getSeatStatus(seatId);
+        if (status == 1) { // 사용중
+            throw new Exception("사용중인 좌석은 삭제할 수 없습니다: " + seatId);
+        }
+        
+        int result = seatMapper.deleteSeat(seatId);
+        return result > 0;
+    }
+
+    @Override
+    public boolean updateGroupRanges(List<Map<String, Object>> groupRanges) throws Exception {
+        log.info("그룹 범위 업데이트 시작: {}", groupRanges);
+        
+        try {
+            for (Map<String, Object> groupRange : groupRanges) {
+                String groupName = (String) groupRange.get("name");
+                Number startSeatNum = (Number) groupRange.get("startSeat");
+                Number endSeatNum = (Number) groupRange.get("endSeat");
+                Number groupIdNum = (Number) groupRange.get("id");
+                
+                if (startSeatNum == null || endSeatNum == null || groupIdNum == null) {
+                    log.warn("필수 값이 누락된 그룹 범위 건너뜀: {}", groupRange);
+                    continue;
+                }
+                
+                int startSeat = startSeatNum.intValue();
+                int endSeat = endSeatNum.intValue();
+                Long groupId = groupIdNum.longValue();
+                
+                log.info("그룹 '{}' (ID: {}) 범위 업데이트: {}석 ~ {}석", groupName, groupId, startSeat, endSeat);
+                
+                // 해당 범위의 좌석들을 새로운 그룹으로 업데이트
+                for (int seatNum = startSeat; seatNum <= endSeat; seatNum++) {
+                    String seatId = String.valueOf(seatNum);
+                    int result = seatMapper.updateSeatSectionMapping(seatId, groupId);
+                    if (result > 0) {
+                        log.debug("좌석 {}번의 section_no가 {}로 업데이트됨", seatId, groupId);
+                    }
+                }
+            }
+            
+            log.info("모든 그룹 범위 업데이트 완료");
+            return true;
+            
+        } catch (Exception e) {
+            log.error("그룹 범위 업데이트 중 오류 발생", e);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getGroupRanges() throws Exception {
+        log.info("그룹별 좌석 범위 조회 시작");
+        
+        try {
+            List<Map<String, Object>> groupRanges = seatMapper.getGroupRanges();
+            log.info("조회된 그룹 범위: {}", groupRanges);
+            return groupRanges;
+        } catch (Exception e) {
+            log.error("그룹 범위 조회 중 오류 발생", e);
+            throw e;
+        }
+    }
+
 }

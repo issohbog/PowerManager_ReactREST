@@ -71,4 +71,18 @@ public interface SeatMapper {
     
     // 사용회원 전체 조회
     List<Map<String, Object>> findInUseUsers();
+
+    // ========== 좌석 생성/삭제 ==========
+    
+    // 새 좌석 생성
+    int createSeat(@Param("seatId") String seatId, @Param("seatName") String seatName);
+    
+    // 좌석 삭제
+    int deleteSeat(@Param("seatId") String seatId);
+    
+    // 좌석 섹션 매핑 업데이트 (seat_section_mappings 테이블의 section_no 업데이트)
+    int updateSeatSectionMapping(@Param("seatId") String seatId, @Param("sectionNo") Long sectionNo);
+    
+    // 그룹별 실제 좌석 범위 조회 (section_no별 최소/최대 좌석 번호)
+    List<Map<String, Object>> getGroupRanges();
 }

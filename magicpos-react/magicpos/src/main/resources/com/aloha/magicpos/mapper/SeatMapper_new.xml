@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aloha.magicpos.mapper.SeatMapper">
+
+    <!-- 전체 좌석 조회 -->
+    <select id="findAll" resultType="Seats">
+        SELECT *
+        FROM seats
+        ORDER BY seat_id
+    </select>
+
+    <!-- 전체 좌석 조회 (좌석 데시보드 용 - 사용자 정보, 남은시간, 위치 정보 도 조회) -->
+    <select id="findAllSeatWithUsage" resultType="Seats">
+        <![CDATA[
+            SELECT 
+                s.seat_id, 
+                s.seat_name, 
+                s.seat_status, 
+                u.username, 
+                SUM(ut.remain_time) AS remainTime,
+                sm.position_x,
+                sm.position_y,
+                sm.section_no
+            FROM seats s 
+            LEFT JOIN seats_reservations sr 
+            ON s.seat_id = sr.seat_id AND sr.end_time > NOW()
+            LEFT JOIN users u ON sr.u_no = u.no 
+            LEFT JOIN user_tickets ut ON u.no = ut.u_no
+            LEFT JOIN seat_section_mappings sm ON s.seat_id = sm.seat_id
+            GROUP BY s.seat_id, s.seat_name, s.seat_status, u.username, sm.position_x, sm.position_y, sm.section_no
+            ORDER BY CAST(SUBSTRING(s.seat_id, 2) AS UNSIGNED)
+        ]]>
+    </select>
+
+    <!-- 사용 중인 좌석 개수 조회 -->
+    <select id="countUsingSeats" resultType="int">
+        SELECT COUNT(*)
+        FROM seats
+        WHERE seat_status = 1
+    </select>
+
+    <!-- 전체 좌석 개수 조회 -->
+    <select id="countAllSeats" resultType="int">
+        SELECT COUNT(*)
+        FROM seats
+    </select>
+
+    <!-- 단일 좌석 조회 -->
+    <select id="findById" resultType="Seats">
+        SELECT *
+        FROM seats
+        WHERE seat_id = #{seatId}
+    </select>
+
+    <!-- 좌석 상태만 업데이트 (예: 실시간 상태 변경) -->
+    <update id="updateStatus">
+        UPDATE seats
+        SET seat_status = #{seatStatus}
+        WHERE seat_id = #{seatId}
+    </update>
+
+    <!-- 좌석 사용 정보 조회 (사용자, 남은 시간 등) -->
+    <select id="findSeatUsageInfo" resultType="java.util.HashMap">
+        <![CDATA[
+            SELECT 
+                s.seat_id,
+                s.seat_name,
+                s.seat_status,
+                u.username,
+                u.id as userId,
+                sr.start_time,
+                sr.end_time,
+                TIMESTAMPDIFF(MINUTE, NOW(), sr.end_time) AS remainTime
+            FROM seats s
+            LEFT JOIN seats_reservations sr ON s.seat_id = sr.seat_id AND sr.end_time > NOW()
+            LEFT JOIN users u ON sr.u_no = u.no
+            WHERE s.seat_id = #{seatId}
+        ]]>
+    </select>
+
+    <!-- 로그인한 유저 기준 좌석 사용 정보 조회 -->
+    <select id="findSeatUsageInfoByUser" resultType="java.util.HashMap">
+        <![CDATA[
+            SELECT 
+                s.seat_id,
+                s.seat_name,
+                s.seat_status,
+                u.username,
+                u.id as userId,
+                sr.start_time,
+                sr.end_time,
+                TIMESTAMPDIFF(MINUTE, NOW(), sr.end_time) AS remainTime
+            FROM seats s
+            JOIN seats_reservations sr ON s.seat_id = sr.seat_id AND sr.end_time > NOW()
+            JOIN users u ON sr.u_no = u.no
+            WHERE u.no = #{userNo}
+        ]]>
+    </select>
+
+    <!-- 로그아웃시 end_time 업데이트 -->
+    <update id="updateSeatEndTime">
+        <![CDATA[
+            UPDATE seats_reservations 
+            SET end_time = NOW()
+            WHERE u_no = #{userNo} AND end_time > NOW()
+        ]]>
+    </update>
+
+    <!-- 로그아웃시 seat_status 업데이트 -->
+    <update id="releaseSeatStatus">
+        UPDATE seats 
+        SET seat_status = 3
+        WHERE seat_id = (
+            SELECT seat_id 
+            FROM seats_reservations 
+            WHERE u_no = #{userNo} AND end_time > NOW() 
+            LIMIT 1
+        )
+    </update>
+
+    <!-- 좌석 상태 조회 -->
+    <select id="getSeatStatus" resultType="int">
+        SELECT seat_status
+        FROM seats
+        WHERE seat_id = #{seatId}
+    </select>
+
+    <!-- 좌석 예약 테이블 추가 -->
+    <insert id="insertSeatReservation">
+        INSERT INTO seats_reservations (seat_id, u_no, start_time, end_time)
+        VALUES (#{seatId}, #{userNo}, #{startTime}, #{endTime})
+    </insert>
+
+    <!-- 예약된 좌석ID만 반환 -->
+    <select id="findReservedSeatIds" resultType="String">
+        <![CDATA[
+            SELECT DISTINCT seat_id 
+            FROM seats_reservations 
+            WHERE end_time > NOW()
+        ]]>
+    </select>
+
+    <!-- 예약되지 않은 좌석ID만 반환 -->
+    <select id="findAvailableSeatIds" resultType="String">
+        <![CDATA[
+            SELECT seat_id 
+            FROM seats 
+            WHERE seat_id NOT IN (
+                SELECT DISTINCT seat_id 
+                FROM seats_reservations 
+                WHERE end_time > NOW()
+            )
+            AND seat_status IN (0, 3)
+        ]]>
+    </select>
+
+    <!-- 키워드로 사용회원 검색 -->
+    <select id="searchInUseUsersByKeyword" resultType="java.util.HashMap">
+        <![CDATA[
+            SELECT 
+                u.no as userNo,
+                u.id as userId,
+                u.username,
+                u.phone,
+                s.seat_id as seatId,
+                s.seat_name as seatName,
+                sr.start_time as startTime,
+                TIMESTAMPDIFF(MINUTE, NOW(), sr.end_time) AS remainTime
+            FROM users u
+            JOIN seats_reservations sr ON u.no = sr.u_no AND sr.end_time > NOW()
+            JOIN seats s ON sr.seat_id = s.seat_id
+            WHERE (u.username LIKE CONCAT('%', #{keyword}, '%') 
+               OR u.id LIKE CONCAT('%', #{keyword}, '%')
+               OR u.phone LIKE CONCAT('%', #{keyword}, '%')
+               OR s.seat_id LIKE CONCAT('%', #{keyword}, '%')
+               OR s.seat_name LIKE CONCAT('%', #{keyword}, '%'))
+            ORDER BY sr.start_time DESC
+        ]]>
+    </select>
+    
+    <!-- 사용회원 전체 조회 -->
+    <select id="findInUseUsers" resultType="java.util.HashMap">
+        <![CDATA[
+            SELECT 
+                u.no as userNo,
+                u.id as userId,
+                u.username,
+                u.phone,
+                s.seat_id as seatId,
+                s.seat_name as seatName,
+                sr.start_time as startTime,
+                TIMESTAMPDIFF(MINUTE, NOW(), sr.end_time) AS remainTime
+            FROM users u
+            JOIN seats_reservations sr ON u.no = sr.u_no AND sr.end_time > NOW()
+            JOIN seats s ON sr.seat_id = s.seat_id
+            ORDER BY sr.start_time DESC
+        ]]>
+    </select>
+
+    <!-- ========== 좌석 생성/삭제 ========== -->
+    
+    <!-- 새 좌석 생성 -->
+    <insert id="createSeat">
+        INSERT INTO seats (seat_id, seat_name, seat_status)
+        VALUES (#{seatId}, #{seatName}, 0)
+    </insert>
+    
+    <!-- 좌석 삭제 -->
+    <delete id="deleteSeat">
+        DELETE FROM seats 
+        WHERE seat_id = #{seatId}
+    </delete>
+
+    <!-- 좌석 섹션 매핑 업데이트 (seat_section_mappings 테이블의 section_no 업데이트) -->
+    <update id="updateSeatSectionMapping">
+        UPDATE seat_section_mappings 
+        SET section_no = #{sectionNo}
+        WHERE seat_id = #{seatId}
+    </update>
+
+    <!-- 그룹별 좌석 범위 조회 (실제 DB 데이터 기반) -->
+    <select id="getGroupRanges" resultType="java.util.HashMap">
+        SELECT 
+            ss.no as groupId,
+            ss.section_name as groupName,
+            CASE 
+                WHEN COUNT(sm.seat_id) > 0 THEN MIN(CAST(SUBSTRING(sm.seat_id, 2) AS UNSIGNED))
+                ELSE 1 
+            END as startSeat,
+            CASE 
+                WHEN COUNT(sm.seat_id) > 0 THEN MAX(CAST(SUBSTRING(sm.seat_id, 2) AS UNSIGNED))
+                ELSE 1 
+            END as endSeat,
+            COUNT(sm.seat_id) as seatCount
+        FROM seat_sections ss
+        LEFT JOIN seat_section_mappings sm ON ss.no = sm.section_no
+        GROUP BY ss.no, ss.section_name
+        ORDER BY ss.section_order
+    </select>
+
+</mapper>

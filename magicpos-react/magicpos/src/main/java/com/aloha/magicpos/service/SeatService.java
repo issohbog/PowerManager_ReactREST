@@ -47,5 +47,18 @@ public interface SeatService {
 
     // 좌석 상태 조회
     public int getSeatStatus(String seatId) throws Exception;
+    // ========== 좌석 생성/삭제 ==========
+    
+    // 새 좌석 생성
+    public boolean createSeat(String seatId, String seatName) throws Exception;
+    
+    // 좌석 삭제
+    public boolean deleteSeat(String seatId) throws Exception;
+
+    // 그룹 번호 범위 업데이트 (seat_section_mappings 테이블의 section_no 업데이트)
+    public boolean updateGroupRanges(List<Map<String, Object>> groupRanges) throws Exception;
+
+    // 그룹별 실제 좌석 범위 조회 (section_no별 최소/최대 좌석 번호)
+    public List<Map<String, Object>> getGroupRanges() throws Exception;
 
 }

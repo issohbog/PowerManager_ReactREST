@@ -9,10 +9,9 @@ import { getUserInfo, getSeatUsageInfo, getSeatTodayHistory  } from '../../apis/
 import { AdminChat } from '../Chat';
 import { useChat } from "../../contexts/ChatContext";
 
-const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) => {
-    console.log('topSeats:', topSeats) // ✅ 좌석 상태 확인용 로그
-    console.log('middleSeats:', middleSeats) // ✅ 좌석 상태 확인용 로그
-    console.log('bottomSeats:', bottomSeats) // ✅ 좌석 상태 확인용 로그
+const SeatStatus = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) => {
+    console.log('allSeats (위치 기반):', allSeats) // ✅ 좌석 상태 확인용 로그
+    console.log('분단별 데이터:', { topSeats: topSeats?.length, middleSeats: middleSeats?.length, bottomSeats: bottomSeats?.length }) // 하위 호환성 확인
 
   // 컨텍스트 메뉴 상태
   const [contextMenu, setContextMenu] = useState({
@@ -185,36 +184,79 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
 
   };
 
-  const renderSeats = (seats) =>
-    seats.map((seat) => (
-      <div
-        key={seat.seatId}
-        className={`${styles.seat} ${seat.className ? styles[seat.className] : ''}`}
-        onContextMenu={(e) => handleContextMenu(e, seat)}
-      >
-        <div className={styles.seatNumber}>
-          {seat.seatName || seat.seatId}
-          {seat.className === 'broken' ? ' (고장)' : ''}
-        </div>
-
-        {seat.username && <div className={styles.memberName}>{seat.username}</div>}
-
-        {seat.className?.includes('in-use') && seat.remainTime != null && (
-          <SeatTimeLeft initialMinutes={seat.remainTime} timerKey={seat._timerKey} />
-          // <div className={styles.timeLeft} data-remaining={seat.remainTime}></div>
-        )}
-
-        {seat.className === 'cleaning' && (
-          <button 
-            className={styles.trashIcon} 
-            data-seat-id={seat.seatId}
-            onClick={() => onChangeSeatStatus(seat.seatId)}
+  const renderPositionBasedSeats = (seats) => {
+    if (!seats || seats.length === 0) {
+      return <div style={{color: 'white', padding: '20px'}}>좌석 데이터가 없습니다.</div>;
+    }
+    
+    // 위치 정보가 있는 좌석들만 필터링
+    const seatsWithPosition = seats.filter(seat => 
+      seat.positionX != null && seat.positionY != null
+    );
+    
+    if (seatsWithPosition.length === 0) {
+      return <div style={{color: 'white', padding: '20px'}}>위치 정보가 설정된 좌석이 없습니다.</div>;
+    }
+    
+    // 컨테이너 크기 계산 (좌석 크기 + 여백 고려)
+    const maxX = Math.max(...seatsWithPosition.map(s => s.positionX)) + 160 + 50;
+    const maxY = Math.max(...seatsWithPosition.map(s => s.positionY)) + 100 + 50;
+    
+    return (
+      <div style={{ 
+        width: '100%',
+        height: '100%', // 화면 전체 높이 사용
+        overflow: 'auto', // 가로세로 스크롤 생성 (넘칠 경우에만)
+        backgroundColor: '#1a1a1a',
+        borderRadius: '8px',
+        border: '1px solid #333'
+      }}>
+        <div style={{
+          position: 'relative',
+          width: `${Math.max(maxX, 1200)}px`, 
+          height: `${Math.max(maxY, 600)}px`,
+          minWidth: '100%', // 최소 너비 보장
+          minHeight: '100%' // 최소 높이 보장
+        }}>
+          {seatsWithPosition.map((seat) => (
+            <div
+              key={seat.seatId}
+              className={`${styles.seat} ${seat.className ? styles[seat.className] : ''}`}
+              style={{
+                position: 'absolute',
+                left: `${seat.positionX}px`,
+                top: `${seat.positionY}px`,
+                width: '160px',
+                height: '100px'
+              }}
+              onContextMenu={(e) => handleContextMenu(e, seat)}
             >
-            <img src="/images/trash.png" alt="휴지통" />
-          </button>
-        )}
+              <div className={styles.seatNumber}>
+                {seat.seatName || seat.seatId}
+                {seat.className === 'broken' ? ' (고장)' : ''}
+              </div>
+
+              {seat.username && <div className={styles.memberName}>{seat.username}</div>}
+
+              {seat.className?.includes('in-use') && seat.remainTime != null && (
+                <SeatTimeLeft initialMinutes={seat.remainTime} timerKey={seat._timerKey} />
+              )}
+
+              {seat.className === 'cleaning' && (
+                <button 
+                  className={styles.trashIcon} 
+                  data-seat-id={seat.seatId}
+                  onClick={() => onChangeSeatStatus(seat.seatId)}
+                >
+                  <img src="/images/trash.png" alt="휴지통" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    ))
+    );
+  }
 
   useEffect(() => {
     // topSeats, middleSeats, bottomSeats에서 seatId만 추출
@@ -228,12 +270,8 @@ const SeatStatus = ({ topSeats, middleSeats, bottomSeats, onChangeSeatStatus }) 
 
   return (
     <div className={styles.seatDashboard}>
-      <div className={styles.rowContainer}>
-        <div className={`${styles.seatRow} ${styles['row-6']}`}>{renderSeats(topSeats)}</div>
-        <div className={`${styles.seatRow} ${styles['row-5']}`}>{renderSeats(middleSeats)}</div>
-        <div className={`${styles.seatRow} ${styles['row-6']}`}>{renderSeats(bottomSeats)}</div>
-        <div className={styles.counter}>카운터</div>
-      </div>
+      {/* 위치 기반 레이아웃 */}
+      {renderPositionBasedSeats(allSeats)}
       
       {/* 컨텍스트 메뉴 */}
       <SeatContextMenu

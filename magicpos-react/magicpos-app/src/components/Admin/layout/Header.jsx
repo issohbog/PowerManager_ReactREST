@@ -60,7 +60,7 @@ const Header = () => {
       {/* <input type="hidden" id="using-seat-hidden" value={usingSeatCount} />
       <input type="hidden" id="total-seat-hidden" value={totalSeatCount} /> */}
 
-      <div className={styles['header-nav-con']} style={{ display: 'flex', gap: '700px' }}>
+      <div className={styles['header-nav-con']} style={{ display: 'flex', gap: '500px' }}>
         {/* 메뉴 */}
         <nav className={styles['header-nav']}>
           <Link to="/admin">매장관리</Link>
@@ -69,6 +69,7 @@ const Header = () => {
           <Link to="/admin/sales">운영매출</Link>
           <Link to="/admin/product-list">상품관리</Link>
           <Link to="/admin/logs">로그분석</Link>
+          <Link to="/admin/seat-management">좌석관리</Link>
         </nav>
 
         <div
