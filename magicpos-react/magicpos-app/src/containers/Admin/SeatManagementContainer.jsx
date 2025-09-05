@@ -6,7 +6,7 @@ import { select } from '../../apis/seatStatus'; // 좌석 현황 API 추가
 
 /* ========= 상수 & 유틸 ========= */
 
-const GRID = 24;                // 스냅 간격
+const GRID = 10;                // 스냅 간격
 const GRID_SIZE = 20;           // 그리드 스냅 크기 (픽셀)
 const TILE_W = 160;             // 타일(좌석) 너비 (좌석 현황과 동일)
 const TILE_H = 100;             // 타일 높이 (좌석 현황과 동일)
@@ -631,11 +631,19 @@ const SeatManagementContainer = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // 분단 개수가 변경될 때 범위도 업데이트
+  // 분단 개수가 변경될 때 범위도 업데이트 (DB 로드 이후에는 실행하지 않음)
   useEffect(() => {
+    // DB에서 이미 데이터를 로드했다면 재계산하지 않음
+    if (groupRanges.length > 0 && groupRanges.some(r => r.startNumber && r.endNumber)) {
+      console.log('🔍 DB 범위가 이미 설정되어 있으므로 useEffect 건너뜀');
+      return;
+    }
+    
+    console.log('🔍 useEffect 실행 - 기본 범위 계산');
     const newRanges = groups.map((group, index) => {
       const existingRange = groupRanges.find(r => r.groupId === group.id);
       
+      // db에 원활하게 데이터가 없을때 실행되는 코드로 db가 정상적일땐 아래 코드가 실행되면 안됨 
       if (index === 0) {
         // 첫 번째 분단은 무조건 1부터 시작
         return {
@@ -651,7 +659,7 @@ const SeatManagementContainer = () => {
           endNumber: totalSeats
         };
       } else {
-        // 중간 분단들
+        // 중간 분단들 
         return existingRange || {
           groupId: group.id,
           startNumber: index * Math.floor(totalSeats / groups.length) + 1,
@@ -663,6 +671,41 @@ const SeatManagementContainer = () => {
     setGroupRanges(newRanges);
     validateRanges(newRanges);
   }, [groups, totalSeats]);
+
+  // 마지막 분단의 끝 번호를 항상 총 좌석 수(totalSeats)와 동기화
+  // - 좌석 증감, 분단 증감/순서변경 후에도 자동 반영
+  // - DB에서 불러온 값이 있어도 마지막 분단의 endNumber만 안전하게 보정
+  useEffect(() => {
+    if (!groups || groups.length === 0) return;
+    if (!groupRanges || groupRanges.length === 0) return;
+
+    // 배열상 "마지막" 분단을 기준으로 동기화 (현 UI에서 EXTRA1은 마지막에 위치)
+    const lastGroup = groups[groups.length - 1];
+    const lastIdx = groupRanges.findIndex(r => r.groupId === lastGroup.id);
+    if (lastIdx === -1) return;
+
+    const lastRange = groupRanges[lastIdx];
+    const desiredEnd = totalSeats;
+
+    // 이전 분단의 끝 번호 (없으면 0)
+    const prevGroup = groups.length > 1 ? groups[groups.length - 2] : null;
+    const prevEnd = prevGroup ? (groupRanges.find(r => r.groupId === prevGroup.id)?.endNumber || 0) : 0;
+
+    // 시작 번호가 끝 번호를 넘지 않도록 최소 보정
+    let desiredStart = lastRange.startNumber ?? (prevEnd + 1);
+    if (desiredStart < prevEnd + 1) desiredStart = prevEnd + 1;
+    if (desiredStart > desiredEnd) desiredStart = Math.min(desiredEnd, prevEnd + 1);
+
+    // 변경 필요 없으면 noop
+    if (lastRange.endNumber === desiredEnd && lastRange.startNumber === desiredStart) return;
+
+    const next = groupRanges.map(r =>
+      r.groupId === lastGroup.id ? { ...r, startNumber: desiredStart, endNumber: desiredEnd } : r
+    );
+
+    setGroupRanges(next);
+    validateRanges(next);
+  }, [totalSeats, groups, groupRanges]);
 
   // 좌석이 변경될 때마다 캔버스 크기 재계산
   useEffect(() => {
@@ -1104,53 +1147,55 @@ const SeatManagementContainer = () => {
   // 좌석 추가 핸들러
   const handleAddSeat = async () => {
     console.log('좌석 추가 버튼 클릭됨, 현재 좌석 수:', seats.length);
-    
     const newTotalSeats = totalSeats + 1;
     const newSeatId = `S${newTotalSeats}`;
-    
     try {
-      // 1. 먼저 DB에 좌석 생성
+      // 1. DB에 좌석 생성
       console.log('DB에 새 좌석 생성 중:', newSeatId);
       const createResponse = await seatAPI.createSeat({
         seatId: newSeatId,
         seatName: `좌석${newTotalSeats}`
       });
-      
       if (!createResponse.data.success) {
         throw new Error(createResponse.data.message || '좌석 생성 실패');
       }
-      
       console.log('DB 좌석 생성 성공:', createResponse.data);
-      
-      // 2. UI 업데이트
+
+      // 2. UI 업데이트 및 마지막 분단 자동 할당
       setTotalSeats(newTotalSeats);
-      
-      // 현재 좌석 위치들 출력 (디버깅용)
-      console.log('기존 좌석 위치들:', seats.map(s => `${s.id}: (${s.x}, ${s.y})`));
-      
-      // 겹치지 않는 위치 찾기
+      const lastGroupId = groups.length > 0 ? groups[groups.length - 1].id : null;
       const nextPosition = findNextAvailablePosition(seats);
-      console.log('새 좌석 배치 위치:', nextPosition);
-      
       const newSeat = {
         id: newSeatId,
         x: nextPosition.x,
         y: nextPosition.y,
-        groupId: null,
+        groupId: lastGroupId,
         status: "AVAILABLE",
         userName: "",
         note: "",
       };
-      
-      console.log('새 좌석 추가:', newSeat);
-      
-      // 좌석 추가 후 캔버스 크기도 동적으로 조정
       setSeats(prevSeats => {
         const updatedSeats = [...prevSeats, newSeat];
         console.log('업데이트된 전체 좌석 수:', updatedSeats.length);
         return updatedSeats;
       });
-      
+
+      // 3. 좌석-분단 매핑을 비동기로 DB에 즉시 저장
+      if (lastGroupId) {
+        try {
+          await seatAPI.saveLayout([
+            {
+              sectionNo: lastGroupId,
+              seatId: newSeatId,
+              positionX: nextPosition.x,
+              positionY: nextPosition.y
+            }
+          ]);
+          console.log('좌석-분단 매핑 DB 저장 완료:', newSeatId, '->', lastGroupId);
+        } catch (err) {
+          console.error('좌석-분단 매핑 DB 저장 실패:', err);
+        }
+      }
     } catch (error) {
       console.error('좌석 추가 실패:', error);
       alert('좌석 추가에 실패했습니다: ' + error.message);

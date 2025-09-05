@@ -11,6 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import styles from '../css/SeatManagement.module.css';
+import { useSeatCount } from '../../contexts/SeatCountContext.jsx';
 
 // 드래그 변환을 GRID에 스냅시키는 커스텀 모디파이어
 const snapToGridModifier = (gx, gy) => ({ transform }) => {
@@ -80,6 +81,7 @@ const getGroupColorByIndex = (groupIndex) => {
 const HIGHLIGHT_COLORS = SECTION_COLORS.map(color => color.highlight);
 
 const SeatManagement = (props) => {
+  const { seatCount, setSeatCount } = useSeatCount();
   const {
     // 상태들
     totalSeats,
@@ -135,6 +137,14 @@ const SeatManagement = (props) => {
     startPosRef,
     seatMap
   } = props;
+
+
+  // totalSeats가 바뀔 때마다 Context seatCount도 동기화
+  useEffect(() => {
+    if (typeof props.totalSeats === 'number') {
+      setSeatCount(props.totalSeats);
+    }
+  }, [props.totalSeats, setSeatCount]);
 
   console.log('SeatManagement UI 컴포넌트 렌더링됨');
 
@@ -243,17 +253,19 @@ const SeatManagement = (props) => {
     const seatId = String(active.id).replace("seat-", "");
 
     // 위치 이동
-    setSeats((prev) =>
-      prev.map((s) =>
-        s.id === seatId
-          ? {
-              ...s,
-              x: clamp((startPosRef.current[seatId]?.x ?? s.x) + (delta?.x ?? 0), 8, canvasSize.w - (TILE_W + 8)),
-              y: clamp((startPosRef.current[seatId]?.y ?? s.y) + (delta?.y ?? 0), 8, canvasSize.h - (TILE_H + 8)),
-            }
-          : s
-      )
-    );
+    setSeats((prev) => {
+      return prev.map((s, idx, arr) => {
+        if (s.id !== seatId) return s;
+        let newX = clamp((startPosRef.current[seatId]?.x ?? s.x) + (delta?.x ?? 0), 8, canvasSize.w - (TILE_W + 8));
+        let newY = clamp((startPosRef.current[seatId]?.y ?? s.y) + (delta?.y ?? 0), 8, canvasSize.h - (TILE_H + 8));
+
+        // 좌석끼리 겹침 방지 및 5px 간격 보정
+  // 5px 단위로 스냅만 적용 (겹침 허용)
+  newX = Math.round(newX / 5) * 5;
+  newY = Math.round(newY / 5) * 5;
+  return { ...s, x: newX, y: newY };
+      });
+    });
 
     // 그룹 드롭
     if (over && String(over.id).startsWith("group-")) {

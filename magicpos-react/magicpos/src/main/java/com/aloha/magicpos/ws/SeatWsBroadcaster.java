@@ -14,6 +14,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.aloha.magicpos.domain.Seats;
 import com.aloha.magicpos.domain.event.SeatReservedEvent;
+import com.aloha.magicpos.domain.event.TimeAddedEvent;
 import com.aloha.magicpos.domain.event.SeatLogoutEvent;
 import com.aloha.magicpos.service.SeatService;
 
@@ -110,5 +111,19 @@ public class SeatWsBroadcaster {
         }
         log.info("logout SNAPSHOT 들어옴: {}", snap);
         messagingTemplate.convertAndSend("/topic/admin/seats", snap);
+    }
+
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onTimeAdded(TimeAddedEvent e) throws Exception {
+        // PATCH payload 생성 (seatId, remainTime 등)
+        Map<String, Object> patch = new HashMap<>();
+        patch.put("type", "PATCH");
+        patch.put("updatedAt", Instant.now().toString());
+        Map<String, Object> seatData = new HashMap<>();
+        seatData.put("seatId", e.seatId());
+        seatData.put("remainTime", e.newRemainTime());
+        patch.put("seat", seatData);
+        messagingTemplate.convertAndSend("/topic/admin/seats", patch);
     }
 }
