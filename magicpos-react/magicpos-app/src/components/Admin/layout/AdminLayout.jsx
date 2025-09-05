@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
+import { SeatCountProvider } from '../../../contexts/SeatCountContext.jsx';
 import SidebarLeft from './SidebarLeft'
 import SidebarRight from './SidebarRight'
 import OrderPopupContainer from '../../../containers/Admin/OrderPopupContainer'
 import AdminTicketContainer from '../../../containers/Admin/AdminTicketContainer' // 👮‍♀️🎫 관리자 요금제 구매 모달 컨테이너
 import TicketSuccessModal from '../modal/TicketSuccessModal'
+import UserModal from '../modal/UserModal' // 🧑‍💼 회원등록 모달 추가
+import RegisterResultModal from '../modal/RegisterResultModal' // 🧑‍💼 회원등록 결과 모달 추가
 import { Client } from '@stomp/stompjs';
 import Swal from 'sweetalert2';
 import { useChat } from "../../../contexts/ChatContext";
+import { saveUser, checkUserId } from '../../../apis/userList'; // 🧑‍💼 사용자 관련 API 수정
 
 
 
@@ -37,10 +41,67 @@ const AdminLayout = () => {
   const [showAdminTicketModal, setShowAdminTicketModal] = useState(false);
   console.log('👮‍♀️🎫 AdminTicketModal 상태:', showAdminTicketModal);
 
-
   // 관리자 요금제 구매 성공 모달 상태 관리
   const [showTicketSuccessModal, setShowTicketSuccessModal] = useState(false);
   console.log('👮‍♀️🎫 TicketSuccessModal 상태:', showTicketSuccessModal);
+
+  // 🧑‍💼 사이드바 회원등록 모달 상태 관리 (헤더 모달과 별개)
+  const [sidebarModalOpen, setSidebarModalOpen] = useState(false);
+  const [sidebarModalMode, setSidebarModalMode] = useState('register');
+  const [sidebarSelectedUser, setSidebarSelectedUser] = useState(null);
+  const [sidebarIdCheckMessage, setSidebarIdCheckMessage] = useState('');
+  const [sidebarIdCheckStatus, setSidebarIdCheckStatus] = useState('');
+  const [sidebarRegisterResult, setSidebarRegisterResult] = useState(null);
+  const [sidebarShowRegisterResultModal, setSidebarShowRegisterResultModal] = useState(false);
+  // 🧑‍💼 사이드바 모달 열기 함수
+  const openSidebarModal = (mode, user) => {
+    setSidebarModalMode(mode);
+    setSidebarSelectedUser(user || null);
+    setSidebarIdCheckMessage('');   // 메시지 초기화
+    setSidebarIdCheckStatus('');    // 상태 초기화
+    setSidebarModalOpen(true);
+  };
+
+  // 🧑‍💼 사이드바 모달 닫기 함수
+  const closeSidebarModal = () => setSidebarModalOpen(false);
+
+  // 🧑‍💼 사이드바 회원등록 모달 열기 함수 (사이드바에서 호출)
+  const handleOpenSidebarUserRegisterModal = () => {
+    openSidebarModal('register');
+  };
+
+  // 🧑‍💼 사이드바 회원등록 처리 함수
+  const handleSidebarSave = async (userData) => {
+    if (sidebarModalMode === 'register') {
+      try {
+        const response = await saveUser(userData);
+        setSidebarRegisterResult(response.data);
+        setSidebarShowRegisterResultModal(true);
+        closeSidebarModal();
+      } catch (error) {
+        console.error('회원등록 실패:', error);
+        alert('회원등록에 실패했습니다.');
+      }
+    }
+  };
+
+  // 🧑‍💼 사이드바 아이디 중복확인 함수
+  const handleSidebarIdCheck = async (id) => {
+    try {
+      const response = await checkUserId(id);
+      if (response.data.exists) {
+        setSidebarIdCheckMessage('이미 사용 중인 아이디입니다.');
+        setSidebarIdCheckStatus('error');
+      } else {
+        setSidebarIdCheckMessage('사용 가능한 아이디입니다.');
+        setSidebarIdCheckStatus('success');
+      }
+    } catch (error) {
+      console.error('아이디 중복확인 실패:', error);
+      setSidebarIdCheckMessage('중복확인 중 오류가 발생했습니다.');
+      setSidebarIdCheckStatus('error');
+    }
+  };
 
   // URL 파라미터 변경 감지(payment를 url에서 발견하면 success/fail 에 맞게 모달 등장)
   useEffect(() => {
@@ -93,30 +154,31 @@ const AdminLayout = () => {
 
 
 
-  return (
-    <>
+    return (
+      <SeatCountProvider>
         <Header />
         <div className="admin-container">
-            <SidebarLeft onOpenAdminTicketModal={() => setShowAdminTicketModal(true)} />  {/* 👮‍♀️🎫 관리자 요금제 구매 모달 열기 */}
-            <main className='admin-main'>
-                <div className="admin-content">
-                  <Outlet />  {/* 여기에 각 메뉴 내용이 들어옴 */}
-                </div>
-            </main>
-            <SidebarRight onOrderPopupToggle={handleOrderPopupToggle} />
+          <SidebarLeft 
+            onOpenUserRegisterModal={handleOpenSidebarUserRegisterModal} 
+            onOpenAdminTicketModal={() => setShowAdminTicketModal(true)}
+          />
+          <main className='admin-main'>
+            <div className="admin-content">
+              <Outlet />
+            </div>
+          </main>
+          <SidebarRight onOrderPopupToggle={handleOrderPopupToggle} />
         </div>
         {/* ✅ OrderPopup 모달 */}
         <OrderPopupContainer
           isVisible={showOrderPopup}
           onClose={handleOrderPopupClose}
         />
-
         {/* 👮‍♀️🎫 AdminTicketModal 모달 - 관리자 요금제 구매 모달*/}
         {showAdminTicketModal && 
           <AdminTicketContainer 
             open={showAdminTicketModal}   
             onClose={() => setShowAdminTicketModal(false)} />} 
-
         {/* 👮‍♀️🎫 TicketSuccessModal 모달 - 관리자 요금제 구매 성공 모달 */}
         {showTicketSuccessModal && (
           <TicketSuccessModal
@@ -124,8 +186,27 @@ const AdminLayout = () => {
             onClose={() => setShowTicketSuccessModal(false)}
           />
         )}
-    </>
-  )
+        {/* 🧑‍💼 사이드바 회원등록 모달 */}
+        {sidebarModalOpen && (
+          <UserModal
+            open={sidebarModalOpen}
+            mode={sidebarModalMode}
+            user={sidebarSelectedUser}
+            onClose={closeSidebarModal}
+            onSave={handleSidebarSave}
+            onIdCheck={handleSidebarIdCheck}
+            idCheckMessage={sidebarIdCheckMessage}
+            idCheckStatus={sidebarIdCheckStatus}
+          />
+        )}
+        {/* 🧑‍💼 사이드바 회원등록 결과 모달 */}
+        <RegisterResultModal
+          open={sidebarShowRegisterResultModal}
+          onClose={() => setSidebarShowRegisterResultModal(false)}
+          result={sidebarRegisterResult}
+        />
+      </SeatCountProvider>
+    )
 }
 
 export default AdminLayout

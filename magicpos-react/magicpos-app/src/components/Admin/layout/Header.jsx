@@ -1,33 +1,17 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import powerIcon from '/images/전원.png'
 import styles from './css/Header.module.css'
-import { fetchSeatInfo } from '../../../apis/seatStatus'
+import { useSeatCount } from '../../../contexts/SeatCountContext.jsx';
 import { LoginContext } from '../../../contexts/LoginContext';
 
 const Header = () => {
-  const { logout } = useContext(LoginContext)
-  const [usedSeat, setUsedSeat] = useState(0);
-  const [totalSeat, setTotalSeat] = useState(0);
-
-  useEffect(() => {
-    const getSeatInfo = async () => {
-      try {
-        const response = await fetchSeatInfo();
-        const data = response.data;
-        if (data.success) {
-          setUsedSeat(data.currentUsage);
-          setTotalSeat(data.totalSeats);
-        }
-      } catch (error) {
-        setTotalSeat(0);
-        setUsedSeat(0);
-      }
-    };
-
-    getSeatInfo();
-
-  }, []);
+  const { logout } = useContext(LoginContext);
+  const { seatCount } = useSeatCount();
+  // 사용좌석 수는 기존 fetchSeatInfo에서 받아오던 방식 유지(추후 Context로 확장 가능)
+  // 여기서는 전체 좌석 수만 Context로 실시간 반영
+  const usedSeat = 0; // TODO: 실사용 좌석 수도 Context로 확장하려면 SeatCountContext에 추가
+  const totalSeat = seatCount;
 
   // 3자리로 분리
   const toDigits = (num) =>  num.toString().padStart(3, '0').split('');

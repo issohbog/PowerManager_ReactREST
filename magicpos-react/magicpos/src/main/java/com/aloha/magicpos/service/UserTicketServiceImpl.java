@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.aloha.magicpos.domain.SeatsReservations;
 import com.aloha.magicpos.domain.Tickets;
 import com.aloha.magicpos.domain.UserTickets;
 import com.aloha.magicpos.domain.Users;
+import com.aloha.magicpos.domain.event.TimeAddedEvent;
 import com.aloha.magicpos.mapper.SeatReservationMapper;
 import com.aloha.magicpos.mapper.UserTicketMapper;
 import com.aloha.magicpos.service.TicketService;
@@ -30,6 +32,9 @@ public class UserTicketServiceImpl implements UserTicketService {
     @Autowired UserService userService;
 
     @Autowired LogService logService;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public boolean insert(UserTickets userTicket) throws Exception {
@@ -90,6 +95,19 @@ public class UserTicketServiceImpl implements UserTicketService {
         }
         log.info("############ (\"############ 시간 추가 : {}", reservation);
 
+        // 요금제 구매 후 insert 후 추가된 시간 계산해서 이벤트(WebSocket) 발행
+
+        // insert 후 방금 구매한 시간까지 더한 새로운 남은시간 
+        long newRemainTime = userTicketMapper.subRemainTimeByUser(userTicket.getUNo());
+
+        // 이벤트에 새로운 남은시간을 넣어 세팅 (프론트에 전송할 것!) 
+        TimeAddedEvent event = new TimeAddedEvent(
+            reservation.getSeatId(),
+            reservation.getUsername(),
+            newRemainTime
+        );
+
+        applicationEventPublisher.publishEvent(event);
         
         // user 정보 조회 
         Users user = userService.selectByNo(userTicket.getUNo());

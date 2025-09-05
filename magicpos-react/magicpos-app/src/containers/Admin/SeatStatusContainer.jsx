@@ -119,92 +119,8 @@ const SeatStatusContainer = () => {
   }
 
   useEffect(() => {
-    // select().then(data => {
-    //   console.log('좌석 API 응답:', data) // ← 추가된 로그
-    //   setTopSeats(data.topSeats ?? [])
-    //   setMiddleSeats(data.middleSeats ?? [])
-    //   setBottomSeats(data.bottomSeats ?? [])
-    // }).catch(error => {
-    //   console.error('좌석 현황을 불러오는 데 실패했습니다:', error)
-    // })
+
     getSeatStatus()
-
-    // STOMP 클라이언트 설정
-    // const client = new Client({
-    //   brokerURL: (window.location.protocol === 'https:'
-    //     ? 'wss://' + window.location.host
-    //     : 'ws://' + window.location.host) + '/ws',
-    //   reconnectDelay: 5000,
-    //   onConnect: () => {
-    //     console.log('[WS] connected seats topic')
-    //     client.subscribe('/topic/admin/seats', (msg) => {
-    //       try {
-    //         const data = JSON.parse(msg.body)
-
-    //         if (data.type === 'PATCH' && data.seat) {
-    //           const s = data.seat;
-    //           const apply = (setter) => setter(seats => {
-    //             let hit = false;
-    //             const next = seats.map(seat => {
-    //               if (seat.seatId === s.seatId) {
-    //                 hit = true;
-    //                 return {
-    //                   ...seat,
-    //                   className: s.className ?? seat.className,
-    //                   username:  s.username  ?? seat.username,
-    //                   remainTime:s.remainTime?? seat.remainTime,
-    //                   _timerKey: (s.remainTime != null) ? Date.now() : seat._timerKey,
-    //                 };
-    //               }
-    //               return seat;
-    //             });
-    //             // 좌석 배열에 없다면(초기 로드 전 등) 안전하게 삽입
-    //             if (!hit) {
-    //               const num = parseInt(s.seatId.substring(1), 10);
-    //               // 이 컨테이너(setter)가 어느 섹션인지 모르므로 일단 그대로 반환 (실제 섹션은 SNAPSHOT이 곧 들어옴)
-    //               // 또는 top/middle/bottom 기준으로 분기해서 push 가능
-    //             }
-    //             return next;
-    //           });
-
-    //           apply(setTopSeats);
-    //           apply(setMiddleSeats);
-    //           apply(setBottomSeats);
-
-    //           // 보정: 아주 짧게 뒤에 전체 상태를 동기화 (트랜잭션 타이밍 이슈 완충)
-    //           setTimeout(() => getSeatStatus(), 250);
-    //           return;
-    //       }
-
-    //         if (data.type === 'SNAPSHOT') {
-    //           if (Array.isArray(data.topSeats) || Array.isArray(data.middleSeats) || Array.isArray(data.bottomSeats)) {
-    //             // 타이머 초기화 키 부여 
-    //             const withKeys = arr => (arr || []).map(x => ({ ...x, _timerKey: Date.now()}))
-    //             setTopSeats(withKeys(data.topSeats))
-    //             setMiddleSeats(withKeys(data.middleSeats))
-    //             setBottomSeats(withKeys(data.bottomSeats))
-    //           } else if (Array.isArray(data.seats)) {
-    //             // 하위호환 (구 payload)
-    //             partitionSeats(data.seats)
-    //           }
-    //         }
-    //       } catch (e) {
-    //         console.error('좌석 메시지 파싱 오류:', e)
-    //       }
-    //     })
-    //     // 연결 직후 한번 최신 상태 강제 요청 (경쟁조건 방지)
-    //     getSeatStatus()
-    //   }
-    // })
-    // client.onStompError = (frame) => {
-    //   console.error('[WS] STOMP error', frame.headers['message'], frame.body)
-    // }
-    // client.onWebSocketClose = () => {
-    //   console.warn('[WS] closed seats topic')
-    // }
-    // client.activate()
-    // stompRef.current = client
-
 
     // ws - topic : /topic/admin/seats
     const clientSeats = new Client({
@@ -262,11 +178,6 @@ const SeatStatusContainer = () => {
     clientSeats.activate();
 
     return () => {
-      // if (stompRef.current) {
-      //   stompRef.current.deactivate()
-      // }
-      // if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
-
       clientSeats.deactivate();
     }
   }, [])
