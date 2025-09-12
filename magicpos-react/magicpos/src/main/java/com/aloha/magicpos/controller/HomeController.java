@@ -86,17 +86,6 @@ public class HomeController {
         );
     }
 
-    /**
-     * Swagger UI로 리다이렉트
-     * @return
-     */    
-    @GetMapping({"/home"})
-    public String home() {
-        return "redirect:/swagger-ui/index.html";
-    }
-
-
-
 
     @GetMapping({"/menu", "/menu/search"})
     public ResponseEntity<Map<String, Object>> menulistRest(

@@ -208,7 +208,8 @@ const SeatStatusContainer = () => {
 
     // ws - topic : /topic/admin/seats
     const clientSeats = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      // brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: 'wss://powermanager159.cafe24.com/ws',
       connectHeaders: {},
       onConnect: () => {
         clientSeats.subscribe('/topic/admin/seats', message => {

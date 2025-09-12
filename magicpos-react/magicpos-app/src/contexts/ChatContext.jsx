@@ -17,7 +17,8 @@ export function ChatContextProvider({ children }) {
 
   useEffect(() => {
     const stompClient = new Client({
-      brokerURL: `ws://${window.location.hostname}:8080/ws`,
+      // brokerURL: `ws://${window.location.hostname}:8080/ws`,
+      brokerURL: 'wss://powermanager159.cafe24.com/ws',
       reconnectDelay: 5000,
       debug: (s) => console.log(s),
     });

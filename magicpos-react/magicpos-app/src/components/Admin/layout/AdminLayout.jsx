@@ -66,7 +66,8 @@ const AdminLayout = () => {
   useEffect(() => {
     // ws - topic : /topic/admin/logs
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      // brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: 'wss://powermanager159.cafe24.com/ws',
       connectHeaders: {},
       onConnect: () => {
         client.subscribe('/topic/admin/logs', message => {

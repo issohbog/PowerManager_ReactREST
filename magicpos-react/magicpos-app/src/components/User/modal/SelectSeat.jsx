@@ -100,7 +100,7 @@ const SelectSeat = ({ allSeats, topSeats, middleSeats, bottomSeats, onChangeSeat
 
     // key 가 바뀌거나 initialMinutes 가 바뀌면 타이머 리셋 
     useEffect(() => {
-      setRemaining(initialMinutes * 60);
+      setRemaining(initialMinutes);
     }, [initialMinutes, timerKey]);
 
     useEffect(() => {
