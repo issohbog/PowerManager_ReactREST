@@ -82,18 +82,11 @@ public class CartController {
     public ResponseEntity<?> increaseQuantityRest(
         @RequestBody(required = false) Long pNo,
         @RequestParam(value = "pNo", required = false) Long pNoParam,
-        HttpSession session
+        HttpSession session, @AuthenticationPrincipal CustomUser cu
     ) {
         try {
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = null;
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            }
+            // ✅ uNo 안전하게 변환
+            Long uNo = cu.getUser().getNo();
             Long targetPNo = pNo != null ? pNo : pNoParam;
 
             // 현재 장바구니 수량 조회
@@ -121,17 +114,13 @@ public class CartController {
     // 장바구니 수량 감소
     @PostMapping("/decrease")
     @ResponseBody
-    public ResponseEntity<?> decreaseQuantityRest(@RequestBody(required = false) Long pNo, @RequestParam(value = "pNo", required = false) Long pNoParam, HttpSession session) {
+    public ResponseEntity<?> decreaseQuantityRest(
+        @RequestBody(required = false) Long pNo, 
+        @RequestParam(value = "pNo", required = false) Long pNoParam, 
+        HttpSession session, @AuthenticationPrincipal CustomUser cu) {
         try {
-            Object userNoObj = session.getAttribute("userNo");
-            Long uNo = null;
-            if (userNoObj instanceof Integer) {
-                uNo = ((Integer) userNoObj).longValue();
-            } else if (userNoObj instanceof Long) {
-                uNo = (Long) userNoObj;
-            } else if (userNoObj != null) {
-                uNo = Long.valueOf(userNoObj.toString());
-            }
+            // ✅ uNo 안전하게 변환
+            Long uNo = cu.getUser().getNo();
             Long targetPNo = pNo != null ? pNo : pNoParam;
             cartService.decreaseQuantity(uNo, targetPNo);
             return ResponseEntity.ok(Map.of("success", true));
