@@ -102,11 +102,11 @@ public class SeatSectionController {
             }
             
             // 분단 이름 중복 검사
-            if (seatSectionService.isSectionNameExists(seatSection.getSectionName())) {
-                response.put("success", false);
-                response.put("message", "이미 존재하는 분단 이름입니다");
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-            }
+            // if (seatSectionService.isSectionNameExists(seatSection.getSectionName())) {
+            //     response.put("success", false);
+            //     response.put("message", "이미 존재하는 분단 이름입니다");
+            //     return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            // }
             
             SeatSections createdSection = seatSectionService.createSection(seatSection);
             response.put("success", true);

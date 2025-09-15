@@ -207,30 +207,58 @@ public class SeatSectionService {
             String[] sectionNames = {"TOP", "MIDDLE", "BOTTOM", "EXTRA1", "EXTRA2", "EXTRA3", "EXTRA4", "EXTRA5"};
             
             for (int i = currentCount; i < targetCount && i < sectionNames.length; i++) {
-                SeatSections newSection = new SeatSections();
-                
-                // 이미 존재하는 이름인지 확인하여 고유한 이름 생성
                 String sectionName = sectionNames[i];
-                int suffix = 1;
-                while (isSectionNameExists(sectionName)) {
-                    sectionName = sectionNames[i] + suffix;
-                    suffix++;
+                
+                // 1) 먼저 해당 이름의 비활성 분단이 있는지 확인
+                SeatSections inactiveSection = seatSectionMapper.selectInactiveSectionByName(sectionName);
+                
+                if (inactiveSection != null) {
+                    // 비활성 분단을 재활용
+                    log.info("비활성 분단 재활용: {}", sectionName);
+                    
+                    // 다음 순서 번호 설정
+                    Integer nextOrder = seatSectionMapper.getNextSectionOrder();
+                    
+                    inactiveSection.setSectionOrder(nextOrder != null ? nextOrder : currentCount + 1);
+                    inactiveSection.setMinX(30);
+                    inactiveSection.setMinY(30 + i * 200);
+                    inactiveSection.setMaxX(1040);
+                    inactiveSection.setMaxY(30 + (i + 1) * 200);
+                    inactiveSection.setIsActive(true);
+                    
+                    // 재활성화
+                    int result = seatSectionMapper.reactivateSection(inactiveSection);
+                    if (result > 0) {
+                        log.info("분단 재활성화 성공: {} (순서: {})", sectionName, inactiveSection.getSectionOrder());
+                    } else {
+                        log.error("분단 재활성화 실패: {}", sectionName);
+                    }
+                } else {
+                    // 2) 비활성 분단이 없으면 새로 생성
+                    SeatSections newSection = new SeatSections();
+                    
+                    // 이미 존재하는 활성 이름인지 확인하여 고유한 이름 생성
+                    int suffix = 1;
+                    while (isSectionNameExists(sectionName)) {
+                        sectionName = sectionNames[i] + suffix;
+                        suffix++;
+                    }
+                    
+                    newSection.setSectionName(sectionName);
+                    
+                    // 다음 사용 가능한 순서 번호 자동 설정
+                    Integer nextOrder = seatSectionMapper.getNextSectionOrder();
+                    newSection.setSectionOrder(nextOrder != null ? nextOrder : currentCount + 1);
+                    
+                    newSection.setMinX(30);
+                    newSection.setMinY(30 + i * 200);
+                    newSection.setMaxX(1040);
+                    newSection.setMaxY(30 + (i + 1) * 200);
+                    newSection.setIsActive(true);
+                    
+                    createSection(newSection);
+                    log.info("분단 새로 생성: {} (순서: {})", newSection.getSectionName(), newSection.getSectionOrder());
                 }
-                
-                newSection.setSectionName(sectionName);
-                
-                // 다음 사용 가능한 순서 번호 자동 설정
-                Integer nextOrder = seatSectionMapper.getNextSectionOrder();
-                newSection.setSectionOrder(nextOrder != null ? nextOrder : currentCount + 1);
-                
-                newSection.setMinX(30);
-                newSection.setMinY(30 + i * 200);
-                newSection.setMaxX(1040);
-                newSection.setMaxY(30 + (i + 1) * 200);
-                newSection.setIsActive(true);
-                
-                createSection(newSection);
-                log.info("분단 추가: {} (순서: {})", newSection.getSectionName(), newSection.getSectionOrder());
             }
         } else {
             // 분단 제거 (역순으로 제거)

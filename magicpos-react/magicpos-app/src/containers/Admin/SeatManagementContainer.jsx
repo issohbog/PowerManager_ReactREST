@@ -742,6 +742,19 @@ const SeatManagementContainer = () => {
         return;
       }
 
+      // === 중복 좌석 위치 체크 추가 ===
+      const positionSet = new Set();
+      for (const m of mappingsToSave) {
+        const key = `${m.sectionNo}-${m.positionX}-${m.positionY}`;
+        if (positionSet.has(key)) {
+          alert('좌석이 중복되어 있습니다. 다른 위치에 지정해주세요.');
+          setLoading(false);
+          return;
+        }
+        positionSet.add(key);
+      }
+      // ===========================
+
       // 백엔드 API 호출
       const response = await seatAPI.saveLayout(mappingsToSave);
       
@@ -982,10 +995,21 @@ const SeatManagementContainer = () => {
     }
 
     try {
-      // 백엔드 API 호출
+      // 현재 분단 정보 찾기
+      const currentGroup = groups.find(g => g.id === editingGroupId);
+      if (!currentGroup) {
+        throw new Error('분단 정보를 찾을 수 없습니다.');
+      }
+
+      // 백엔드 API 호출 - 기존 정보 유지하면서 이름만 변경
       await seatAPI.updateSection(editingGroupId, {
         sectionName: tempGroupName.trim(),
-        sectionOrder: groups.find(g => g.id === editingGroupId)?.sectionOrder || 1
+        sectionOrder: currentGroup.sectionOrder,
+        minX: currentGroup.minX,
+        minY: currentGroup.minY,
+        maxX: currentGroup.maxX,
+        maxY: currentGroup.maxY,
+        isActive: true
       });
 
       // 로컬 상태 업데이트
@@ -1001,7 +1025,7 @@ const SeatManagementContainer = () => {
       
     } catch (err) {
       console.error('분단 이름 변경 실패:', err);
-      alert('분단 이름 변경에 실패했습니다: ' + err.message);
+      alert('분단 이름 변경에 실패했습니다: ' + (err.response?.data?.message || err.message));
     } finally {
       setEditingGroupId(null);
       setTempGroupName('');

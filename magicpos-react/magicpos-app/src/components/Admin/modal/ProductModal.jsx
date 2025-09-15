@@ -227,11 +227,11 @@ const ProductModal = ({ mode, onClose, onSave, onDelete, categoryMap, product, c
                 수정
               </button>
               <button className={styles.btnDelete} onClick={() => {
-                                                                                  if (window.confirm('정말 삭제하시겠습니까?')) {
-                                                                                    onDelete(modalProduct.no); // onDelete 호출
-                                                                                    setAnimationClass(styles.fadeOut); // 닫기 애니메이션 실행
-                                                                                  }
-                                                                                }}>
+                                                                    if (window.confirm('정말 삭제하시겠습니까?')) {
+                                                                      onDelete(modalProduct.no); // onDelete 호출
+                                                                      setAnimationClass(styles.fadeOut); // 닫기 애니메이션 실행
+                                                                    }
+                                                                  }}>
                 삭제
               </button>
             </>
