@@ -149,11 +149,10 @@
         WHERE is_active = TRUE
     </select>
 
-    <!-- 다음 순서 번호 조회 -->
+    <!-- 다음 순서 번호 조회 (기존 순서와 겹치지 않는 안전한 순서) -->
     <select id="getNextSectionOrder" resultType="Integer">
-        SELECT COALESCE(COUNT(*), 0) + 1
+        SELECT COALESCE(MAX(section_order), 0) + 1
         FROM seat_sections
-        WHERE is_active = TRUE
     </select>
 
     <!-- 분단 순서 재조정 (삭제된 순서보다 큰 순서들을 1씩 감소) -->

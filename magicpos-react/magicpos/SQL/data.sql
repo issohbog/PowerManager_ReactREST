@@ -17,6 +17,9 @@ TRUNCATE TABLE categories;
 TRUNCATE TABLE tickets;
 TRUNCATE TABLE seats;
 TRUNCATE TABLE users;
+TRUNCATE TABLE seat_section_mappings;
+TRUNCATE TABLE seat_sections;
+
 
 -- 외래 키 제약 다시 켜기
 SET FOREIGN_KEY_CHECKS = 1;

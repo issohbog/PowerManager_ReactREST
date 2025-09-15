@@ -127,8 +127,10 @@ public class SecurityConfig {
         CorsConfiguration cfg = new CorsConfiguration();
 
         cfg.setAllowedOriginPatterns(Arrays.asList("*"));
+
         // cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174", "http://192.168.30.36:5173", "http://192.168.30.36:5174", "http://192.168.30.7:5173", "http://192.168.30.7:5174"));
         //cfg.setAllowedOrigins(Arrays.asList("https://powermanager159.cafe24.com/", "http://localhost:5174"));
+
         cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(Arrays.asList("*"));
         cfg.setAllowCredentials(true);

@@ -1,32 +1,35 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import powerIcon from '/images/전원.png'
 import styles from './css/Header.module.css'
-import { fetchSeatInfo } from '../../../apis/seatStatus'
+import { useEffect, useState } from 'react';
+import { fetchSeatInfo } from '../../../apis/seatStatus';
 import { LoginContext } from '../../../contexts/LoginContext';
 
 const Header = () => {
-  const { logout } = useContext(LoginContext)
+  const { logout } = useContext(LoginContext);
+
+  // 실시간 좌석 현황 state
   const [usedSeat, setUsedSeat] = useState(0);
   const [totalSeat, setTotalSeat] = useState(0);
 
+  // 좌석 현황 fetch 함수
+  const loadSeatInfo = async () => {
+    try {
+      const res = await fetchSeatInfo();
+      const data = res.data;
+      setUsedSeat(data.currentUsage || 0);
+      setTotalSeat(data.totalSeats || 0);
+    } catch (e) {
+      setUsedSeat(0);
+      setTotalSeat(0);
+    }
+  };
+
   useEffect(() => {
-    const getSeatInfo = async () => {
-      try {
-        const response = await fetchSeatInfo();
-        const data = response.data;
-        if (data.success) {
-          setUsedSeat(data.currentUsage);
-          setTotalSeat(data.totalSeats);
-        }
-      } catch (error) {
-        setTotalSeat(0);
-        setUsedSeat(0);
-      }
-    };
-
-    getSeatInfo();
-
+    loadSeatInfo();
+    const interval = setInterval(loadSeatInfo, 5000); // 5초마다 갱신
+    return () => clearInterval(interval);
   }, []);
 
   // 3자리로 분리

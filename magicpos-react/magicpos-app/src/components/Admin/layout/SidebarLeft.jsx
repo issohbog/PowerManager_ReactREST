@@ -3,7 +3,7 @@ import styles from './css/SidebarLeft.module.css';
 import UsingUserModalContainer from '../../../containers/Admin/UsingUserModalContainer';
 import SellCounterModalContainer from '../../../containers/Admin/SellCounterModalContainer';
 
-const SidebarLeft = ({ onOpenAdminTicketModal }) => {
+const SidebarLeft = ({ onOpenAdminTicketModal, onOpenUserRegisterModal }) => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showSellModal, setShowSellModal] = useState(false);
 
@@ -29,7 +29,11 @@ const SidebarLeft = ({ onOpenAdminTicketModal }) => {
 
   return (
     <div className={styles.sidebarLeft}>
-      <a href="/members">
+      {/* 회원등록 버튼 - 모달로 변경 */}
+      <a href="#" onClick={(e) => { 
+        e.preventDefault(); 
+        onOpenUserRegisterModal();
+      }}>
         <img src="/images/icons8-user-plus-54 (2).png" alt="회원등록 아이콘" />
         <span>회원등록</span>
       </a>
