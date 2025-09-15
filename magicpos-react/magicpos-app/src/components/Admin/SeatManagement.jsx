@@ -11,7 +11,7 @@ import {
 } from "@dnd-kit/core";
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import styles from '../css/SeatManagement.module.css';
-import { useSeatCount } from '../../contexts/SeatCountContext.jsx';
+
 
 // 드래그 변환을 GRID에 스냅시키는 커스텀 모디파이어
 const snapToGridModifier = (gx, gy) => ({ transform }) => {
@@ -81,7 +81,6 @@ const getGroupColorByIndex = (groupIndex) => {
 const HIGHLIGHT_COLORS = SECTION_COLORS.map(color => color.highlight);
 
 const SeatManagement = (props) => {
-  const { seatCount, setSeatCount } = useSeatCount();
   const {
     // 상태들
     totalSeats,
@@ -139,12 +138,7 @@ const SeatManagement = (props) => {
   } = props;
 
 
-  // totalSeats가 바뀔 때마다 Context seatCount도 동기화
-  useEffect(() => {
-    if (typeof props.totalSeats === 'number') {
-      setSeatCount(props.totalSeats);
-    }
-  }, [props.totalSeats, setSeatCount]);
+
 
   console.log('SeatManagement UI 컴포넌트 렌더링됨');
 
@@ -260,10 +254,10 @@ const SeatManagement = (props) => {
         let newY = clamp((startPosRef.current[seatId]?.y ?? s.y) + (delta?.y ?? 0), 8, canvasSize.h - (TILE_H + 8));
 
         // 좌석끼리 겹침 방지 및 5px 간격 보정
-  // 5px 단위로 스냅만 적용 (겹침 허용)
-  newX = Math.round(newX / 5) * 5;
-  newY = Math.round(newY / 5) * 5;
-  return { ...s, x: newX, y: newY };
+        // 5px 단위로 스냅만 적용 (겹침 허용)
+        newX = Math.round(newX / 5) * 5;
+        newY = Math.round(newY / 5) * 5;
+        return { ...s, x: newX, y: newY };
       });
     });
 
@@ -278,277 +272,289 @@ const SeatManagement = (props) => {
     <div className={styles.container}>
       <div className={styles.mainLayout}>
         {/* 좌측 패널 */}
-        <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-          <Panel title="분단 설정" className={styles.sidebarPanel}>
-            {/* 분단별 좌석 현황 요약 */}
-            <div className={styles.summarySection}>
-              <h4>분단별 현황</h4>
-              <div className={styles.summaryGrid}>
-                {groups.map((g, idx) => {
+        <div className={styles.sidebarCon}>
+
+          <div className={`${styles.sidebar} ${sidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
+            <Panel title="좌석 설정" className={styles.sidebarPanel}>
+              <div className={styles.inputGroup}>
+                <span className={styles.inputLabel}>총 좌석</span>
+                <input
+                  type="number"
+                  className={styles.numberInput}
+                  min={1}
+                  value={totalSeats}
+                  onChange={(e) => handleSeatCountChange(Number(e.target.value))}
+                />
+                <button 
+                  className={styles.autoAssignButton}
+                  onClick={handleAddSeat}
+                >
+                  +1 추가
+                </button>
+                
+                <button 
+                  className={styles.saveButton}
+                  onClick={saveSeatLayout}
+                  title="현재 좌석 배치를 저장합니다"
+                >
+                  배치 저장
+                </button>
+              </div>
+              <p className={styles.helpText}>분단 자동 분배는 위 버튼을 사용하세요.</p>
+              <p className={styles.helpText}>💡 좌표는 캔버스 기준으로 저장되어 사이드바 상태와 무관합니다.</p>
+            </Panel>
+                      {/* 좌석 위치 조정 패널 */}
+            {selectedSeatId && (
+              <Panel title={`선택된 좌석: ${selectedSeatId}`} className={styles.sidebarPanel}>
+                <div className={styles.positionControl}>
+                  <div className={styles.positionInfo}>
+                    {(() => {
+                      const seat = seats.find(s => s.id === selectedSeatId);
+                      return seat ? (
+                        <div>
+                          <p>캔버스 내 좌표: X={seat.x}, Y={seat.y}</p>
+                          <p className={styles.coordinateNote}>
+                            ※ 좌표는 캔버스 기준 상대 위치입니다 (사이드바 상태 무관)
+                          </p>
+                          <div className={styles.keyboardHelp}>
+                            <p>📍 화살표 키: 1px씩 미세 이동</p>
+                            <p>📍 Shift + 화살표: {GRID_SIZE}px씩 그리드 이동</p>
+                            <p>📍 Ctrl + Enter: 좌표 직접 입력 {showPositionInput ? '(열림)' : '(닫힘)'}</p>
+                            <p>📍 ESC: 선택 해제</p>
+                          </div>
+                          
+                          {showPositionInput && (
+                            <div className={styles.positionInput}>
+                              <div className={styles.inputGroup}>
+                                <label>X 좌표:</label>
+                                <input
+                                  type="number"
+                                  step="1"
+                                  value={seat.x}
+                                  onChange={(e) => {
+                                    const newX = parseInt(e.target.value) || 0;
+                                    console.log('X 좌표 변경:', newX);
+                                    setSeats(prev => prev.map(s => 
+                                      s.id === selectedSeatId 
+                                        ? { ...s, x: newX } 
+                                        : s
+                                    ));
+                                  }}
+                                  onBlur={(e) => {
+                                    const newX = parseInt(e.target.value) || 0;
+                                    console.log('X 좌표 확정:', newX);
+                                  }}
+                                />
+                              </div>
+                              <div className={styles.inputGroup}>
+                                <label>Y 좌표:</label>
+                                <input
+                                  type="number"
+                                  step="1"
+                                  value={seat.y}
+                                  onChange={(e) => {
+                                    const newY = parseInt(e.target.value) || 0;
+                                    console.log('Y 좌표 변경:', newY);
+                                    setSeats(prev => prev.map(s => 
+                                      s.id === selectedSeatId 
+                                        ? { ...s, y: newY } 
+                                        : s
+                                    ));
+                                  }}
+                                  onBlur={(e) => {
+                                    const newY = parseInt(e.target.value) || 0;
+                                    console.log('Y 좌표 확정:', newY);
+                                  }}
+                                />
+                              </div>
+                              <button 
+                                className={styles.snapButton}
+                                onClick={() => {
+                                  setSeats(prev => prev.map(s => {
+                                    if (s.id === selectedSeatId) {
+                                      const snapped = snapPositionToGrid(s.x, s.y);
+                                      return { ...s, ...snapped };
+                                    }
+                                    return s;
+                                  }));
+                                }}
+                              >
+                                그리드에 맞춤
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+              </Panel>
+            )}
+            <Panel title="분단 설정" className={styles.sidebarPanel}>
+              {/* 분단별 좌석 현황 요약 */}
+              <div className={styles.summarySection}>
+                <h4>분단별 현황</h4>
+                <div className={styles.summaryGrid}>
+                  {groups.map((g, idx) => {
+                    // SECTION_COLORS 배열의 순서에 따라 일관된 색깔 할당
+                    const groupColor = getGroupColorByIndex(idx);
+                    const assignedSeats = seats.filter((s) => s.groupId === g.id).length;
+                    return (
+                      <div key={g.id} className={styles.summaryItem}>
+                        <span className={`${styles.groupBadge} ${styles[groupColor.badge]}`}>
+                          {g.name}
+                        </span>
+                        <span className={styles.seatCount}>{assignedSeats}석</span>
+                      </div>
+                    );
+                  })}
+                  <div className={styles.summaryItem}>
+                    <span className={styles.unassignedBadge}>미할당</span>
+                    <span className={styles.seatCount}>{seats.filter((s) => !s.groupId).length}석</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 분단 개수 설정 */}
+              <div className={styles.inputGroup}>
+                <span className={styles.inputLabel}>분단 수</span>
+                <input
+                  type="number"
+                  className={styles.numberInput}
+                  min={1}
+                  value={groupCount}
+                  onChange={(e) => handleGroupCountChange(Number(e.target.value))}
+                />
+              </div>
+
+              {/* 각 분단별 번호 범위 설정 */}
+              <div className={styles.groupRangeSection}>
+                <h4>분단별 좌석 번호 설정</h4>
+                {groups.map((group, idx) => {
+                  const range = groupRanges.find(r => r.groupId === group.id);
                   // SECTION_COLORS 배열의 순서에 따라 일관된 색깔 할당
                   const groupColor = getGroupColorByIndex(idx);
-                  const assignedSeats = seats.filter((s) => s.groupId === g.id).length;
+                  const assignedSeats = seats.filter((s) => s.groupId === group.id).length;
+                  const isFirstGroup = idx === 0;
+                  const isLastGroup = idx === groups.length - 1;
+                  
                   return (
-                    <div key={g.id} className={styles.summaryItem}>
-                      <span className={`${styles.groupBadge} ${styles[groupColor.badge]}`}>
-                        {g.name}
-                      </span>
-                      <span className={styles.seatCount}>{assignedSeats}석</span>
+                    
+
+
+
+
+                    <div key={group.id} className={styles.groupRangeItem}>
+                      <div className={styles.groupHeader}>
+                        <span className={`${styles.groupBadge} ${styles[groupColor.badge]}`}>
+                          {editingGroupId === group.id ? (
+                            <input
+                              type="text"
+                              value={tempGroupName}
+                              onChange={(e) => setTempGroupName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  finishEditingGroupName();
+                                } else if (e.key === 'Escape') {
+                                  cancelEditingGroupName();
+                                }
+                              }}
+                              onBlur={finishEditingGroupName}
+                              autoFocus
+                              className={styles.groupNameInput}
+                            />
+                          ) : (
+                            <>
+                              {group.name}
+                              <button
+                                className={styles.editButton}
+                                onClick={() => startEditingGroupName(group.id, group.name)}
+                                title="분단 이름 편집"
+                              >
+                                ✏️
+                              </button>
+                            </>
+                          )}
+                          {isFirstGroup && <span className={styles.constraintBadge}>시작</span>}
+                          {isLastGroup && <span className={styles.constraintBadge}>끝</span>}
+                        </span>
+                        {editingGroupId !== group.id && (
+                          <span className={styles.assignedCount}>{assignedSeats}석 할당됨</span>
+                        )}
+                      </div>
+                      <div className={styles.rangeInputs}>
+                        <div className={styles.rangeInput}>
+                          <label>시작:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={totalSeats}
+                            className={rangeErrors[group.id] ? 'error' : ''}
+                            value={range?.startNumber || 1}
+                            disabled={isFirstGroup} // 첫 번째 분단의 시작번호는 수정 불가
+                            onChange={(e) => {
+                              if (isFirstGroup) return; // 첫 번째 분단은 변경 방지
+                              handleGroupRangeChange(group.id, 'startNumber', parseInt(e.target.value) || 1);
+                            }}
+                            title={isFirstGroup ? "첫 번째 분단은 항상 1부터 시작합니다" : ""}
+                          />
+                        </div>
+                        <div className={styles.rangeInput}>
+                          <label>끝:</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={totalSeats}
+                            className={rangeErrors[group.id] ? 'error' : ''}
+                            value={range?.endNumber || 12}
+                            disabled={isLastGroup} // 마지막 분단의 끝번호는 수정 불가
+                            onChange={(e) => {
+                              if (isLastGroup) return; // 마지막 분단은 변경 방지
+                              handleGroupRangeChange(group.id, 'endNumber', parseInt(e.target.value) || 12);
+                            }}
+                            title={isLastGroup ? `마지막 분단은 항상 ${totalSeats}로 끝납니다` : ""}
+                          />
+                        </div>
+                        <div className={styles.rangeInfo}>
+                          총 {(range?.endNumber || 12) - (range?.startNumber || 1) + 1}석
+                        </div>
+                      </div>
+                      {rangeErrors[group.id] && (
+                        <div className={styles.errorMessage}>
+                          ⚠️ {rangeErrors[group.id]}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
-                <div className={styles.summaryItem}>
-                  <span className={styles.unassignedBadge}>미할당</span>
-                  <span className={styles.seatCount}>{seats.filter((s) => !s.groupId).length}석</span>
-                </div>
               </div>
-            </div>
 
-            {/* 분단 개수 설정 */}
-            <div className={styles.inputGroup}>
-              <span className={styles.inputLabel}>분단 수</span>
-              <input
-                type="number"
-                className={styles.numberInput}
-                min={1}
-                value={groupCount}
-                onChange={(e) => handleGroupCountChange(Number(e.target.value))}
-              />
-            </div>
-
-            {/* 각 분단별 번호 범위 설정 */}
-            <div className={styles.groupRangeSection}>
-              <h4>분단별 좌석 번호 설정</h4>
-              {groups.map((group, idx) => {
-                const range = groupRanges.find(r => r.groupId === group.id);
-                // SECTION_COLORS 배열의 순서에 따라 일관된 색깔 할당
-                const groupColor = getGroupColorByIndex(idx);
-                const assignedSeats = seats.filter((s) => s.groupId === group.id).length;
-                const isFirstGroup = idx === 0;
-                const isLastGroup = idx === groups.length - 1;
+              <div className={styles.actionButtons}>
+                <button
+                  className={styles.autoAssignButton}
+                  onClick={onAutoAssign}
+                >
+                  자동 분배
+                </button>
                 
-                return (
-                  <div key={group.id} className={styles.groupRangeItem}>
-                    <div className={styles.groupHeader}>
-                      <span className={`${styles.groupBadge} ${styles[groupColor.badge]}`}>
-                        {editingGroupId === group.id ? (
-                          <input
-                            type="text"
-                            value={tempGroupName}
-                            onChange={(e) => setTempGroupName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                finishEditingGroupName();
-                              } else if (e.key === 'Escape') {
-                                cancelEditingGroupName();
-                              }
-                            }}
-                            onBlur={finishEditingGroupName}
-                            autoFocus
-                            className={styles.groupNameInput}
-                          />
-                        ) : (
-                          <>
-                            {group.name}
-                            <button
-                              className={styles.editButton}
-                              onClick={() => startEditingGroupName(group.id, group.name)}
-                              title="분단 이름 편집"
-                            >
-                              ✏️
-                            </button>
-                          </>
-                        )}
-                        {isFirstGroup && <span className={styles.constraintBadge}>시작</span>}
-                        {isLastGroup && <span className={styles.constraintBadge}>끝</span>}
-                      </span>
-                      {editingGroupId !== group.id && (
-                        <span className={styles.assignedCount}>{assignedSeats}석 할당됨</span>
-                      )}
-                    </div>
-                    <div className={styles.rangeInputs}>
-                      <div className={styles.rangeInput}>
-                        <label>시작:</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max={totalSeats}
-                          className={rangeErrors[group.id] ? 'error' : ''}
-                          value={range?.startNumber || 1}
-                          disabled={isFirstGroup} // 첫 번째 분단의 시작번호는 수정 불가
-                          onChange={(e) => {
-                            if (isFirstGroup) return; // 첫 번째 분단은 변경 방지
-                            handleGroupRangeChange(group.id, 'startNumber', parseInt(e.target.value) || 1);
-                          }}
-                          title={isFirstGroup ? "첫 번째 분단은 항상 1부터 시작합니다" : ""}
-                        />
-                      </div>
-                      <div className={styles.rangeInput}>
-                        <label>끝:</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max={totalSeats}
-                          className={rangeErrors[group.id] ? 'error' : ''}
-                          value={range?.endNumber || 12}
-                          disabled={isLastGroup} // 마지막 분단의 끝번호는 수정 불가
-                          onChange={(e) => {
-                            if (isLastGroup) return; // 마지막 분단은 변경 방지
-                            handleGroupRangeChange(group.id, 'endNumber', parseInt(e.target.value) || 12);
-                          }}
-                          title={isLastGroup ? `마지막 분단은 항상 ${totalSeats}로 끝납니다` : ""}
-                        />
-                      </div>
-                      <div className={styles.rangeInfo}>
-                        총 {(range?.endNumber || 12) - (range?.startNumber || 1) + 1}석
-                      </div>
-                    </div>
-                    {rangeErrors[group.id] && (
-                      <div className={styles.errorMessage}>
-                        ⚠️ {rangeErrors[group.id]}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className={styles.actionButtons}>
-              <button
-                className={styles.autoAssignButton}
-                onClick={onAutoAssign}
-              >
-                자동 분배
-              </button>
-              
-              <button
-                className={styles.rangeAssignButton}
-                onClick={onRangeAssign}
-                disabled={Object.keys(rangeErrors).length > 0}
-              >
-                📋 범위별 분배
-              </button>
-            </div>
-          </Panel>
-
-          <Panel title="좌석 설정" className={styles.sidebarPanel}>
-            <div className={styles.inputGroup}>
-              <span className={styles.inputLabel}>총 좌석</span>
-              <input
-                type="number"
-                className={styles.numberInput}
-                min={1}
-                value={totalSeats}
-                onChange={(e) => handleSeatCountChange(Number(e.target.value))}
-              />
-              <button 
-                className={styles.autoAssignButton}
-                onClick={handleAddSeat}
-              >
-                +1 추가
-              </button>
-              
-              <button 
-                className={styles.saveButton}
-                onClick={saveSeatLayout}
-                title="현재 좌석 배치를 저장합니다"
-              >
-                배치 저장
-              </button>
-            </div>
-            <p className={styles.helpText}>분단 자동 분배는 위 버튼을 사용하세요.</p>
-            <p className={styles.helpText}>💡 좌표는 캔버스 기준으로 저장되어 사이드바 상태와 무관합니다.</p>
-          </Panel>
-
-          {/* 좌석 위치 조정 패널 */}
-          {selectedSeatId && (
-            <Panel title={`선택된 좌석: ${selectedSeatId}`} className={styles.sidebarPanel}>
-              <div className={styles.positionControl}>
-                <div className={styles.positionInfo}>
-                  {(() => {
-                    const seat = seats.find(s => s.id === selectedSeatId);
-                    return seat ? (
-                      <div>
-                        <p>캔버스 내 좌표: X={seat.x}, Y={seat.y}</p>
-                        <p className={styles.coordinateNote}>
-                          ※ 좌표는 캔버스 기준 상대 위치입니다 (사이드바 상태 무관)
-                        </p>
-                        <div className={styles.keyboardHelp}>
-                          <p>📍 화살표 키: 1px씩 미세 이동</p>
-                          <p>📍 Shift + 화살표: {GRID_SIZE}px씩 그리드 이동</p>
-                          <p>📍 Ctrl + Enter: 좌표 직접 입력 {showPositionInput ? '(열림)' : '(닫힘)'}</p>
-                          <p>📍 ESC: 선택 해제</p>
-                        </div>
-                        
-                        {showPositionInput && (
-                          <div className={styles.positionInput}>
-                            <div className={styles.inputGroup}>
-                              <label>X 좌표:</label>
-                              <input
-                                type="number"
-                                step="1"
-                                value={seat.x}
-                                onChange={(e) => {
-                                  const newX = parseInt(e.target.value) || 0;
-                                  console.log('X 좌표 변경:', newX);
-                                  setSeats(prev => prev.map(s => 
-                                    s.id === selectedSeatId 
-                                      ? { ...s, x: newX } 
-                                      : s
-                                  ));
-                                }}
-                                onBlur={(e) => {
-                                  const newX = parseInt(e.target.value) || 0;
-                                  console.log('X 좌표 확정:', newX);
-                                }}
-                              />
-                            </div>
-                            <div className={styles.inputGroup}>
-                              <label>Y 좌표:</label>
-                              <input
-                                type="number"
-                                step="1"
-                                value={seat.y}
-                                onChange={(e) => {
-                                  const newY = parseInt(e.target.value) || 0;
-                                  console.log('Y 좌표 변경:', newY);
-                                  setSeats(prev => prev.map(s => 
-                                    s.id === selectedSeatId 
-                                      ? { ...s, y: newY } 
-                                      : s
-                                  ));
-                                }}
-                                onBlur={(e) => {
-                                  const newY = parseInt(e.target.value) || 0;
-                                  console.log('Y 좌표 확정:', newY);
-                                }}
-                              />
-                            </div>
-                            <button 
-                              className={styles.snapButton}
-                              onClick={() => {
-                                setSeats(prev => prev.map(s => {
-                                  if (s.id === selectedSeatId) {
-                                    const snapped = snapPositionToGrid(s.x, s.y);
-                                    return { ...s, ...snapped };
-                                  }
-                                  return s;
-                                }));
-                              }}
-                            >
-                              그리드에 맞춤
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
+                <button
+                  className={styles.rangeAssignButton}
+                  onClick={onRangeAssign}
+                  disabled={Object.keys(rangeErrors).length > 0}
+                >
+                  📋 범위별 분배
+                </button>
               </div>
+
             </Panel>
-          )}
+
+
+
+          </div>
+
         </div>
 
+        
         {/* 우측: 캔버스 */}
         <div className={styles.canvasContainer}>
           {/* 사이드바 토글 버튼 */}

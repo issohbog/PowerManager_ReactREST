@@ -41,6 +41,9 @@ const UserListContainer = () => {
   const closeAllModals = () => {
     setModalOpen(false);
     setPasswordResetModalOpen(false);
+    setEditModalOpen(false);
+    setRegisterModalOpen(false);
+    setSelectedUserNos([]); // 모든 모달 닫힐 때 체크박스 해제
   };
 
   useEffect(() => {
@@ -78,7 +81,10 @@ const UserListContainer = () => {
     setModalOpen(true);
   };
 
-  const closeModal = () => setModalOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedUserNos([]); // 모달 닫힐 때 체크박스 해제
+  };
 
   const handleSave = async (userData) => {
     if (modalMode === 'register') {
@@ -170,7 +176,8 @@ const UserListContainer = () => {
         onDelete={handleDelete}
         onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
         onView={(user) => openModal('view', user)}
-        clearSelectedUserNos={clearSelectedUserNos}
+        selectedUserNos={selectedUserNos}
+        setSelectedUserNos={setSelectedUserNos}
       />
 
 

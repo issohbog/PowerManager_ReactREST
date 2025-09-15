@@ -41,19 +41,21 @@ const UserModal = ({
   useEffect(() => {
     if (open) {
       setAnimationClass(styles.fadeIn); // 모달 열릴 때
-    } else if (animationClass === styles.fadeIn) {
-      setAnimationClass(styles.fadeOut); // 모달 닫힐 때
-      setTimeout(() => onClose(), 500); // 애니메이션 종료 후 모달 닫기
     }
+    // open이 false가 되어도 부모에서 바로 unmount하지 않도록 구조를 맞춰야 함
+    // 닫기는 반드시 setAnimationClass(styles.fadeOut)로만 트리거
   }, [open]);
 
-  const handleAnimationEnd = () => {    
+  const handleAnimationEnd = () => {
     if (animationClass === styles.fadeOut) {
-      clearSelectedUserNos();
+      if (typeof clearSelectedUserNos === 'function') {
+        clearSelectedUserNos();
+      }
       onClose(); // 애니메이션이 끝나면 모달 닫기
     }
   };
 
+  // fadeOut 애니메이션이 끝나기 전까지는 unmount하지 않음
   if (!open && animationClass !== styles.fadeOut) return null;
 
   const handleChange = (e) => {
@@ -230,15 +232,15 @@ const UserModal = ({
                 className={styles.btnCancel} 
                 onClick={() => setAnimationClass(styles.fadeOut)}>
                   취소
-                  </button>
+            </button>
             {!isView && <button type="submit" className={styles.btnSave} id="modal-submit-btn">저장</button>}
             {isEdit && onDelete && (
               <button type="button" className={styles.btnDelete} onClick={() => {
-                                                                    if (window.confirm('정말 삭제하시겠습니까?')) {
-                                                                      onDelete(form.no); // onDelete 호출
-                                                                      setAnimationClass(styles.fadeOut); // 닫기 애니메이션 실행
-                                                                    }
-                                                                  }}>삭제</button>
+                if (window.confirm('정말 삭제하시겠습니까?')) {
+                  onDelete(form.no); // onDelete 호출
+                  setAnimationClass(styles.fadeOut); // 닫기 애니메이션 실행
+                }
+              }}>삭제</button>
             )}
             {isView && (
               <>

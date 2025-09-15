@@ -105,7 +105,8 @@ public class SecurityConfig {
                     "/userticket/insert"
                 ).hasAnyRole("USER","ADMIN")
                 // 그 외는 인증 필요
-                .anyRequest().authenticated()
+                // .anyRequest().authenticated()
+                .anyRequest().permitAll()
             )
             // 유저 디테일 서비스
             .userDetailsService(userDetailServiceImpl)
@@ -125,7 +126,8 @@ public class SecurityConfig {
 
         CorsConfiguration cfg = new CorsConfiguration();
 
-        cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174", "http://192.168.30.36:5173", "http://192.168.30.36:5174"));
+        cfg.setAllowedOriginPatterns(Arrays.asList("*"));
+        // cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "http://192.168.30.6:5173", "http://192.168.30.6:5174", "http://192.168.30.36:5173", "http://192.168.30.36:5174"));
         cfg.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(Arrays.asList("*"));
         cfg.setAllowCredentials(true);

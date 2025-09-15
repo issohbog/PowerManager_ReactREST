@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Header from './Header'
-import { SeatCountProvider } from '../../../contexts/SeatCountContext.jsx';
+
 import SidebarLeft from './SidebarLeft'
 import SidebarRight from './SidebarRight'
 import OrderPopupContainer from '../../../containers/Admin/OrderPopupContainer'
@@ -63,7 +63,15 @@ const AdminLayout = () => {
   };
 
   // 🧑‍💼 사이드바 모달 닫기 함수
-  const closeSidebarModal = () => setSidebarModalOpen(false);
+  // const closeSidebarModal = () => setSidebarModalOpen(false);
+  const closeSidebarModal = () => {
+  setSidebarModalOpen(false);
+  setSidebarRegisterResult(null);
+  setSidebarShowRegisterResultModal(false);
+  setSidebarIdCheckMessage('');
+  setSidebarIdCheckStatus('');
+  setSidebarSelectedUser(null);
+};
 
   // 🧑‍💼 사이드바 회원등록 모달 열기 함수 (사이드바에서 호출)
   const handleOpenSidebarUserRegisterModal = () => {
@@ -127,7 +135,9 @@ const AdminLayout = () => {
   useEffect(() => {
     // ws - topic : /topic/admin/logs
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      // brokerURL: 'ws://localhost:8080/ws',
+      // brokerURL: 'wss://powermanager1.cafe24.com/ws',
+      brokerURL: `wss://${window.location.hostname}/ws`,
       connectHeaders: {},
       onConnect: () => {
         client.subscribe('/topic/admin/logs', message => {
@@ -154,59 +164,59 @@ const AdminLayout = () => {
 
 
 
-    return (
-      <SeatCountProvider>
-        <Header />
-        <div className="admin-container">
-          <SidebarLeft 
-            onOpenUserRegisterModal={handleOpenSidebarUserRegisterModal} 
-            onOpenAdminTicketModal={() => setShowAdminTicketModal(true)}
-          />
-          <main className='admin-main'>
-            <div className="admin-content">
-              <Outlet />
-            </div>
-          </main>
-          <SidebarRight onOrderPopupToggle={handleOrderPopupToggle} />
-        </div>
-        {/* ✅ OrderPopup 모달 */}
-        <OrderPopupContainer
-          isVisible={showOrderPopup}
-          onClose={handleOrderPopupClose}
+  return (
+    <>
+      <Header />
+      <div className="admin-container">
+        <SidebarLeft 
+          onOpenUserRegisterModal={handleOpenSidebarUserRegisterModal} 
+          onOpenAdminTicketModal={() => setShowAdminTicketModal(true)}
         />
-        {/* 👮‍♀️🎫 AdminTicketModal 모달 - 관리자 요금제 구매 모달*/}
-        {showAdminTicketModal && 
-          <AdminTicketContainer 
-            open={showAdminTicketModal}   
-            onClose={() => setShowAdminTicketModal(false)} />} 
-        {/* 👮‍♀️🎫 TicketSuccessModal 모달 - 관리자 요금제 구매 성공 모달 */}
-        {showTicketSuccessModal && (
-          <TicketSuccessModal
-            open={showTicketSuccessModal}
-            onClose={() => setShowTicketSuccessModal(false)}
-          />
-        )}
-        {/* 🧑‍💼 사이드바 회원등록 모달 */}
-        {sidebarModalOpen && (
-          <UserModal
-            open={sidebarModalOpen}
-            mode={sidebarModalMode}
-            user={sidebarSelectedUser}
-            onClose={closeSidebarModal}
-            onSave={handleSidebarSave}
-            onIdCheck={handleSidebarIdCheck}
-            idCheckMessage={sidebarIdCheckMessage}
-            idCheckStatus={sidebarIdCheckStatus}
-          />
-        )}
-        {/* 🧑‍💼 사이드바 회원등록 결과 모달 */}
-        <RegisterResultModal
-          open={sidebarShowRegisterResultModal}
-          onClose={() => setSidebarShowRegisterResultModal(false)}
-          result={sidebarRegisterResult}
+        <main className='admin-main'>
+          <div className="admin-content">
+            <Outlet />
+          </div>
+        </main>
+        <SidebarRight onOrderPopupToggle={handleOrderPopupToggle} />
+      </div>
+      {/* ✅ OrderPopup 모달 */}
+      <OrderPopupContainer
+        isVisible={showOrderPopup}
+        onClose={handleOrderPopupClose}
+      />
+      {/* 👮‍♀️🎫 AdminTicketModal 모달 - 관리자 요금제 구매 모달*/}
+      {showAdminTicketModal && 
+        <AdminTicketContainer 
+          open={showAdminTicketModal}   
+          onClose={() => setShowAdminTicketModal(false)} />} 
+      {/* 👮‍♀️🎫 TicketSuccessModal 모달 - 관리자 요금제 구매 성공 모달 */}
+      {showTicketSuccessModal && (
+        <TicketSuccessModal
+          open={showTicketSuccessModal}
+          onClose={() => setShowTicketSuccessModal(false)}
         />
-      </SeatCountProvider>
-    )
+      )}
+      {/* 🧑‍💼 사이드바 회원등록 모달 */}
+      {sidebarModalOpen && (
+        <UserModal
+          open={sidebarModalOpen}
+          mode={sidebarModalMode}
+          user={sidebarSelectedUser}
+          onClose={closeSidebarModal}
+          onSave={handleSidebarSave}
+          onIdCheck={handleSidebarIdCheck}
+          idCheckMessage={sidebarIdCheckMessage}
+          idCheckStatus={sidebarIdCheckStatus}
+        />
+      )}
+      {/* 🧑‍💼 사이드바 회원등록 결과 모달 */}
+      <RegisterResultModal
+        open={sidebarShowRegisterResultModal}
+        onClose={() => setSidebarShowRegisterResultModal(false)}
+        result={sidebarRegisterResult}
+      />
+    </>
+  )
 }
 
 export default AdminLayout
