@@ -54,7 +54,7 @@ public class SeatServiceImpl implements SeatService {
             String className = switch (seat.getSeatStatus().intValue()){
                 case 2 -> "broken";
                 case 3 -> "cleaning"; 
-                case 1 -> (seat.getRemainTime() != null && seat.getRemainTime() > 60)
+                case 1 -> (seat.getRemainTime() != null && seat.getRemainTime() > 3600)   // 60 -> 3600
                             ? "in-use-green"
                             : "in-use-red"; 
                 default -> "available";

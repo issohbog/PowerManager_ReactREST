@@ -124,9 +124,14 @@ const SeatStatusContainer = () => {
 
     // ws - topic : /topic/admin/seats
     const clientSeats = new Client({
+
+      // 로컬용 
       // brokerURL: 'ws://localhost:8080/ws',
+
       // brokerURL: 'wss://powermanager159.cafe24.com/ws',
       // brokerURL: 'wss://powermanager1.cafe24.com/ws',
+      
+      // 배포용
       brokerURL: `wss://${window.location.hostname}/ws`,
       connectHeaders: {},
       onConnect: () => {

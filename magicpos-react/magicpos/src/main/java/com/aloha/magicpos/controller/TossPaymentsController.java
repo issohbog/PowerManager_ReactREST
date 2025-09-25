@@ -136,11 +136,14 @@ public class TossPaymentsController {
             // return ResponseEntity.ok(result);
             return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "?payment=success");
             // return new RedirectView("http://localhost:5173/admin/" + currentPage + "?payment=success");
+            // return new RedirectView("https://powermanager1.cafe24.com/admin/" + currentPage + "?payment=success");
+            
 
         } catch (Exception e) {
             log.error("💳 관리자 요금제 결제 승인 처리 중 오류: {}", e.getMessage(), e);
             return new RedirectView("http://" + ip + ":5173/admin/" + currentPage + "/payment=fail");
             // return new RedirectView("http://localhost:5173/admin/" + currentPage + "/payment=fail");
+            // return new RedirectView("https://powermanager1.cafe24.com/admin/" + currentPage + "/payment=fail");
 
         }
 
@@ -196,6 +199,8 @@ public class TossPaymentsController {
 
         return new RedirectView("http://" + ip + ":5173/menu?ticketPayment=success");
         // return new RedirectView("http://localhost:5173/menu?ticketPayment=success");
+        // return new RedirectView("https://powermanager1.cafe24.com/menu?ticketPayment=success");
+
     }
     
     // 사용자 요금제 결제 실패
@@ -246,8 +251,8 @@ public class TossPaymentsController {
             paymentInfo.put("orderId", orderId);
             paymentInfo.put("orderName", orderName);
             paymentInfo.put("customerName", orderData.get("customerName"));
-            paymentInfo.put("successUrl",  "http://" + ip + ":5173/menu?payment=success");
-            paymentInfo.put("failUrl", "http://" + ip + ":5173/menu?payment=fail");
+            // paymentInfo.put("successUrl",  "https://powermanager1.cafe24.com/menu?payment=success");
+            // paymentInfo.put("failUrl", "https://powermanager1.cafe24.com/menu?payment=fail");
 
             // 세션에 주문 정보 임시 저장
             session.setAttribute("tempOrder_" + orderId, orderData);
@@ -382,8 +387,8 @@ public class TossPaymentsController {
         result.put("orderName", orderName);
         result.put("amount", totalPrice);
         result.put("customerName", customerName); // 또는 로그인 유저 이름 등
-        result.put("successUrl",  "http://" + ip + ":5173/admin?payment=success");
-        result.put("failUrl", "http://" + ip + ":5173/admin?payment=fail");
+        // result.put("successUrl",  "https://powermanager1.cafe24.com/admin?payment=success");
+        // result.put("failUrl", "https://powermanager1.cafe24.com/admin?payment=fail");
 
         return result;
     }
